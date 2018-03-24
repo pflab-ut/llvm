@@ -137,8 +137,6 @@ enum {
   EM_MIPS = 8,           // MIPS R3000
   EM_S370 = 9,           // IBM System/370
   EM_MIPS_RS3_LE = 10,   // MIPS RS3000 Little-endian
-  EM_MAXIS = 11,         // MAXIS R3000
-  EM_MAXIS_RS3_LE = 12,   // MAXIS RS3000 Little-endian
   EM_PARISC = 15,        // Hewlett-Packard PA-RISC
   EM_VPP500 = 17,        // Fujitsu VPP500
   EM_SPARC32PLUS = 18,   // Enhanced instruction set SPARC
@@ -235,7 +233,6 @@ enum {
                          // Controller
   EM_CE = 119,           // Freescale Communication Engine RISC core
   EM_M32C = 120,         // Renesas M32C series microprocessors
-  EM_MAXIS_X = 121,      // Stanford MAXIS-X
   EM_TSK3000 = 131,      // Altium TSK3000 core
   EM_RS08 = 132,         // Freescale RS08 embedded processor
   EM_SHARC = 133,        // Analog Devices SHARC family of 32-bit DSP
@@ -316,6 +313,10 @@ enum {
   EM_LANAI = 244,         // Lanai 32-bit processor
   EM_BPF = 247,           // Linux kernel bpf virtual machine
 
+  EM_MAXIS = 250,         // MAXIS R3000
+  EM_MAXIS_RS3_LE = 251,   // MAXIS RS3000 Little-endian
+  EM_MAXIS_X = 252,      // Stanford MAXIS-X
+  
   // A request has been made to the maintainer of the official registry for
   // such numbers for an official value for WebAssembly. As soon as one is
   // allocated, this enum will be updated to use it.
@@ -860,10 +861,10 @@ enum : unsigned {
   SHT_MIPS_DWARF = 0x7000001e,    // DWARF debugging section.
   SHT_MIPS_ABIFLAGS = 0x7000002a, // ABI information.
 
-  SHT_MAXIS_REGINFO = 0x70010006,  // Register usage information
-  SHT_MAXIS_OPTIONS = 0x7001000d,  // General options
-  SHT_MAXIS_DWARF = 0x7001001e,    // DWARF debugging section.
-  SHT_MAXIS_ABIFLAGS = 0x7001002a, // ABI information.
+  SHT_MAXIS_REGINFO = 0x78000006,  // Register usage information
+  SHT_MAXIS_OPTIONS = 0x7800000d,  // General options
+  SHT_MAXIS_DWARF = 0x7800001e,    // DWARF debugging section.
+  SHT_MAXIS_ABIFLAGS = 0x7800002a, // ABI information.
     
   SHT_HIPROC = 0x7fffffff, // Highest processor arch-specific type.
   SHT_LOUSER = 0x80000000, // Lowest type reserved for applications.
@@ -1226,10 +1227,10 @@ enum {
   PT_MIPS_ABIFLAGS = 0x70000003, // Abiflags segment.
 
   // MAXIS program header types.
-  PT_MAXIS_REGINFO = 0x70010000,  // Register usage information.
-  PT_MAXIS_RTPROC = 0x70010001,   // Runtime procedure table.
-  PT_MAXIS_OPTIONS = 0x70010002,  // Options segment.
-  PT_MAXIS_ABIFLAGS = 0x70010003, // Abiflags segment.
+  PT_MAXIS_REGINFO = 0x70000000,  // Register usage information.
+  PT_MAXIS_RTPROC = 0x70000001,   // Runtime procedure table.
+  PT_MAXIS_OPTIONS = 0x70000002,  // Options segment.
+  PT_MAXIS_ABIFLAGS = 0x70000003, // Abiflags segment.
 
   // WebAssembly program header types.
   PT_WEBASSEMBLY_FUNCTIONS = PT_LOPROC + 0, // Function definitions.
@@ -1410,79 +1411,79 @@ enum {
                                      // map, used for debugging.
 
   // Maxis specific dynamic table entry tags.
-  DT_MAXIS_RLD_VERSION = 0x70010001,    // 32 bit version number for runtime
+  DT_MAXIS_RLD_VERSION = 0x78000001,    // 32 bit version number for runtime
                                        // linker interface.
-  DT_MAXIS_TIME_STAMP = 0x70010002,     // Time stamp.
-  DT_MAXIS_ICHECKSUM = 0x70010003,      // Checksum of external strings
+  DT_MAXIS_TIME_STAMP = 0x78000002,     // Time stamp.
+  DT_MAXIS_ICHECKSUM = 0x78000003,      // Checksum of external strings
                                        // and common sizes.
-  DT_MAXIS_IVERSION = 0x70010004,       // Index of version string
+  DT_MAXIS_IVERSION = 0x78000004,       // Index of version string
                                        // in string table.
-  DT_MAXIS_FLAGS = 0x70010005,          // 32 bits of flags.
-  DT_MAXIS_BASE_ADDRESS = 0x70010006,   // Base address of the segment.
-  DT_MAXIS_MSYM = 0x70010007,           // Address of .msym section.
-  DT_MAXIS_CONFLICT = 0x70010008,       // Address of .conflict section.
-  DT_MAXIS_LIBLIST = 0x70010009,        // Address of .liblist section.
-  DT_MAXIS_LOCAL_GOTNO = 0x7001000a,    // Number of local global offset
+  DT_MAXIS_FLAGS = 0x78000005,          // 32 bits of flags.
+  DT_MAXIS_BASE_ADDRESS = 0x78000006,   // Base address of the segment.
+  DT_MAXIS_MSYM = 0x78000007,           // Address of .msym section.
+  DT_MAXIS_CONFLICT = 0x78000008,       // Address of .conflict section.
+  DT_MAXIS_LIBLIST = 0x78000009,        // Address of .liblist section.
+  DT_MAXIS_LOCAL_GOTNO = 0x7800000a,    // Number of local global offset
                                        // table entries.
-  DT_MAXIS_CONFLICTNO = 0x7001000b,     // Number of entries
+  DT_MAXIS_CONFLICTNO = 0x7800000b,     // Number of entries
                                        // in the .conflict section.
-  DT_MAXIS_LIBLISTNO = 0x70010010,      // Number of entries
+  DT_MAXIS_LIBLISTNO = 0x78000010,      // Number of entries
                                        // in the .liblist section.
-  DT_MAXIS_SYMTABNO = 0x70010011,       // Number of entries
+  DT_MAXIS_SYMTABNO = 0x78000011,       // Number of entries
                                        // in the .dynsym section.
-  DT_MAXIS_UNREFEXTNO = 0x70010012,     // Index of first external dynamic symbol
+  DT_MAXIS_UNREFEXTNO = 0x78000012,     // Index of first external dynamic symbol
                                        // not referenced locally.
-  DT_MAXIS_GOTSYM = 0x70010013,         // Index of first dynamic symbol
+  DT_MAXIS_GOTSYM = 0x78000013,         // Index of first dynamic symbol
                                        // in global offset table.
-  DT_MAXIS_HIPAGENO = 0x70010014,       // Number of page table entries
+  DT_MAXIS_HIPAGENO = 0x78000014,       // Number of page table entries
                                        // in global offset table.
-  DT_MAXIS_RLD_MAP = 0x70010016,        // Address of run time loader map,
+  DT_MAXIS_RLD_MAP = 0x78000016,        // Address of run time loader map,
                                        // used for debugging.
-  DT_MAXIS_DELTA_CLASS = 0x70010017,    // Delta C++ class definition.
-  DT_MAXIS_DELTA_CLASS_NO = 0x70010018, // Number of entries
+  DT_MAXIS_DELTA_CLASS = 0x78000017,    // Delta C++ class definition.
+  DT_MAXIS_DELTA_CLASS_NO = 0x78000018, // Number of entries
                                        // in DT_MAXIS_DELTA_CLASS.
-  DT_MAXIS_DELTA_INSTANCE = 0x70010019, // Delta C++ class instances.
-  DT_MAXIS_DELTA_INSTANCE_NO = 0x7001001A,     // Number of entries
+  DT_MAXIS_DELTA_INSTANCE = 0x78000019, // Delta C++ class instances.
+  DT_MAXIS_DELTA_INSTANCE_NO = 0x7800001A,     // Number of entries
                                               // in DT_MAXIS_DELTA_INSTANCE.
-  DT_MAXIS_DELTA_RELOC = 0x7001001B,           // Delta relocations.
-  DT_MAXIS_DELTA_RELOC_NO = 0x7001001C,        // Number of entries
+  DT_MAXIS_DELTA_RELOC = 0x7800001B,           // Delta relocations.
+  DT_MAXIS_DELTA_RELOC_NO = 0x7800001C,        // Number of entries
                                               // in DT_MAXIS_DELTA_RELOC.
-  DT_MAXIS_DELTA_SYM = 0x7001001D,             // Delta symbols that Delta
+  DT_MAXIS_DELTA_SYM = 0x7800001D,             // Delta symbols that Delta
                                               // relocations refer to.
-  DT_MAXIS_DELTA_SYM_NO = 0x7001001E,          // Number of entries
+  DT_MAXIS_DELTA_SYM_NO = 0x7800001E,          // Number of entries
                                               // in DT_MAXIS_DELTA_SYM.
-  DT_MAXIS_DELTA_CLASSSYM = 0x70010020,        // Delta symbols that hold
+  DT_MAXIS_DELTA_CLASSSYM = 0x78000020,        // Delta symbols that hold
                                               // class declarations.
-  DT_MAXIS_DELTA_CLASSSYM_NO = 0x70010021,     // Number of entries
+  DT_MAXIS_DELTA_CLASSSYM_NO = 0x78000021,     // Number of entries
                                               // in DT_MAXIS_DELTA_CLASSSYM.
-  DT_MAXIS_CXX_FLAGS = 0x70010022,             // Flags indicating information
+  DT_MAXIS_CXX_FLAGS = 0x78000022,             // Flags indicating information
                                               // about C++ flavor.
-  DT_MAXIS_PIXIE_INIT = 0x70010023,            // Pixie information.
-  DT_MAXIS_SYMBOL_LIB = 0x70010024,            // Address of .MAXIS.symlib
-  DT_MAXIS_LOCALPAGE_GOTIDX = 0x70010025,      // The GOT index of the first PTE
+  DT_MAXIS_PIXIE_INIT = 0x78000023,            // Pixie information.
+  DT_MAXIS_SYMBOL_LIB = 0x78000024,            // Address of .MAXIS.symlib
+  DT_MAXIS_LOCALPAGE_GOTIDX = 0x78000025,      // The GOT index of the first PTE
                                               // for a segment
-  DT_MAXIS_LOCAL_GOTIDX = 0x70010026,          // The GOT index of the first PTE
+  DT_MAXIS_LOCAL_GOTIDX = 0x78000026,          // The GOT index of the first PTE
                                               // for a local symbol
-  DT_MAXIS_HIDDEN_GOTIDX = 0x70010027,         // The GOT index of the first PTE
+  DT_MAXIS_HIDDEN_GOTIDX = 0x78000027,         // The GOT index of the first PTE
                                               // for a hidden symbol
-  DT_MAXIS_PROTECTED_GOTIDX = 0x70010028,      // The GOT index of the first PTE
+  DT_MAXIS_PROTECTED_GOTIDX = 0x78000028,      // The GOT index of the first PTE
                                               // for a protected symbol
-  DT_MAXIS_OPTIONS = 0x70010029,               // Address of `.MAXIS.options'.
-  DT_MAXIS_INTERFACE = 0x7001002A,             // Address of `.interface'.
-  DT_MAXIS_DYNSTR_ALIGN = 0x7001002B,          // Unknown.
-  DT_MAXIS_INTERFACE_SIZE = 0x7001002C,        // Size of the .interface section.
-  DT_MAXIS_RLD_TEXT_RESOLVE_ADDR = 0x7001002D, // Size of rld_text_resolve
+  DT_MAXIS_OPTIONS = 0x78000029,               // Address of `.MAXIS.options'.
+  DT_MAXIS_INTERFACE = 0x7800002A,             // Address of `.interface'.
+  DT_MAXIS_DYNSTR_ALIGN = 0x7800002B,          // Unknown.
+  DT_MAXIS_INTERFACE_SIZE = 0x7800002C,        // Size of the .interface section.
+  DT_MAXIS_RLD_TEXT_RESOLVE_ADDR = 0x7800002D, // Size of rld_text_resolve
                                               // function stored in the GOT.
-  DT_MAXIS_PERF_SUFFIX = 0x7001002E,  // Default suffix of DSO to be added
+  DT_MAXIS_PERF_SUFFIX = 0x7800002E,  // Default suffix of DSO to be added
                                      // by rld on dlopen() calls.
-  DT_MAXIS_COMPACT_SIZE = 0x7001002F, // Size of compact relocation
+  DT_MAXIS_COMPACT_SIZE = 0x7800002F, // Size of compact relocation
                                      // section (O32).
-  DT_MAXIS_GP_VALUE = 0x70010030,     // GP value for auxiliary GOTs.
-  DT_MAXIS_AUX_DYNAMIC = 0x70010031,  // Address of auxiliary .dynamic.
-  DT_MAXIS_PLTGOT = 0x70010032,       // Address of the base of the PLTGOT.
-  DT_MAXIS_RWPLT = 0x70010034,        // Points to the base
+  DT_MAXIS_GP_VALUE = 0x78000030,     // GP value for auxiliary GOTs.
+  DT_MAXIS_AUX_DYNAMIC = 0x78000031,  // Address of auxiliary .dynamic.
+  DT_MAXIS_PLTGOT = 0x78000032,       // Address of the base of the PLTGOT.
+  DT_MAXIS_RWPLT = 0x78000034,        // Points to the base
                                      // of a writable PLT.
-  DT_MAXIS_RLD_MAP_REL = 0x70010035,  // Relative offset of run time loader
+  DT_MAXIS_RLD_MAP_REL = 0x78000035,  // Relative offset of run time loader
                                      // map, used for debugging.
   
   // Sun machine-independent extensions.

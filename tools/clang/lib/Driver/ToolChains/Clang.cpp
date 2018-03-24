@@ -4290,10 +4290,9 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
               RawTriple.getOS() != llvm::Triple::Solaris &&
               getToolChain().getArch() != llvm::Triple::hexagon &&
               getToolChain().getArch() != llvm::Triple::xcore &&
-              ((RawTriple.getVendor() != llvm::Triple::MaxisTechnologies) ||
-               RawTriple.hasEnvironment()) ||
-              ((RawTriple.getVendor() != llvm::Triple::MipsTechnologies) ||
-               RawTriple.hasEnvironment())) 
+          ((RawTriple.getVendor() != llvm::Triple::MaxisTechnologies &&
+            RawTriple.getVendor() != llvm::Triple::MipsTechnologies) ||
+           RawTriple.hasEnvironment())) || 
       KernelOrKext)
     CmdArgs.push_back("-fno-use-cxa-atexit");
 

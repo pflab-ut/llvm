@@ -286,7 +286,7 @@ template <class RelT>
 std::error_code ELFDumper<ELFT>::dumpRelocation(const RelT *Rel,
                                                 const Elf_Shdr *SymTab,
                                                 ELFYAML::Relocation &R) {
-  if (Obj.getHeader()->e_machine == EM_MAXIS) {
+  if (Obj.getHeader()->e_machine == llvm::ELF::EM_MAXIS) {
     R.Type = Rel->getType(Obj.isMaxis64EL());
   } else {
     R.Type = Rel->getType(Obj.isMips64EL());

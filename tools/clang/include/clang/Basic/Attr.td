@@ -1217,13 +1217,13 @@ def MicroMaxis : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
 }
 
 def MaxisLongCall : InheritableAttr, TargetSpecificAttr<TargetAnyMaxis> {
-  let Spellings = [GCC<"long_call">, GCC<"far">];
+  let Spellings = [GCC<"maxis_long_call">, GCC<"maxis_far">];
   let Subjects = SubjectList<[Function]>;
   let Documentation = [MaxisLongCallStyleDocs];
 }
 
 def MaxisShortCall : InheritableAttr, TargetSpecificAttr<TargetAnyMaxis> {
-  let Spellings = [GCC<"short_call">, GCC<"near">];
+  let Spellings = [GCC<"maxis_short_call">, GCC<"maxis_near">];
   let Subjects = SubjectList<[Function]>;
   let Documentation = [MaxisShortCallStyleDocs];
 }

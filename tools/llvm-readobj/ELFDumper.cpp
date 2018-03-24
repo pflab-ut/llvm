@@ -1164,7 +1164,6 @@ static const char *getElfSegmentType(unsigned Arch, unsigned Type) {
     LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_OPTIONS);
     LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_ABIFLAGS);
     }
-  }
   case ELF::EM_MIPS:
   case ELF::EM_MIPS_RS3_LE:
     switch (Type) {
@@ -1232,8 +1231,7 @@ static std::string getElfPtType(unsigned Arch, unsigned Type) {
       case PT_MAXIS_ABIFLAGS:
         return "ABIFLAGS";
       }
-      return "";
-    }
+      return "";    
     case ELF::EM_MIPS:
     case ELF::EM_MIPS_RS3_LE:
       switch (Type) {
@@ -1653,7 +1651,6 @@ static const char *getTypeString(unsigned Arch, uint64_t Type) {
     LLVM_READOBJ_TYPE_CASE(MAXIS_PLTGOT);
     LLVM_READOBJ_TYPE_CASE(MAXIS_OPTIONS);
     }
-  }
   case EM_MIPS:
     switch (Type) {
     LLVM_READOBJ_TYPE_CASE(MIPS_RLD_MAP_REL);
@@ -3266,7 +3263,6 @@ std::string getSectionTypeString(unsigned Arch, unsigned Type) {
     case SHT_MAXIS_DWARF:
       return "SHT_MAXIS_DWARF";
     }
-  }
   case EM_MIPS:
   case EM_MIPS_RS3_LE:
     switch (Type) {
