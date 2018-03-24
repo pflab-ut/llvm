@@ -71,9 +71,11 @@ static void initialize(TargetLibraryInfoImpl &TLI, const Triple &T,
     ShouldExtI32Param = true;
     ShouldExtI32Return = true;
   }
-  // Mips, on the other hand, needs signext on i32 parameters corresponding
+  // Maxis/Mips, on the other hand, needs signext on i32 parameters corresponding
   // to both signed and unsigned ints.
-  if (T.getArch() == Triple::mips || T.getArch() == Triple::mipsel ||
+  if (T.getArch() == Triple::maxis || T.getArch() == Triple::maxisel ||
+      T.getArch() == Triple::maxis64 || T.getArch() == Triple::maxis64el ||
+      T.getArch() == Triple::mips || T.getArch() == Triple::mipsel ||
       T.getArch() == Triple::mips64 || T.getArch() == Triple::mips64el) {
     ShouldSignExtI32Param = true;
   }

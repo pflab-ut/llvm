@@ -9,6 +9,7 @@
 
 #include "NetBSD.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/Sparc.h"
 #include "CommonArgs.h"
@@ -47,6 +48,30 @@ void netbsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
     std::string Arch =
         arm::getARMTargetCPU(MCPU, MArch, getToolChain().getTriple());
     CmdArgs.push_back(Args.MakeArgString("-mcpu=" + Arch));
+    break;
+  }
+
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    StringRef CPUName;
+    StringRef ABIName;
+    maxis::getMaxisCPUAndABI(Args, getToolChain().getTriple(), CPUName, ABIName);
+
+    CmdArgs.push_back("-march");
+    CmdArgs.push_back(CPUName.data());
+
+    CmdArgs.push_back("-mabi");
+    CmdArgs.push_back(maxis::getGnuCompatibleMaxisABIName(ABIName).data());
+
+    if (getToolChain().getArch() == llvm::Triple::maxis ||
+        getToolChain().getArch() == llvm::Triple::maxis64)
+      CmdArgs.push_back("-EB");
+    else
+      CmdArgs.push_back("-EL");
+
+    AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
     break;
   }
 
@@ -173,6 +198,22 @@ void netbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     default:
       CmdArgs.push_back("armelfb_nbsd");
       break;
+    }
+    break;
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
+    if (maxis::hasMaxisAbiArg(Args, "32")) {
+      CmdArgs.push_back("-m");
+      if (getToolChain().getArch() == llvm::Triple::maxis64)
+        CmdArgs.push_back("elf32btsmip");
+      else
+        CmdArgs.push_back("elf32ltsmip");
+    } else if (maxis::hasMaxisAbiArg(Args, "64")) {
+      CmdArgs.push_back("-m");
+      if (getToolChain().getArch() == llvm::Triple::maxis64)
+        CmdArgs.push_back("elf64btsmip");
+      else
+        CmdArgs.push_back("elf64ltsmip");
     }
     break;
   case llvm::Triple::mips64:
@@ -352,6 +393,13 @@ NetBSD::NetBSD(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
         getFilePaths().push_back("=/usr/lib/oabi");
         break;
       }
+      break;
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
+      if (tools::maxis::hasMaxisAbiArg(Args, "o32"))
+        getFilePaths().push_back("=/usr/lib/o32");
+      else if (tools::maxis::hasMaxisAbiArg(Args, "64"))
+        getFilePaths().push_back("=/usr/lib/64");
       break;
     case llvm::Triple::mips64:
     case llvm::Triple::mips64el:

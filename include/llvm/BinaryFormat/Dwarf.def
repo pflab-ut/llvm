@@ -169,6 +169,7 @@ HANDLE_DW_TAG(0x0049, call_site_parameter, 5, DWARF)
 HANDLE_DW_TAG(0x004a, skeleton_unit, 5, DWARF)
 HANDLE_DW_TAG(0x004b, immutable_type, 5, DWARF)
 // Vendor extensions:
+HANDLE_DW_TAG(0x4080, MAXIS_loop, 0, MAXIS)
 HANDLE_DW_TAG(0x4081, MIPS_loop, 0, MIPS)
 HANDLE_DW_TAG(0x4101, format_label, 0, GNU)
 HANDLE_DW_TAG(0x4102, function_template, 0, GNU)
@@ -330,6 +331,25 @@ HANDLE_DW_AT(0x2010, MIPS_assumed_shape_dopetype, 0, MIPS)
 // This one appears to have only been implemented by Open64 for
 // fortran and may conflict with other extensions.
 HANDLE_DW_AT(0x2011, MIPS_assumed_size, 0, MIPS)
+// Vendor extensions:
+HANDLE_DW_AT(0x2012, MAXIS_loop_begin, 0, MAXIS)
+HANDLE_DW_AT(0x2013, MAXIS_tail_loop_begin, 0, MAXIS)
+HANDLE_DW_AT(0x2014, MAXIS_epilog_begin, 0, MAXIS)
+HANDLE_DW_AT(0x2015, MAXIS_loop_unroll_factor, 0, MAXIS)
+HANDLE_DW_AT(0x2016, MAXIS_software_pipeline_depth, 0, MAXIS)
+HANDLE_DW_AT(0x2017, MAXIS_linkage_name, 0, MAXIS)
+HANDLE_DW_AT(0x2018, MAXIS_stride, 0, MAXIS)
+HANDLE_DW_AT(0x2019, MAXIS_abstract_name, 0, MAXIS)
+HANDLE_DW_AT(0x201a, MAXIS_clone_origin, 0, MAXIS)
+HANDLE_DW_AT(0x201b, MAXIS_has_inlines, 0, MAXIS)
+HANDLE_DW_AT(0x201c, MAXIS_stride_byte, 0, MAXIS)
+HANDLE_DW_AT(0x201d, MAXIS_stride_elem, 0, MAXIS)
+HANDLE_DW_AT(0x201e, MAXIS_ptr_dopetype, 0, MAXIS)
+HANDLE_DW_AT(0x201f, MAXIS_allocatable_dopetype, 0, MAXIS)
+HANDLE_DW_AT(0x2020, MAXIS_assumed_shape_dopetype, 0, MAXIS)
+// This one appears to have only been implemented by Open64 for
+// fortran and may conflict with other extensions.
+HANDLE_DW_AT(0x2021, MAXIS_assumed_size, 0, MAXIS)
 // GNU extensions
 HANDLE_DW_AT(0x2101, sf_names, 0, GNU)
 HANDLE_DW_AT(0x2102, src_info, 0, GNU)
@@ -660,6 +680,7 @@ HANDLE_DW_LANG(0x0024, RenderScript, 5, DWARF)
 HANDLE_DW_LANG(0x0025, BLISS, 5, DWARF)
 // Vendor extensions:
 HANDLE_DW_LANG(0x8001, Mips_Assembler, 0, MIPS)
+HANDLE_DW_LANG(0x8002, Maxis_Assembler, 0, MAXIS)
 HANDLE_DW_LANG(0x8e57, GOOGLE_RenderScript, 0, GOOGLE)
 HANDLE_DW_LANG(0xb000, BORLAND_Delphi, 0, BORLAND)
 
@@ -798,6 +819,7 @@ HANDLE_DW_CFA(0x15, val_offset_sf)
 HANDLE_DW_CFA(0x16, val_expression)
 // Vendor extensions:
 HANDLE_DW_CFA(0x1d, MIPS_advance_loc8)
+HANDLE_DW_CFA(0x1e, MAXIS_advance_loc8)
 HANDLE_DW_CFA(0x2d, GNU_window_save)
 HANDLE_DW_CFA(0x2e, GNU_args_size)
 

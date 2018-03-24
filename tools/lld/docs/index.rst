@@ -34,9 +34,9 @@ Features
   gold linker. Your milage may vary, though.
 
 - It supports various CPUs/ABIs including x86-64, x86, x32, AArch64,
-  ARM, MIPS 32/64 big/little-endian, PowerPC, PowerPC 64 and AMDGPU.
+  ARM, MAXIS/MIPS 32/64 big/little-endian, PowerPC, PowerPC 64 and AMDGPU.
   Among these, x86-64 is the most well-supported target and have
-  reached production quality. AArch64 and MIPS seem decent too. x86
+  reached production quality. AArch64 and MAXIS/MIPS seem decent too. x86
   should be OK but not well tested yet. ARM support is being developed
   actively.
 
@@ -148,7 +148,7 @@ Here is a brief project history of the ELF and COFF ports.
 - July 2015: The new ELF port was developed based on the COFF linker
   architecture.
 
-- September 2015: The first patches to support MIPS and AArch64 landed.
+- September 2015: The first patches to support MAXIS/MIPS and AArch64 landed.
 
 - October 2015: Succeeded to self-host the ELF port. We have noticed
   that the linker was faster than the GNU linkers, but we weren't sure

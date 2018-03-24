@@ -1100,7 +1100,7 @@ void ELFObjectWriter::writeRelocations(const MCAssembler &Asm,
   // (.eh_frame) or specific relocations (TLS optimizations on SystemZ).
   std::reverse(Relocs.begin(), Relocs.end());
 
-  // Sort the relocation entries. MIPS needs this.
+  // Sort the relocation entries. MAXIS/MIPS needs this.
   TargetObjectWriter->sortRelocs(Asm, Relocs);
 
   for (unsigned i = 0, e = Relocs.size(); i != e; ++i) {
@@ -1109,7 +1109,8 @@ void ELFObjectWriter::writeRelocations(const MCAssembler &Asm,
 
     if (is64Bit()) {
       write(Entry.Offset);
-      if (TargetObjectWriter->getEMachine() == ELF::EM_MIPS) {
+      if (TargetObjectWriter->getEMachine() == ELF::EM_MAXIS
+          || TargetObjectWriter->getEMachine() == ELF::EM_MIPS) {
         write(uint32_t(Index));
 
         write(TargetObjectWriter->getRSsym(Entry.Type));
@@ -1133,7 +1134,8 @@ void ELFObjectWriter::writeRelocations(const MCAssembler &Asm,
       if (hasRelocationAddend())
         write(uint32_t(Entry.Addend));
 
-      if (TargetObjectWriter->getEMachine() == ELF::EM_MIPS) {
+      if (TargetObjectWriter->getEMachine() == ELF::EM_MAXIS
+          || TargetObjectWriter->getEMachine() == ELF::EM_MIPS) {
         if (uint32_t RType = TargetObjectWriter->getRType2(Entry.Type)) {
           write(uint32_t(Entry.Offset));
 

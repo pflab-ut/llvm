@@ -58,6 +58,7 @@ class ELFDumper {
   dumpContentSection(const Elf_Shdr *Shdr);
   ErrorOr<ELFYAML::NoBitsSection *> dumpNoBitsSection(const Elf_Shdr *Shdr);
   ErrorOr<ELFYAML::Group *> dumpGroup(const Elf_Shdr *Shdr);
+  ErrorOr<ELFYAML::MaxisABIFlags *> dumpMaxisABIFlags(const Elf_Shdr *Shdr);
   ErrorOr<ELFYAML::MipsABIFlags *> dumpMipsABIFlags(const Elf_Shdr *Shdr);
 
 public:
@@ -163,6 +164,13 @@ template <class ELFT> ErrorOr<ELFYAML::Object *> ELFDumper<ELFT>::dump() {
     }
     case ELF::SHT_GROUP: {
       ErrorOr<ELFYAML::Group *> G = dumpGroup(&Sec);
+      if (std::error_code EC = G.getError())
+        return EC;
+      Y->Sections.push_back(std::unique_ptr<ELFYAML::Section>(G.get()));
+      break;
+    }
+    case ELF::SHT_MAXIS_ABIFLAGS: {
+      ErrorOr<ELFYAML::MaxisABIFlags *> G = dumpMaxisABIFlags(&Sec);
       if (std::error_code EC = G.getError())
         return EC;
       Y->Sections.push_back(std::unique_ptr<ELFYAML::Section>(G.get()));
@@ -278,7 +286,11 @@ template <class RelT>
 std::error_code ELFDumper<ELFT>::dumpRelocation(const RelT *Rel,
                                                 const Elf_Shdr *SymTab,
                                                 ELFYAML::Relocation &R) {
-  R.Type = Rel->getType(Obj.isMips64EL());
+  if (Obj.getHeader()->e_machine == EM_MAXIS) {
+    R.Type = Rel->getType(Obj.isMaxis64EL());
+  } else {
+    R.Type = Rel->getType(Obj.isMips64EL());
+  }
   R.Offset = Rel->r_offset;
   R.Addend = 0;
 
@@ -483,6 +495,35 @@ ErrorOr<ELFYAML::Group *> ELFDumper<ELFT>::dumpGroup(const Elf_Shdr *Shdr) {
     }
     S->Members.push_back(s);
   }
+  return S.release();
+}
+
+template <class ELFT>
+ErrorOr<ELFYAML::MaxisABIFlags *>
+ELFDumper<ELFT>::dumpMaxisABIFlags(const Elf_Shdr *Shdr) {
+  assert(Shdr->sh_type == ELF::SHT_MAXIS_ABIFLAGS &&
+         "Section type is not SHT_MAXIS_ABIFLAGS");
+  auto S = make_unique<ELFYAML::MaxisABIFlags>();
+  if (std::error_code EC = dumpCommonSection(Shdr, *S))
+    return EC;
+
+  auto ContentOrErr = Obj.getSectionContents(Shdr);
+  if (!ContentOrErr)
+    return errorToErrorCode(ContentOrErr.takeError());
+
+  auto *Flags = reinterpret_cast<const object::Elf_Maxis_ABIFlags<ELFT> *>(
+      ContentOrErr.get().data());
+  S->Version = Flags->version;
+  S->ISALevel = Flags->isa_level;
+  S->ISARevision = Flags->isa_rev;
+  S->GPRSize = Flags->gpr_size;
+  S->CPR1Size = Flags->cpr1_size;
+  S->CPR2Size = Flags->cpr2_size;
+  S->FpABI = Flags->fp_abi;
+  S->ISAExtension = Flags->isa_ext;
+  S->ASEs = Flags->ases;
+  S->Flags1 = Flags->flags1;
+  S->Flags2 = Flags->flags2;
   return S.release();
 }
 

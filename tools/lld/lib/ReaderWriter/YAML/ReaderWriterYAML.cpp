@@ -349,6 +349,10 @@ template <> struct ScalarEnumerationTraits<lld::DefinedAtom::DynamicExport> {
 template <> struct ScalarEnumerationTraits<lld::DefinedAtom::CodeModel> {
   static void enumeration(IO &io, lld::DefinedAtom::CodeModel &value) {
     io.enumCase(value, "none", lld::DefinedAtom::codeNA);
+    io.enumCase(value, "maxis-pic", lld::DefinedAtom::codeMaxisPIC);
+    io.enumCase(value, "maxis-micro", lld::DefinedAtom::codeMaxisMicro);
+    io.enumCase(value, "maxis-micro-pic", lld::DefinedAtom::codeMaxisMicroPIC);
+    io.enumCase(value, "maxis-16", lld::DefinedAtom::codeMaxis16);
     io.enumCase(value, "mips-pic", lld::DefinedAtom::codeMipsPIC);
     io.enumCase(value, "mips-micro", lld::DefinedAtom::codeMipsMicro);
     io.enumCase(value, "mips-micro-pic", lld::DefinedAtom::codeMipsMicroPIC);

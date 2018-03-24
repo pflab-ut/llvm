@@ -73,6 +73,8 @@ public:
 
   SubtargetFeatures getFeatures() const override;
 
+  SubtargetFeatures getMAXISFeatures() const;
+
   SubtargetFeatures getMIPSFeatures() const;
 
   SubtargetFeatures getARMFeatures() const;
@@ -454,8 +456,10 @@ uint64_t ELFObjectFile<ELFT>::getSymbolValueImpl(DataRefImpl Symb) const {
     return Ret;
 
   const Elf_Ehdr *Header = EF.getHeader();
-  // Clear the ARM/Thumb or microMIPS indicator flag.
-  if ((Header->e_machine == ELF::EM_ARM || Header->e_machine == ELF::EM_MIPS) &&
+  // Clear the ARM/Thumb or microMAXIS/microMIPS indicator flag.
+  if ((Header->e_machine == ELF::EM_ARM
+       || Header->e_machine == ELF::EM_MAXIS
+       || Header->e_machine == ELF::EM_MIPS) &&
       ESym->getType() == ELF::STT_FUNC)
     Ret &= ~1;
 
@@ -977,6 +981,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "ELF32-hexagon";
     case ELF::EM_LANAI:
       return "ELF32-lanai";
+    case ELF::EM_MAXIS:
+      return "ELF32-maxis";
     case ELF::EM_MIPS:
       return "ELF32-mips";
     case ELF::EM_PPC:
@@ -1009,6 +1015,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "ELF64-s390";
     case ELF::EM_SPARCV9:
       return "ELF64-sparc";
+    case ELF::EM_MAXIS:
+      return "ELF64-maxis";
     case ELF::EM_MIPS:
       return "ELF64-mips";
     case ELF::EM_WEBASSEMBLY:
@@ -1044,6 +1052,15 @@ template <class ELFT> Triple::ArchType ELFObjectFile<ELFT>::getArch() const {
     return Triple::hexagon;
   case ELF::EM_LANAI:
     return Triple::lanai;
+  case ELF::EM_MAXIS:
+    switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
+    case ELF::ELFCLASS32:
+      return IsLittleEndian ? Triple::maxisel : Triple::maxis;
+    case ELF::ELFCLASS64:
+      return IsLittleEndian ? Triple::maxis64el : Triple::maxis64;
+    default:
+      report_fatal_error("Invalid ELFCLASS!");
+    }
   case ELF::EM_MIPS:
     switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
     case ELF::ELFCLASS32:

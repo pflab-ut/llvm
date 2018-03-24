@@ -155,6 +155,9 @@ class ELFState {
   bool writeSectionContent(Elf_Shdr &SHeader, const ELFYAML::Group &Group,
                            ContiguousBlobAccumulator &CBA);
   bool writeSectionContent(Elf_Shdr &SHeader,
+                           const ELFYAML::MaxisABIFlags &Section,
+                           ContiguousBlobAccumulator &CBA);
+  bool writeSectionContent(Elf_Shdr &SHeader,
                            const ELFYAML::MipsABIFlags &Section,
                            ContiguousBlobAccumulator &CBA);
   bool hasDynamicSymbols() const;
@@ -277,6 +280,9 @@ bool ELFState<ELFT>::initSectionHeaders(std::vector<Elf_Shdr> &SHeaders,
         return false;
       }
       SHeader.sh_info = SymIdx;
+      if (!writeSectionContent(SHeader, *S, CBA))
+        return false;
+    } else if (auto S = dyn_cast<ELFYAML::MaxisABIFlags>(Sec.get())) {
       if (!writeSectionContent(SHeader, *S, CBA))
         return false;
     } else if (auto S = dyn_cast<ELFYAML::MipsABIFlags>(Sec.get())) {
@@ -462,6 +468,12 @@ ELFState<ELFT>::writeSectionContent(Elf_Shdr &SHeader,
   SHeader.sh_size = Section.Size;
 }
 
+static bool isMaxis64EL(const ELFYAML::Object &Doc) {
+  return Doc.Header.Machine == ELFYAML::ELF_EM(llvm::ELF::EM_MAXIS) &&
+         Doc.Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64) &&
+         Doc.Header.Data == ELFYAML::ELF_ELFDATA(ELF::ELFDATA2LSB);
+}
+
 static bool isMips64EL(const ELFYAML::Object &Doc) {
   return Doc.Header.Machine == ELFYAML::ELF_EM(llvm::ELF::EM_MIPS) &&
          Doc.Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64) &&
@@ -496,13 +508,21 @@ ELFState<ELFT>::writeSectionContent(Elf_Shdr &SHeader,
       zero(REntry);
       REntry.r_offset = Rel.Offset;
       REntry.r_addend = Rel.Addend;
-      REntry.setSymbolAndType(SymIdx, Rel.Type, isMips64EL(Doc));
+      if (Doc.Header.Machine == ELFYAML::ELF_EM(llvm::ELF::EM_MAXIS)) {
+        REntry.setSymbolAndType(SymIdx, Rel.Type, isMaxis64EL(Doc));
+      } else {
+        REntry.setSymbolAndType(SymIdx, Rel.Type, isMips64EL(Doc));
+      }
       OS.write((const char *)&REntry, sizeof(REntry));
     } else {
       Elf_Rel REntry;
       zero(REntry);
       REntry.r_offset = Rel.Offset;
-      REntry.setSymbolAndType(SymIdx, Rel.Type, isMips64EL(Doc));
+      if (Doc.Header.Machine == ELFYAML::ELF_EM(llvm::ELF::EM_MAXIS)) {
+        REntry.setSymbolAndType(SymIdx, Rel.Type, isMaxis64EL(Doc));
+      } else {
+        REntry.setSymbolAndType(SymIdx, Rel.Type, isMips64EL(Doc));
+      }
       OS.write((const char *)&REntry, sizeof(REntry));
     }
   }
@@ -536,6 +556,35 @@ bool ELFState<ELFT>::writeSectionContent(Elf_Shdr &SHeader,
     SIdx = sectionIndex;
     OS.write((const char *)&SIdx, sizeof(SIdx));
   }
+  return true;
+}
+
+template <class ELFT>
+bool ELFState<ELFT>::writeSectionContent(Elf_Shdr &SHeader,
+                                         const ELFYAML::MaxisABIFlags &Section,
+                                         ContiguousBlobAccumulator &CBA) {
+  assert(Section.Type == llvm::ELF::SHT_MAXIS_ABIFLAGS &&
+         "Section type is not SHT_MAXIS_ABIFLAGS");
+
+  object::Elf_Maxis_ABIFlags<ELFT> Flags;
+  zero(Flags);
+  SHeader.sh_entsize = sizeof(Flags);
+  SHeader.sh_size = SHeader.sh_entsize;
+
+  auto &OS = CBA.getOSAndAlignedOffset(SHeader.sh_offset, SHeader.sh_addralign);
+  Flags.version = Section.Version;
+  Flags.isa_level = Section.ISALevel;
+  Flags.isa_rev = Section.ISARevision;
+  Flags.gpr_size = Section.GPRSize;
+  Flags.cpr1_size = Section.CPR1Size;
+  Flags.cpr2_size = Section.CPR2Size;
+  Flags.fp_abi = Section.FpABI;
+  Flags.isa_ext = Section.ISAExtension;
+  Flags.ases = Section.ASEs;
+  Flags.flags1 = Section.Flags1;
+  Flags.flags2 = Section.Flags2;
+  OS.write((const char *)&Flags, sizeof(Flags));
+
   return true;
 }
 

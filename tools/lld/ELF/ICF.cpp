@@ -219,7 +219,8 @@ bool ICF<ELFT>::constantEq(const InputSection *SecA, ArrayRef<RelTy> RA,
 
   for (size_t I = 0; I < RA.size(); ++I) {
     if (RA[I].r_offset != RB[I].r_offset ||
-        RA[I].getType(Config->IsMips64EL) != RB[I].getType(Config->IsMips64EL))
+        (RA[I].getType(Config->IsMaxis64EL) != RB[I].getType(Config->IsMaxis64EL)
+         || RA[I].getType(Config->IsMips64EL) != RB[I].getType(Config->IsMips64EL)))
       return false;
 
     uint64_t AddA = getAddend<ELFT>(RA[I]);

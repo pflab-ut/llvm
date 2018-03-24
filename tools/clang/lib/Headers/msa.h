@@ -1,4 +1,4 @@
-/*===---- msa.h - MIPS MSA intrinsics --------------------------------------===
+/*===---- msa.h - MAXIS/MIPS MSA intrinsics --------------------------------------===
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #ifndef _MSA_H
 #define _MSA_H 1
 
-#if defined(__mips_msa)
+#if defined(__maxis_msa) || defined(__mips_msa)
 typedef signed char v16i8 __attribute__((vector_size(16), aligned(16)));
 typedef signed char v16i8_b __attribute__((vector_size(16), aligned(1)));
 typedef unsigned char v16u8 __attribute__((vector_size(16), aligned(16)));
@@ -580,4 +580,5 @@ typedef double v2f64_d __attribute__ ((vector_size(16), aligned(8)));
 #define __msa_cast_to_scalar_float __builtin_msa_cast_to_scalar_float
 #define __msa_cast_to_scalar_double __builtin_msa_cast_to_scalar_double
 #endif /* defined(__mips_msa) */
+
 #endif /* _MSA_H */

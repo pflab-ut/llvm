@@ -43,15 +43,15 @@ static InputFile *getFirstElf() {
 
 // All input object files must be for the same architecture
 // (e.g. it does not make sense to link x86 object files with
-// MIPS object files.) This function checks for that error.
+// MAXIS/MIPS object files.) This function checks for that error.
 static bool isCompatible(InputFile *F) {
   if (!F->isElf() && !isa<BitcodeFile>(F))
     return true;
 
   if (F->EKind == Config->EKind && F->EMachine == Config->EMachine) {
-    if (Config->EMachine != EM_MIPS)
+    if (Config->EMachine != EM_MAXIS && Config->EMachine != EM_MIPS)
       return true;
-    if (isMipsN32Abi(F) == Config->MipsN32Abi)
+    if (isMaxisN32Abi(F) == Config->MaxisN32Abi || isMipsN32Abi(F) == Config->MipsN32Abi)
       return true;
   }
 

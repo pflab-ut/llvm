@@ -1100,7 +1100,7 @@ CodeGenRegBank::CodeGenRegBank(RecordKeeper &Records,
   // Compute register name map.
   for (auto &Reg : Registers)
     // FIXME: This could just be RegistersByName[name] = register, except that
-    // causes some failures in MIPS - perhaps they have duplicate register name
+    // causes some failures in MAXIS/MIPS - perhaps they have duplicate register name
     // entries? (or maybe there's a reason for it - I don't know much about this
     // code, just drive-by refactoring)
     RegistersByName.insert(

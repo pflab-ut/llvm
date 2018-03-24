@@ -160,6 +160,16 @@ namespace clang {
   };
   }
 
+  /// \brief MAXIS builtins
+  namespace Maxis {
+    enum {
+        LastTIBuiltin = clang::Builtin::FirstTSBuiltin-1,
+#define BUILTIN(ID, TYPE, ATTRS) BI##ID,
+#include "clang/Basic/BuiltinsMaxis.def"
+        LastTSBuiltin
+    };
+  }
+
   /// \brief MIPS builtins
   namespace Mips {
     enum {

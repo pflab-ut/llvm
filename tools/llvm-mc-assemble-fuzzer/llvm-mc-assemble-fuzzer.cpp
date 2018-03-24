@@ -257,12 +257,12 @@ extern "C" LLVM_ATTRIBUTE_USED int LLVMFuzzerInitialize(int *argc,
   //
   // Examples:
   //
-  // Fuzz the big-endian MIPS32R6 disassembler using 100,000 inputs of up to
+  // Fuzz the big-endian MAXIS/MIPS32R6 disassembler using 100,000 inputs of up to
   // 4-bytes each and use the contents of ./corpus as the test corpus:
   //   llvm-mc-fuzzer -triple mips-linux-gnu -mcpu=mips32r6 -disassemble \
   //       -fuzzer-args -max_len=4 -runs=100000 ./corpus
   //
-  // Infinitely fuzz the little-endian MIPS64R2 disassembler with the MSA
+  // Infinitely fuzz the little-endian MAXIS/MIPS64R2 disassembler with the MSA
   // feature enabled using up to 64-byte inputs:
   //   llvm-mc-fuzzer -triple mipsel-linux-gnu -mcpu=mips64r2 -mattr=msa \
   //       -disassemble -fuzzer-args ./corpus

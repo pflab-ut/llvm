@@ -23,6 +23,7 @@
 #include "Targets/Lanai.h"
 #include "Targets/Le64.h"
 #include "Targets/MSP430.h"
+#include "Targets/Maxis.h"
 #include "Targets/Mips.h"
 #include "Targets/NVPTX.h"
 #include "Targets/Nios2.h"
@@ -243,6 +244,68 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
 
   case llvm::Triple::nios2:
     return new LinuxTargetInfo<Nios2TargetInfo>(Triple, Opts);
+
+  case llvm::Triple::maxis:
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::RTEMS:
+      return new RTEMSTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::FreeBSD:
+      return new FreeBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    default:
+      return new MaxisTargetInfo(Triple, Opts);
+    }
+
+  case llvm::Triple::maxisel:
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::RTEMS:
+      return new RTEMSTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::FreeBSD:
+      return new FreeBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::NaCl:
+      return new NaClTargetInfo<NaClMaxis32TargetInfo>(Triple, Opts);
+    default:
+      return new MaxisTargetInfo(Triple, Opts);
+    }
+
+  case llvm::Triple::maxis64:
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::RTEMS:
+      return new RTEMSTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::FreeBSD:
+      return new FreeBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::OpenBSD:
+      return new OpenBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    default:
+      return new MaxisTargetInfo(Triple, Opts);
+    }
+
+  case llvm::Triple::maxis64el:
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::RTEMS:
+      return new RTEMSTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::FreeBSD:
+      return new FreeBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    case llvm::Triple::OpenBSD:
+      return new OpenBSDTargetInfo<MaxisTargetInfo>(Triple, Opts);
+    default:
+      return new MaxisTargetInfo(Triple, Opts);
+    }
 
   case llvm::Triple::mips:
     switch (os) {

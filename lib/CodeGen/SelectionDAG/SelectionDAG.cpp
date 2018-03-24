@@ -1124,7 +1124,7 @@ SDValue SelectionDAG::getConstant(const ConstantInt &Val, const SDLoc &DL,
    Elt = ConstantInt::get(*getContext(), NewVal);
   }
   // In other cases the element type is illegal and needs to be expanded, for
-  // example v2i64 on MIPS32. In this case, find the nearest legal type, split
+  // example v2i64 on MAXIS32/MIPS32. In this case, find the nearest legal type, split
   // the value into n parts and use a vector type with n-times the elements.
   // Then bitcast to the type requested.
   // Legalizing constants too early makes the DAGCombiner's job harder so we
@@ -1160,7 +1160,7 @@ SDValue SelectionDAG::getConstant(const ConstantInt &Val, const SDLoc &DL,
     // vector shuffle in this situation). However, we do not need any code to
     // perform this reversal because getConstant() is producing a vector
     // splat.
-    // This situation occurs in MIPS MSA.
+    // This situation occurs in MAXIS/MIPS MSA.
 
     SmallVector<SDValue, 8> Ops;
     for (unsigned i = 0, e = VT.getVectorNumElements(); i != e; ++i)

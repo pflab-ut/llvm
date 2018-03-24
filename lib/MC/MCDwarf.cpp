@@ -836,8 +836,9 @@ static void EmitGenDwarfInfo(MCStreamer *MCOS,
     MCOS->EmitBytes(StringRef("llvm-mc (based on LLVM " PACKAGE_VERSION ")"));
   MCOS->EmitIntValue(0, 1); // NULL byte to terminate the string.
 
-  // AT_language, a 4 byte value.  We use DW_LANG_Mips_Assembler as the dwarf2
+  // AT_language, a 4 byte value.  We use DW_LANG_Maxis_Assembler/DW_LANG_Mips_Assembler as the dwarf2
   // draft has no standard code for assembler.
+  MCOS->EmitIntValue(dwarf::DW_LANG_Maxis_Assembler, 2);
   MCOS->EmitIntValue(dwarf::DW_LANG_Mips_Assembler, 2);
 
   // Third part: the list of label DIEs.

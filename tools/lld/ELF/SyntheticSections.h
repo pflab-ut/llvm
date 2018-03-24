@@ -165,6 +165,104 @@ public:
   uint64_t Size;
 };
 
+class MaxisGotSection final : public SyntheticSection {
+public:
+  MaxisGotSection();
+  void writeTo(uint8_t *Buf) override;
+  size_t getSize() const override { return Size; }
+  bool updateAllocSize() override;
+  void finalizeContents() override;
+  bool empty() const override;
+  void addEntry(Symbol &Sym, int64_t Addend, RelExpr Expr);
+  bool addDynTlsEntry(Symbol &Sym);
+  bool addTlsIndex();
+  uint64_t getPageEntryOffset(const Symbol &B, int64_t Addend) const;
+  uint64_t getSymEntryOffset(const Symbol &B, int64_t Addend) const;
+  uint64_t getGlobalDynOffset(const Symbol &B) const;
+
+  // Returns the symbol which corresponds to the first entry of the global part
+  // of GOT on MAXIS platform. It is required to fill up MAXIS-specific dynamic
+  // table properties.
+  // Returns nullptr if the global part is empty.
+  const Symbol *getFirstGlobalEntry() const;
+
+  // Returns the number of entries in the local part of GOT including
+  // the number of reserved entries.
+  unsigned getLocalEntriesNum() const;
+
+  // Returns offset of TLS part of the MAXIS GOT table. This part goes
+  // after 'local' and 'global' entries.
+  uint64_t getTlsOffset() const;
+
+  uint32_t getTlsIndexOff() const { return TlsIndexOff; }
+
+  uint64_t getGp() const;
+
+private:
+  // MAXIS GOT consists of three parts: local, global and tls. Each part
+  // contains different types of entries. Here is a layout of GOT:
+  // - Header entries                |
+  // - Page entries                  |   Local part
+  // - Local entries (16-bit access) |
+  // - Local entries (32-bit access) |
+  // - Normal global entries         ||  Global part
+  // - Reloc-only global entries     ||
+  // - TLS entries                   ||| TLS part
+  //
+  // Header:
+  //   Two entries hold predefined value 0x0 and 0x80000000.
+  // Page entries:
+  //   These entries created by R_MAXIS_GOT_PAGE relocation and R_MAXIS_GOT16
+  //   relocation against local symbols. They are initialized by higher 16-bit
+  //   of the corresponding symbol's value. So each 64kb of address space
+  //   requires a single GOT entry.
+  // Local entries (16-bit access):
+  //   These entries created by GOT relocations against global non-preemptible
+  //   symbols so dynamic linker is not necessary to resolve the symbol's
+  //   values. "16-bit access" means that corresponding relocations address
+  //   GOT using 16-bit index. Each unique Symbol-Addend pair has its own
+  //   GOT entry.
+  // Local entries (32-bit access):
+  //   These entries are the same as above but created by relocations which
+  //   address GOT using 32-bit index (R_MAXIS_GOT_HI16/LO16 etc).
+  // Normal global entries:
+  //   These entries created by GOT relocations against preemptible global
+  //   symbols. They need to be initialized by dynamic linker and they ordered
+  //   exactly as the corresponding entries in the dynamic symbols table.
+  // Reloc-only global entries:
+  //   These entries created for symbols that are referenced by dynamic
+  //   relocations R_MAXIS_REL32. These entries are not accessed with gp-relative
+  //   addressing, but MAXIS ABI requires that these entries be present in GOT.
+  // TLS entries:
+  //   Entries created by TLS relocations.
+
+  // Number of "Header" entries.
+  static const unsigned HeaderEntriesNum = 2;
+  // Number of allocated "Page" entries.
+  uint32_t PageEntriesNum = 0;
+  // Map output sections referenced by MAXIS GOT relocations
+  // to the first index of "Page" entries allocated for this section.
+  llvm::SmallMapVector<const OutputSection *, size_t, 16> PageIndexMap;
+
+  typedef std::pair<const Symbol *, uint64_t> GotEntry;
+  typedef std::vector<GotEntry> GotEntries;
+  // Map from Symbol-Addend pair to the GOT index.
+  llvm::DenseMap<GotEntry, size_t> EntryIndexMap;
+  // Local entries (16-bit access).
+  GotEntries LocalEntries;
+  // Local entries (32-bit access).
+  GotEntries LocalEntries32;
+
+  // Normal and reloc-only global entries.
+  GotEntries GlobalEntries;
+
+  // TLS entries.
+  std::vector<const Symbol *> TlsEntries;
+
+  uint32_t TlsIndexOff = -1;
+  uint64_t Size = 0;
+};
+
 class MipsGotSection final : public SyntheticSection {
 public:
   MipsGotSection();
@@ -719,6 +817,67 @@ private:
   size_t ShardOffsets[NumShards];
 };
 
+// .MAXIS.abiflags section.
+template <class ELFT>
+class MaxisAbiFlagsSection final : public SyntheticSection {
+  typedef llvm::object::Elf_Maxis_ABIFlags<ELFT> Elf_Maxis_ABIFlags;
+
+public:
+  static MaxisAbiFlagsSection *create();
+
+  MaxisAbiFlagsSection(Elf_Maxis_ABIFlags Flags);
+  size_t getSize() const override { return sizeof(Elf_Maxis_ABIFlags); }
+  void writeTo(uint8_t *Buf) override;
+
+private:
+  Elf_Maxis_ABIFlags Flags;
+};
+
+// .MAXIS.options section.
+template <class ELFT> class MaxisOptionsSection final : public SyntheticSection {
+  typedef llvm::object::Elf_Maxis_Options<ELFT> Elf_Maxis_Options;
+  typedef llvm::object::Elf_Maxis_RegInfo<ELFT> Elf_Maxis_RegInfo;
+
+public:
+  static MaxisOptionsSection *create();
+
+  MaxisOptionsSection(Elf_Maxis_RegInfo Reginfo);
+  void writeTo(uint8_t *Buf) override;
+
+  size_t getSize() const override {
+    return sizeof(Elf_Maxis_Options) + sizeof(Elf_Maxis_RegInfo);
+  }
+
+private:
+  Elf_Maxis_RegInfo Reginfo;
+};
+
+// MAXIS .reginfo section.
+template <class ELFT> class MaxisReginfoSection final : public SyntheticSection {
+  typedef llvm::object::Elf_Maxis_RegInfo<ELFT> Elf_Maxis_RegInfo;
+
+public:
+  static MaxisReginfoSection *create();
+
+  MaxisReginfoSection(Elf_Maxis_RegInfo Reginfo);
+  size_t getSize() const override { return sizeof(Elf_Maxis_RegInfo); }
+  void writeTo(uint8_t *Buf) override;
+
+private:
+  Elf_Maxis_RegInfo Reginfo;
+};
+
+// This is a MAXIS specific section to hold a space within the data segment
+// of executable file which is pointed to by the DT_MAXIS_RLD_MAP entry.
+// See "Dynamic section" in Chapter 5 in the following document:
+// ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+class MaxisRldMapSection : public SyntheticSection {
+public:
+  MaxisRldMapSection();
+  size_t getSize() const override { return Config->Wordsize; }
+  void writeTo(uint8_t *Buf) override {}
+};
+
 // .MIPS.abiflags section.
 template <class ELFT>
 class MipsAbiFlagsSection final : public SyntheticSection {
@@ -791,7 +950,7 @@ public:
 };
 
 // A container for one or more linker generated thunks. Instances of these
-// thunks including ARM interworking and Mips LA25 PI to non-PI thunks.
+// thunks including ARM interworking and Maxis/Mips LA25 PI to non-PI thunks.
 class ThunkSection : public SyntheticSection {
 public:
   // ThunkSection in OS, with desired OutSecOff of Off
@@ -837,6 +996,8 @@ struct InX {
   static GotSection *Got;
   static GotPltSection *GotPlt;
   static IgotPltSection *IgotPlt;
+  static MaxisGotSection *MaxisGot;
+  static MaxisRldMapSection *MaxisRldMap;
   static MipsGotSection *MipsGot;
   static MipsRldMapSection *MipsRldMap;
   static PltSection *Plt;

@@ -11,7 +11,7 @@
 //
 // A thunk is a small piece of code written after an input section
 // which is used to jump between "incompatible" functions
-// such as MIPS PIC and non-PIC or ARM non-Thumb and Thumb functions.
+// such as MAXIS/MIPS PIC and non-PIC or ARM non-Thumb and Thumb functions.
 //
 // If a jump target is too far and its address doesn't fit to a
 // short jump instruction, we need to create a thunk too, but we
@@ -105,6 +105,39 @@ public:
   void writeTo(uint8_t *Buf, ThunkSection &IS) const override;
   void addSymbols(ThunkSection &IS) override;
   bool isCompatibleWith(RelType Type) const override;
+};
+
+// MAXIS LA25 thunk
+class MaxisThunk final : public Thunk {
+public:
+  MaxisThunk(Symbol &Dest) : Thunk(Dest) {}
+
+  uint32_t size() const override { return 16; }
+  void writeTo(uint8_t *Buf, ThunkSection &IS) const override;
+  void addSymbols(ThunkSection &IS) override;
+  InputSection *getTargetInputSection() const override;
+};
+
+// microMAXIS R2-R5 LA25 thunk
+class MicroMaxisThunk final : public Thunk {
+public:
+  MicroMaxisThunk(Symbol &Dest) : Thunk(Dest) {}
+
+  uint32_t size() const override { return 14; }
+  void writeTo(uint8_t *Buf, ThunkSection &IS) const override;
+  void addSymbols(ThunkSection &IS) override;
+  InputSection *getTargetInputSection() const override;
+};
+
+// microMAXIS R6 LA25 thunk
+class MicroMaxisR6Thunk final : public Thunk {
+public:
+  MicroMaxisR6Thunk(Symbol &Dest) : Thunk(Dest) {}
+
+  uint32_t size() const override { return 12; }
+  void writeTo(uint8_t *Buf, ThunkSection &IS) const override;
+  void addSymbols(ThunkSection &IS) override;
+  InputSection *getTargetInputSection() const override;
 };
 
 // MIPS LA25 thunk
@@ -304,6 +337,78 @@ bool ThumbV7PILongThunk::isCompatibleWith(RelType Type) const {
   return Type != R_ARM_JUMP24 && Type != R_ARM_PC24 && Type != R_ARM_PLT32;
 }
 
+// Write MAXIS LA25 thunk code to call PIC function from the non-PIC one.
+void MaxisThunk::writeTo(uint8_t *Buf, ThunkSection &) const {
+  uint64_t S = Destination.getVA();
+  write32(Buf, 0x3c190000, Config->Endianness); // lui   $25, %hi(func)
+  write32(Buf + 4, 0x08000000 | (S >> 2), Config->Endianness); // j     func
+  write32(Buf + 8, 0x27390000, Config->Endianness); // addiu $25, $25, %lo(func)
+  write32(Buf + 12, 0x00000000, Config->Endianness); // nop
+  Target->relocateOne(Buf, R_MAXIS_HI16, S);
+  Target->relocateOne(Buf + 8, R_MAXIS_LO16, S);
+}
+
+void MaxisThunk::addSymbols(ThunkSection &IS) {
+  ThunkSym =
+      addSyntheticLocal(Saver.save("__LA25Thunk_" + Destination.getName()),
+                        STT_FUNC, Offset, size(), IS);
+}
+
+InputSection *MaxisThunk::getTargetInputSection() const {
+  auto &DR = cast<Defined>(Destination);
+  return dyn_cast<InputSection>(DR.Section);
+}
+
+// Write microMAXIS R2-R5 LA25 thunk code
+// to call PIC function from the non-PIC one.
+void MicroMaxisThunk::writeTo(uint8_t *Buf, ThunkSection &) const {
+  uint64_t S = Destination.getVA() | 1;
+  write16(Buf, 0x41b9, Config->Endianness);       // lui   $25, %hi(func)
+  write16(Buf + 4, 0xd400, Config->Endianness);   // j     func
+  write16(Buf + 8, 0x3339, Config->Endianness);   // addiu $25, $25, %lo(func)
+  write16(Buf + 12, 0x0c00, Config->Endianness);  // nop
+  Target->relocateOne(Buf, R_MICROMAXIS_HI16, S);
+  Target->relocateOne(Buf + 4, R_MICROMAXIS_26_S1, S);
+  Target->relocateOne(Buf + 8, R_MICROMAXIS_LO16, S);
+}
+
+void MicroMaxisThunk::addSymbols(ThunkSection &IS) {
+  ThunkSym =
+      addSyntheticLocal(Saver.save("__microLA25Thunk_" + Destination.getName()),
+                        STT_FUNC, Offset, size(), IS);
+  ThunkSym->StOther |= STO_MAXIS_MICROMAXIS;
+}
+
+InputSection *MicroMaxisThunk::getTargetInputSection() const {
+  auto &DR = cast<Defined>(Destination);
+  return dyn_cast<InputSection>(DR.Section);
+}
+
+// Write microMAXIS R6 LA25 thunk code
+// to call PIC function from the non-PIC one.
+void MicroMaxisR6Thunk::writeTo(uint8_t *Buf, ThunkSection &) const {
+  uint64_t S = Destination.getVA() | 1;
+  uint64_t P = ThunkSym->getVA();
+  write16(Buf, 0x1320, Config->Endianness);       // lui   $25, %hi(func)
+  write16(Buf + 4, 0x3339, Config->Endianness);   // addiu $25, $25, %lo(func)
+  write16(Buf + 8, 0x9400, Config->Endianness);   // bc    func
+  Target->relocateOne(Buf, R_MICROMAXIS_HI16, S);
+  Target->relocateOne(Buf + 4, R_MICROMAXIS_LO16, S);
+  Target->relocateOne(Buf + 8, R_MICROMAXIS_PC26_S1, S - P - 12);
+}
+
+void MicroMaxisR6Thunk::addSymbols(ThunkSection &IS) {
+  ThunkSym =
+      addSyntheticLocal(Saver.save("__microLA25Thunk_" + Destination.getName()),
+                        STT_FUNC, Offset, size(), IS);
+  ThunkSym->StOther |= STO_MAXIS_MICROMAXIS;
+}
+
+InputSection *MicroMaxisR6Thunk::getTargetInputSection() const {
+  auto &DR = cast<Defined>(Destination);
+  return dyn_cast<InputSection>(DR.Section);
+}
+
 // Write MIPS LA25 thunk code to call PIC function from the non-PIC one.
 void MipsThunk::writeTo(uint8_t *Buf, ThunkSection &) const {
   uint64_t S = Destination.getVA();
@@ -411,6 +516,14 @@ static Thunk *addThunkArm(RelType Reloc, Symbol &S) {
   fatal("unrecognized relocation type");
 }
 
+static Thunk *addThunkMaxis(RelType Type, Symbol &S) {
+  if ((S.StOther & STO_MAXIS_MICROMAXIS) && isMaxisR6())
+    return make<MicroMaxisR6Thunk>(S);
+  if (S.StOther & STO_MAXIS_MICROMAXIS)
+    return make<MicroMaxisThunk>(S);
+  return make<MaxisThunk>(S);
+}
+
 static Thunk *addThunkMips(RelType Type, Symbol &S) {
   if ((S.StOther & STO_MIPS_MICROMIPS) && isMipsR6())
     return make<MicroMipsR6Thunk>(S);
@@ -424,9 +537,11 @@ Thunk *addThunk(RelType Type, Symbol &S) {
     return addThunkAArch64(Type, S);
   else if (Config->EMachine == EM_ARM)
     return addThunkArm(Type, S);
+  else if (Config->EMachine == EM_MAXIS)
+    return addThunkMaxis(Type, S);
   else if (Config->EMachine == EM_MIPS)
     return addThunkMips(Type, S);
-  llvm_unreachable("add Thunk only supported for ARM and Mips");
+  llvm_unreachable("add Thunk only supported for ARM and Maxis/Mips");
   return nullptr;
 }
 

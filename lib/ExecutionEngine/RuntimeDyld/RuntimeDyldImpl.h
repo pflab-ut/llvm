@@ -293,6 +293,9 @@ protected:
 
   Triple::ArchType Arch;
   bool IsTargetLittleEndian;
+  bool IsMaxisO32ABI;
+  bool IsMaxisN32ABI;
+  bool IsMaxisN64ABI;
   bool IsMipsO32ABI;
   bool IsMipsN32ABI;
   bool IsMipsN64ABI;
@@ -356,12 +359,18 @@ protected:
     *(Addr + 7) = Value & 0xFF;
   }
 
+  virtual void setMaxisABI(const ObjectFile &Obj) {
+    IsMaxisO32ABI = false;
+    IsMaxisN32ABI = false;
+    IsMaxisN64ABI = false;
+  }
+
   virtual void setMipsABI(const ObjectFile &Obj) {
     IsMipsO32ABI = false;
     IsMipsN32ABI = false;
     IsMipsN64ABI = false;
   }
-
+  
   /// Endian-aware read Read the least significant Size bytes from Src.
   uint64_t readBytesUnaligned(uint8_t *Src, unsigned Size) const;
 

@@ -80,6 +80,61 @@ static std::string getLocation(InputSectionBase &S, const Symbol &Sym,
   return Msg + S.getObjMsg(Off);
 }
 
+// This is a MAXIS-specific rule.
+//
+// In case of MAXIS GP-relative relocations always resolve to a definition
+// in a regular input file, ignoring the one-definition rule. So we,
+// for example, should not attempt to create a dynamic relocation even
+// if the target symbol is preemptible. There are two two MAXIS GP-relative
+// relocations R_MAXIS_GPREL16 and R_MAXIS_GPREL32. But only R_MAXIS_GPREL16
+// can be against a preemptible symbol.
+//
+// To get MAXIS relocation type we apply 0xff mask. In case of O32 ABI all
+// relocation types occupy eight bit. In case of N64 ABI we extract first
+// relocation from 3-in-1 packet because only the first relocation can
+// be against a real symbol.
+static bool isMaxisGprel(RelType Type) {
+  if (Config->EMachine != EM_MAXIS)
+    return false;
+  Type &= 0xff;
+  return Type == R_MAXIS_GPREL16 || Type == R_MICROMAXIS_GPREL16 ||
+         Type == R_MICROMAXIS_GPREL7_S2;
+}
+
+// This function is similar to the `handleTlsRelocation`. MAXIS does not
+// support any relaxations for TLS relocations so by factoring out MAXIS
+// handling in to the separate function we can simplify the code and do not
+// pollute other `handleTlsRelocation` by MAXIS `ifs` statements.
+// Maxis has a custom MaxisGotSection that handles the writing of GOT entries
+// without dynamic relocations.
+template <class ELFT>
+static unsigned handleMaxisTlsRelocation(RelType Type, Symbol &Sym,
+                                        InputSectionBase &C, uint64_t Offset,
+                                        int64_t Addend, RelExpr Expr) {
+  if (Expr == R_MAXIS_TLSLD) {
+    if (InX::MaxisGot->addTlsIndex() && Config->Pic)
+      InX::RelaDyn->addReloc({Target->TlsModuleIndexRel, InX::MaxisGot,
+                              InX::MaxisGot->getTlsIndexOff(), false, nullptr,
+                              0});
+    C.Relocations.push_back({Expr, Type, Offset, Addend, &Sym});
+    return 1;
+  }
+
+  if (Expr == R_MAXIS_TLSGD) {
+    if (InX::MaxisGot->addDynTlsEntry(Sym) && Sym.IsPreemptible) {
+      uint64_t Off = InX::MaxisGot->getGlobalDynOffset(Sym);
+      InX::RelaDyn->addReloc(
+          {Target->TlsModuleIndexRel, InX::MaxisGot, Off, false, &Sym, 0});
+      if (Sym.IsPreemptible)
+        InX::RelaDyn->addReloc({Target->TlsOffsetRel, InX::MaxisGot,
+                                Off + Config->Wordsize, false, &Sym, 0});
+    }
+    C.Relocations.push_back({Expr, Type, Offset, Addend, &Sym});
+    return 1;
+  }
+  return 0;
+}
+
 // This is a MIPS-specific rule.
 //
 // In case of MIPS GP-relative relocations always resolve to a definition
@@ -206,6 +261,8 @@ handleTlsRelocation(RelType Type, Symbol &Sym, InputSectionBase &C,
 
   if (Config->EMachine == EM_ARM)
     return handleARMTlsRelocation<ELFT>(Type, Sym, C, Offset, Addend, Expr);
+  if (Config->EMachine == EM_MAXIS)
+    return handleMaxisTlsRelocation<ELFT>(Type, Sym, C, Offset, Addend, Expr);
   if (Config->EMachine == EM_MIPS)
     return handleMipsTlsRelocation<ELFT>(Type, Sym, C, Offset, Addend, Expr);
 
@@ -295,6 +352,31 @@ handleTlsRelocation(RelType Type, Symbol &Sym, InputSectionBase &C,
   return 0;
 }
 
+static RelType getMaxisPairType(RelType Type, bool IsLocal) {
+  switch (Type) {
+  case R_MAXIS_HI16:
+    return R_MAXIS_LO16;
+  case R_MAXIS_GOT16:
+    // In case of global symbol, the R_MAXIS_GOT16 relocation does not
+    // have a pair. Each global symbol has a unique entry in the GOT
+    // and a corresponding instruction with help of the R_MAXIS_GOT16
+    // relocation loads an address of the symbol. In case of local
+    // symbol, the R_MAXIS_GOT16 relocation creates a GOT entry to hold
+    // the high 16 bits of the symbol's value. A paired R_MAXIS_LO16
+    // relocations handle low 16 bits of the address. That allows
+    // to allocate only one GOT entry for every 64 KBytes of local data.
+    return IsLocal ? R_MAXIS_LO16 : R_MAXIS_NONE;
+  case R_MICROMAXIS_GOT16:
+    return IsLocal ? R_MICROMAXIS_LO16 : R_MAXIS_NONE;
+  case R_MAXIS_PCHI16:
+    return R_MAXIS_PCLO16;
+  case R_MICROMAXIS_HI16:
+    return R_MICROMAXIS_LO16;
+  default:
+    return R_MAXIS_NONE;
+  }
+}
+
 static RelType getMipsPairType(RelType Type, bool IsLocal) {
   switch (Type) {
   case R_MIPS_HI16:
@@ -343,7 +425,8 @@ static bool needsPlt(RelExpr Expr) {
 // returns false for TLS variables even though they need GOT, because
 // TLS variables uses GOT differently than the regular variables.
 static bool needsGot(RelExpr Expr) {
-  return isRelExprOneOf<R_GOT, R_GOT_OFF, R_MIPS_GOT_LOCAL_PAGE, R_MIPS_GOT_OFF,
+  return isRelExprOneOf<R_GOT, R_GOT_OFF, R_MAXIS_GOT_LOCAL_PAGE, R_MAXIS_GOT_OFF,
+                        R_MAXIS_GOT_OFF32, R_MIPS_GOT_LOCAL_PAGE, R_MIPS_GOT_OFF,
                         R_MIPS_GOT_OFF32, R_GOT_PAGE_PC, R_GOT_PC,
                         R_GOT_FROM_END>(Expr);
 }
@@ -351,7 +434,7 @@ static bool needsGot(RelExpr Expr) {
 // True if this expression is of the form Sym - X, where X is a position in the
 // file (PC, or GOT for example).
 static bool isRelExpr(RelExpr Expr) {
-  return isRelExprOneOf<R_PC, R_GOTREL, R_GOTREL_FROM_END, R_MIPS_GOTREL,
+  return isRelExprOneOf<R_PC, R_GOTREL, R_GOTREL_FROM_END, R_MAXIS_GOTREL, R_MIPS_GOTREL,
                         R_PAGE_PC, R_RELAX_GOT_PC>(Expr);
 }
 
@@ -367,7 +450,10 @@ static bool isRelExpr(RelExpr Expr) {
 static bool isStaticLinkTimeConstant(RelExpr E, RelType Type, const Symbol &Sym,
                                      InputSectionBase &S, uint64_t RelOff) {
   // These expressions always compute a constant
-  if (isRelExprOneOf<R_GOT_FROM_END, R_GOT_OFF, R_MIPS_GOT_LOCAL_PAGE,
+  if (isRelExprOneOf<R_GOT_FROM_END, R_GOT_OFF, R_MAXIS_GOT_LOCAL_PAGE,
+                     R_MAXIS_GOT_OFF, R_MAXIS_GOT_OFF32, R_MAXIS_GOT_GP_PC,
+                     R_MAXIS_TLSGD,
+                     R_MIPS_GOT_LOCAL_PAGE,
                      R_MIPS_GOT_OFF, R_MIPS_GOT_OFF32, R_MIPS_GOT_GP_PC,
                      R_MIPS_TLSGD, R_GOT_PAGE_PC, R_GOT_PC, R_GOTONLY_PC,
                      R_GOTONLY_PC_FROM_END, R_PLT_PC, R_TLSGD_PC, R_TLSGD,
@@ -404,7 +490,7 @@ static bool isStaticLinkTimeConstant(RelExpr E, RelType Type, const Symbol &Sym,
   // resolve to the image base. This is a little strange, but it allows us to
   // link function calls to such symbols. Normally such a call will be guarded
   // with a comparison, which will load a zero from the GOT.
-  // Another special case is MIPS _gp_disp symbol which represents offset
+  // Another special case is MAXIS/MIPS _gp_disp symbol which represents offset
   // between start of a function and '_gp' value and defined as absolute just
   // to simplify the code.
   assert(AbsVal && RelE);
@@ -660,6 +746,42 @@ static RelExpr adjustExpr(Symbol &Sym, RelExpr Expr, RelType Type,
   return Expr;
 }
 
+// MAXIS has an odd notion of "paired" relocations to calculate addends.
+// For example, if a relocation is of R_MAXIS_HI16, there must be a
+// R_MAXIS_LO16 relocation after that, and an addend is calculated using
+// the two relocations.
+template <class ELFT, class RelTy>
+static int64_t computeMaxisAddend(const RelTy &Rel, const RelTy *End,
+                                 InputSectionBase &Sec, RelExpr Expr,
+                                 bool IsLocal) {
+  if (Expr == R_MAXIS_GOTREL && IsLocal)
+    return Sec.getFile<ELFT>()->MaxisGp0;
+
+  // The ABI says that the paired relocation is used only for REL.
+  // See p. 4-17 at ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+  if (RelTy::IsRela)
+    return 0;
+
+  RelType Type = Rel.getType(Config->IsMaxis64EL);
+  uint32_t PairTy = getMaxisPairType(Type, IsLocal);
+  if (PairTy == R_MAXIS_NONE)
+    return 0;
+
+  const uint8_t *Buf = Sec.Data.data();
+  uint32_t SymIndex = Rel.getSymbol(Config->IsMaxis64EL);
+
+  // To make things worse, paired relocations might not be contiguous in
+  // the relocation table, so we need to do linear search. *sigh*
+  for (const RelTy *RI = &Rel; RI != End; ++RI)
+    if (RI->getType(Config->IsMaxis64EL) == PairTy &&
+        RI->getSymbol(Config->IsMaxis64EL) == SymIndex)
+      return Target->getImplicitAddend(Buf + RI->r_offset, PairTy);
+
+  warn("can't find matching " + toString(PairTy) + " relocation for " +
+       toString(Type));
+  return 0;
+}
+
 // MIPS has an odd notion of "paired" relocations to calculate addends.
 // For example, if a relocation is of R_MIPS_HI16, there must be a
 // R_MIPS_LO16 relocation after that, and an addend is calculated using
@@ -704,7 +826,12 @@ static int64_t computeAddend(const RelTy &Rel, const RelTy *End,
                              InputSectionBase &Sec, RelExpr Expr,
                              bool IsLocal) {
   int64_t Addend;
-  RelType Type = Rel.getType(Config->IsMips64EL);
+  RelType Type;
+  if (Config->EMachine == EM_MAXIS) {
+    Type = Rel.getType(Config->IsMaxis64EL);
+  } else {
+    Type = Rel.getType(Config->IsMips64EL);
+  }
 
   if (RelTy::IsRela) {
     Addend = getAddend<ELFT>(Rel);
@@ -715,6 +842,8 @@ static int64_t computeAddend(const RelTy &Rel, const RelTy *End,
 
   if (Config->EMachine == EM_PPC64 && Config->Pic && Type == R_PPC64_TOC)
     Addend += getPPC64TocBase();
+  if (Config->EMachine == EM_MAXIS)
+    Addend += computeMaxisAddend<ELFT>(Rel, End, Sec, Expr, IsLocal);
   if (Config->EMachine == EM_MIPS)
     Addend += computeMipsAddend<ELFT>(Rel, End, Sec, Expr, IsLocal);
 
@@ -752,6 +881,21 @@ static bool maybeReportUndefined(Symbol &Sym, InputSectionBase &Sec,
 
   error(Msg);
   return true;
+}
+
+// MAXIS N32 ABI treats series of successive relocations with the same offset
+// as a single relocation. The similar approach used by N64 ABI, but this ABI
+// packs all relocations into the single relocation record. Here we emulate
+// this for the N32 ABI. Iterate over relocation with the same offset and put
+// theirs types into the single bit-set.
+template <class RelTy> static RelType getMaxisN32RelType(RelTy *&Rel, RelTy *End) {
+  RelType Type = Rel->getType(Config->IsMaxis64EL);
+  uint64_t Offset = Rel->r_offset;
+
+  int N = 0;
+  while (Rel + 1 != End && (Rel + 1)->r_offset == Offset)
+    Type |= (++Rel)->getType(Config->IsMaxis64EL) << (8 * ++N);
+  return Type;
 }
 
 // MIPS N32 ABI treats series of successive relocations with the same offset
@@ -887,8 +1031,16 @@ static void scanRelocs(InputSectionBase &Sec, ArrayRef<RelTy> Rels) {
   for (auto I = Rels.begin(), End = Rels.end(); I != End; ++I) {
     const RelTy &Rel = *I;
     Symbol &Sym = Sec.getFile<ELFT>()->getRelocTargetSym(Rel);
-    RelType Type = Rel.getType(Config->IsMips64EL);
+    RelType Type;
+    if (Config->EMachine == EM_MAXIS) {
+      Type = Rel.getType(Config->IsMaxis64EL);
+    } else {
+      Type = Rel.getType(Config->IsMips64EL);
+    }
 
+    // Deal with MAXIS oddity.
+    if (Config->MaxisN32Abi)
+      Type = getMaxisN32RelType(I, End);
     // Deal with MIPS oddity.
     if (Config->MipsN32Abi)
       Type = getMipsN32RelType(I, End);
@@ -909,8 +1061,14 @@ static void scanRelocs(InputSectionBase &Sec, ArrayRef<RelTy> Rels) {
     if (isRelExprOneOf<R_HINT, R_NONE>(Expr))
       continue;
 
+    // Handle yet another MAXIS-ness.
+    if (isMaxisGprel(Type)) {
+      int64_t Addend = computeAddend<ELFT>(Rel, End, Sec, Expr, Sym.isLocal());
+      Sec.Relocations.push_back({R_MAXIS_GOTREL, Type, Offset, Addend, &Sym});
+      continue;
+    }
     // Handle yet another MIPS-ness.
-    if (isMipsGprel(Type)) {
+    else if (isMipsGprel(Type)) {
       int64_t Addend = computeAddend<ELFT>(Rel, End, Sec, Expr, Sym.isLocal());
       Sec.Relocations.push_back({R_MIPS_GOTREL, Type, Offset, Addend, &Sym});
       continue;
@@ -973,7 +1131,19 @@ static void scanRelocs(InputSectionBase &Sec, ArrayRef<RelTy> Rels) {
 
     // Create a GOT slot if a relocation needs GOT.
     if (needsGot(Expr)) {
-      if (Config->EMachine == EM_MIPS) {
+      if (Config->EMachine == EM_MAXIS) {
+        // MAXIS ABI has special rules to process GOT entries and doesn't
+        // require relocation entries for them. A special case is TLS
+        // relocations. In that case dynamic loader applies dynamic
+        // relocations to initialize TLS GOT entries.
+        // See "Global Offset Table" in Chapter 5 in the following document
+        // for detailed description:
+        // ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+        InX::MaxisGot->addEntry(Sym, Addend, Expr);
+        if (Sym.isTls() && Sym.IsPreemptible)
+          InX::RelaDyn->addReloc({Target->TlsGotRel, InX::MaxisGot,
+                                  Sym.getGotOffset(), false, &Sym, 0});
+      } else if (Config->EMachine == EM_MIPS) {
         // MIPS ABI has special rules to process GOT entries and doesn't
         // require relocation entries for them. A special case is TLS
         // relocations. In that case dynamic loader applies dynamic
@@ -1002,6 +1172,23 @@ static void scanRelocs(InputSectionBase &Sec, ArrayRef<RelTy> Rels) {
       InX::RelaDyn->addReloc(
           {Target->getDynRel(Type), &Sec, Offset, false, &Sym, Addend});
 
+      // MAXIS ABI turns using of GOT and dynamic relocations inside out.
+      // While regular ABI uses dynamic relocations to fill up GOT entries
+      // MAXIS ABI requires dynamic linker to fills up GOT entries using
+      // specially sorted dynamic symbol table. This affects even dynamic
+      // relocations against symbols which do not require GOT entries
+      // creation explicitly, i.e. do not have any GOT-relocations. So if
+      // a preemptible symbol has a dynamic relocation we anyway have
+      // to create a GOT entry for it.
+      // If a non-preemptible symbol has a dynamic relocation against it,
+      // dynamic linker takes it st_value, adds offset and writes down
+      // result of the dynamic relocation. In case of preemptible symbol
+      // dynamic linker performs symbol resolution, writes the symbol value
+      // to the GOT entry and reads the GOT entry when it needs to perform
+      // a dynamic relocation.
+      // ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf p.4-19
+      if (Config->EMachine == EM_MAXIS)
+        InX::MaxisGot->addEntry(Sym, Addend, Expr);
       // MIPS ABI turns using of GOT and dynamic relocations inside out.
       // While regular ABI uses dynamic relocations to fill up GOT entries
       // MIPS ABI requires dynamic linker to fills up GOT entries using
@@ -1017,7 +1204,7 @@ static void scanRelocs(InputSectionBase &Sec, ArrayRef<RelTy> Rels) {
       // to the GOT entry and reads the GOT entry when it needs to perform
       // a dynamic relocation.
       // ftp://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf p.4-19
-      if (Config->EMachine == EM_MIPS)
+      else if (Config->EMachine == EM_MIPS)
         InX::MipsGot->addEntry(Sym, Addend, Expr);
       continue;
     }
@@ -1086,7 +1273,7 @@ template <class ELFT> void elf::scanRelocations(InputSectionBase &S) {
 // Writer.cpp : Iteratively call framework until no more Thunks added
 //
 // Thunk placement requirements:
-// Mips LA25 thunks. These must be placed immediately before the callee section
+// Maxis/Mips LA25 thunks. These must be placed immediately before the callee section
 // We can assume that the caller is in range of the Thunk. These are modelled
 // by Thunks that return the section they must precede with
 // getTargetInputSection().
@@ -1097,7 +1284,7 @@ template <class ELFT> void elf::scanRelocations(InputSectionBase &S) {
 // restrictions.
 //
 // Thunk placement algorithm:
-// For Mips LA25 ThunkSections; the placement is explicit, it has to be before
+// For Maxis/Mips LA25 ThunkSections; the placement is explicit, it has to be before
 // getTargetInputSection().
 //
 // For thunks that must be placed within range of the caller there are many
@@ -1183,7 +1370,7 @@ void ThunkCreator::mergeThunks(ArrayRef<OutputSection *> OutputSections) {
             auto *TA = dyn_cast<ThunkSection>(A);
             auto *TB = dyn_cast<ThunkSection>(B);
             // Check if Thunk is immediately before any specific Target
-            // InputSection for example Mips LA25 Thunks.
+            // InputSection for example Maxis/Mips LA25 Thunks.
             if (TA && TA->getTargetInputSection() == B)
               return true;
             if (TA && !TB && !TA->getTargetInputSection())

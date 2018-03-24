@@ -114,6 +114,16 @@ public:
 
   static Expected<ELFFile> create(StringRef Object);
 
+  bool isMaxisELF64() const {
+    return getHeader()->e_machine == ELF::EM_MAXIS &&
+           getHeader()->getFileClass() == ELF::ELFCLASS64;
+  }
+
+  bool isMaxis64EL() const {
+    return isMaxisELF64() &&
+           getHeader()->getDataEncoding() == ELF::ELFDATA2LSB;
+  }
+
   bool isMipsELF64() const {
     return getHeader()->e_machine == ELF::EM_MIPS &&
            getHeader()->getFileClass() == ELF::ELFCLASS64;
@@ -298,15 +308,15 @@ StringRef ELFFile<ELFT>::getRelocationTypeName(uint32_t Type) const {
 template <class ELFT>
 void ELFFile<ELFT>::getRelocationTypeName(uint32_t Type,
                                           SmallVectorImpl<char> &Result) const {
-  if (!isMipsELF64()) {
+  if (!isMaxisELF64() && !isMipsELF64()) {
     StringRef Name = getRelocationTypeName(Type);
     Result.append(Name.begin(), Name.end());
   } else {
-    // The Mips N64 ABI allows up to three operations to be specified per
+    // The Maxis/Mips N64 ABI allows up to three operations to be specified per
     // relocation record. Unfortunately there's no easy way to test for the
     // presence of N64 ELFs as they have no special flag that identifies them
-    // as being N64. We can safely assume at the moment that all Mips
-    // ELFCLASS64 ELFs are N64. New Mips64 ABIs should provide enough
+    // as being N64. We can safely assume at the moment that all Maxis/Mips
+    // ELFCLASS64 ELFs are N64. New Maxis64/Mips64 ABIs should provide enough
     // information to disambiguate between old vs new ABIs.
     uint8_t Type1 = (Type >> 0) & 0xFF;
     uint8_t Type2 = (Type >> 8) & 0xFF;
@@ -330,7 +340,7 @@ template <class ELFT>
 Expected<const typename ELFT::Sym *>
 ELFFile<ELFT>::getRelocationSymbol(const Elf_Rel *Rel,
                                    const Elf_Shdr *SymTab) const {
-  uint32_t Index = Rel->getSymbol(isMips64EL());
+  uint32_t Index = isMaxisELF64() ? Rel->getSymbol(isMaxis64EL()) : Rel->getSymbol(isMips64EL());
   if (Index == 0)
     return nullptr;
   return getEntry<Elf_Sym>(SymTab, Index);

@@ -281,10 +281,14 @@ void MCObjectFileInfo::initMachOMCObjectFileInfo(const Triple &T) {
 
 void MCObjectFileInfo::initELFMCObjectFileInfo(const Triple &T, bool Large) {
   switch (T.getArch()) {
+  case Triple::maxis:
+  case Triple::maxisel:
   case Triple::mips:
   case Triple::mipsel:
     FDECFIEncoding = dwarf::DW_EH_PE_sdata4;
     break;
+  case Triple::maxis64:
+  case Triple::maxis64el:
   case Triple::mips64:
   case Triple::mips64el:
     FDECFIEncoding = dwarf::DW_EH_PE_sdata8;
@@ -376,11 +380,15 @@ void MCObjectFileInfo::initELFMCObjectFileInfo(const Triple &T, bool Large) {
     PersonalityEncoding = dwarf::DW_EH_PE_absptr;
     TTypeEncoding = dwarf::DW_EH_PE_absptr;
     break;
+  case Triple::maxis:
+  case Triple::maxisel:
+  case Triple::maxis64:
+  case Triple::maxis64el:
   case Triple::mips:
   case Triple::mipsel:
   case Triple::mips64:
   case Triple::mips64el:
-    // MIPS uses indirect pointer to refer personality functions and types, so
+    // MAXIS/MIPS uses indirect pointer to refer personality functions and types, so
     // that the eh_frame section can be read-only. DW.ref.personality will be
     // generated for relocation.
     PersonalityEncoding = dwarf::DW_EH_PE_indirect;
@@ -515,10 +523,13 @@ void MCObjectFileInfo::initELFMCObjectFileInfo(const Triple &T, bool Large) {
 
   unsigned DebugSecType = ELF::SHT_PROGBITS;
 
-  // MIPS .debug_* sections should have SHT_MIPS_DWARF section type
+  // MAXIS/MIPS .debug_* sections should have SHT_MAXIS_DWARF/SHT_MIPS_DWARF section type
   // to distinguish among sections contain DWARF and ECOFF debug formats.
   // Sections with ECOFF debug format are obsoleted and marked by SHT_PROGBITS.
-  if (T.getArch() == Triple::mips || T.getArch() == Triple::mipsel ||
+  if (T.getArch() == Triple::maxis || T.getArch() == Triple::maxisel ||
+      T.getArch() == Triple::maxis64 || T.getArch() == Triple::maxis64el)
+    DebugSecType = ELF::SHT_MAXIS_DWARF;
+  else if (T.getArch() == Triple::mips || T.getArch() == Triple::mipsel ||
       T.getArch() == Triple::mips64 || T.getArch() == Triple::mips64el)
     DebugSecType = ELF::SHT_MIPS_DWARF;
 

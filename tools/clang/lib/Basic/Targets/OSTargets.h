@@ -204,6 +204,8 @@ public:
     case llvm::Triple::x86_64:
       this->MCountName = ".mcount";
       break;
+    case llvm::Triple::maxis:
+    case llvm::Triple::maxisel:
     case llvm::Triple::mips:
     case llvm::Triple::mipsel:
     case llvm::Triple::ppc:
@@ -324,6 +326,10 @@ public:
     switch (Triple.getArch()) {
     default:
       break;
+    case llvm::Triple::maxis:
+    case llvm::Triple::maxisel:
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
     case llvm::Triple::mips:
     case llvm::Triple::mipsel:
     case llvm::Triple::mips64:
@@ -395,6 +401,8 @@ public:
     default:
       this->MCountName = "__mcount";
       break;
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
     case llvm::Triple::mips64:
     case llvm::Triple::mips64el:
     case llvm::Triple::ppc:
@@ -506,6 +514,8 @@ public:
     case llvm::Triple::x86:
       // this->MCountName = ".mcount";
       break;
+    case llvm::Triple::maxis:
+    case llvm::Triple::maxisel:
     case llvm::Triple::mips:
     case llvm::Triple::mipsel:
     case llvm::Triple::ppc:
@@ -666,6 +676,8 @@ public:
       this->resetDataLayout("e-m:e-p:32:32-i64:64-n8:16:32-S128");
     } else if (Triple.getArch() == llvm::Triple::x86_64) {
       this->resetDataLayout("e-m:e-p:32:32-i64:64-n8:16:32:64-S128");
+    } else if (Triple.getArch() == llvm::Triple::maxisel) {
+      // Handled on maxis' setDataLayout.
     } else if (Triple.getArch() == llvm::Triple::mipsel) {
       // Handled on mips' setDataLayout.
     } else {

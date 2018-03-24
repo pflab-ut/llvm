@@ -380,6 +380,9 @@ void DataLayout::parseSpecifier(StringRef Desc) {
       case 'o':
         ManglingMode = MM_MachO;
         break;
+      case 'a':
+        ManglingMode = MM_Maxis;
+        break;
       case 'm':
         ManglingMode = MM_Mips;
         break;

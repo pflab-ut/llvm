@@ -359,7 +359,9 @@ void InputSection::copyRelocations(uint8_t *Buf, ArrayRef<RelTy> Rels) {
   InputSectionBase *Sec = getRelocatedSection();
 
   for (const RelTy &Rel : Rels) {
-    RelType Type = Rel.getType(Config->IsMips64EL);
+    RelType Type = Config->EMachine == EM_MAXIS
+      ? Rel.getType(Config->IsMaxis64EL)
+      : Rel.getType(Config->IsMips64EL);
     Symbol &Sym = getFile<ELFT>()->getRelocTargetSym(Rel);
 
     auto *P = reinterpret_cast<typename ELFT::Rela *>(Buf);
@@ -371,9 +373,14 @@ void InputSection::copyRelocations(uint8_t *Buf, ArrayRef<RelTy> Rels) {
     // Output section VA is zero for -r, so r_offset is an offset within the
     // section, but for --emit-relocs it is an virtual address.
     P->r_offset = Sec->getOutputSection()->Addr + Sec->getOffset(Rel.r_offset);
-    P->setSymbolAndType(InX::SymTab->getSymbolIndex(&Sym), Type,
-                        Config->IsMips64EL);
-
+    if (Config->EMachine == EM_MAXIS) {
+      P->setSymbolAndType(InX::SymTab->getSymbolIndex(&Sym), Type,
+                          Config->IsMaxis64EL);
+    } else {
+      P->setSymbolAndType(InX::SymTab->getSymbolIndex(&Sym), Type,
+                          Config->IsMips64EL);
+    }
+    
     if (Sym.Type == STT_SECTION) {
       // We combine multiple section symbols into only one per
       // section. This means we have to update the addend. That is
@@ -517,6 +524,44 @@ static uint64_t getRelocTargetVA(RelType Type, int64_t A, uint64_t P,
   case R_NONE:
   case R_TLSDESC_CALL:
     llvm_unreachable("cannot relocate hint relocs");
+  case R_MAXIS_GOTREL:
+    return Sym.getVA(A) - InX::MaxisGot->getGp();
+  case R_MAXIS_GOT_GP:
+    return InX::MaxisGot->getGp() + A;
+  case R_MAXIS_GOT_GP_PC: {
+    // R_MAXIS_LO16 expression has R_MAXIS_GOT_GP_PC type iif the target
+    // is _gp_disp symbol. In that case we should use the following
+    // formula for calculation "AHL + GP - P + 4". For details see p. 4-19 at
+    // ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+    // microMAXIS variants of these relocations use slightly different
+    // expressions: AHL + GP - P + 3 for %lo() and AHL + GP - P - 1 for %hi()
+    // to correctly handle less-sugnificant bit of the microMAXIS symbol.
+    uint64_t V = InX::MaxisGot->getGp() + A - P;
+    if (Type == R_MAXIS_LO16 || Type == R_MICROMAXIS_LO16)
+      V += 4;
+    if (Type == R_MICROMAXIS_LO16 || Type == R_MICROMAXIS_HI16)
+      V -= 1;
+    return V;
+  }
+  case R_MAXIS_GOT_LOCAL_PAGE:
+    // If relocation against MAXIS local symbol requires GOT entry, this entry
+    // should be initialized by 'page address'. This address is high 16-bits
+    // of sum the symbol's value and the addend.
+    return InX::MaxisGot->getVA() + InX::MaxisGot->getPageEntryOffset(Sym, A) -
+           InX::MaxisGot->getGp();
+  case R_MAXIS_GOT_OFF:
+  case R_MAXIS_GOT_OFF32:
+    // In case of MAXIS if a GOT relocation has non-zero addend this addend
+    // should be applied to the GOT entry content not to the GOT entry offset.
+    // That is why we use separate expression type.
+    return InX::MaxisGot->getVA() + InX::MaxisGot->getSymEntryOffset(Sym, A) -
+           InX::MaxisGot->getGp();
+  case R_MAXIS_TLSGD:
+    return InX::MaxisGot->getVA() + InX::MaxisGot->getTlsOffset() +
+           InX::MaxisGot->getGlobalDynOffset(Sym) - InX::MaxisGot->getGp();
+  case R_MAXIS_TLSLD:
+    return InX::MaxisGot->getVA() + InX::MaxisGot->getTlsOffset() +
+           InX::MaxisGot->getTlsIndexOff() - InX::MaxisGot->getGp();
   case R_MIPS_GOTREL:
     return Sym.getVA(A) - InX::MipsGot->getGp();
   case R_MIPS_GOT_GP:
@@ -655,7 +700,9 @@ void InputSection::relocateNonAlloc(uint8_t *Buf, ArrayRef<RelTy> Rels) {
   const unsigned Bits = sizeof(typename ELFT::uint) * 8;
 
   for (const RelTy &Rel : Rels) {
-    RelType Type = Rel.getType(Config->IsMips64EL);
+    RelType Type = Config->EMachine == EM_MAXIS
+      ? Rel.getType(Config->IsMaxis64EL)
+      : Rel.getType(Config->IsMips64EL);
     uint64_t Offset = getOffset(Rel.r_offset);
     uint8_t *BufLoc = Buf + Offset;
     int64_t Addend = getAddend<ELFT>(Rel);

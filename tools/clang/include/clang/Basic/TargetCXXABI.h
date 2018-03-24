@@ -83,6 +83,12 @@ public:
     ///   - guard variables  are smaller.
     GenericAArch64,
 
+    /// The generic Maxis ABI is a modified version of the Itanium ABI.
+    ///
+    /// At the moment, only change from the generic ABI in this case is:
+    ///   - representation of member function pointers adjusted as in ARM.
+    GenericMAXIS,
+
     /// The generic Mips ABI is a modified version of the Itanium ABI.
     ///
     /// At the moment, only change from the generic ABI in this case is:
@@ -140,6 +146,7 @@ public:
     case iOS:
     case iOS64:
     case WatchOS:
+    case GenericMAXIS:
     case GenericMIPS:
     case WebAssembly:
       return true;
@@ -159,6 +166,7 @@ public:
     case iOS:
     case iOS64:
     case WatchOS:
+    case GenericMAXIS:
     case GenericMIPS:
     case WebAssembly:
       return false;
@@ -185,6 +193,7 @@ public:
       return false;
     case GenericARM:
     case GenericAArch64:
+    case GenericMAXIS:
     case GenericMIPS:
       // TODO: ARM-style pointers to member functions put the discriminator in
       //       the this adjustment, so they don't require functions to have any
@@ -275,6 +284,7 @@ public:
     case GenericItanium:
     case iOS:   // old iOS compilers did not follow this rule
     case Microsoft:
+    case GenericMAXIS:
     case GenericMIPS:
       return true;
     }
@@ -321,6 +331,7 @@ public:
     case GenericAArch64:
     case GenericARM:
     case iOS:
+    case GenericMAXIS:
     case GenericMIPS:
       return UseTailPaddingUnlessPOD03;
 

@@ -63,6 +63,7 @@ namespace opts {
   extern llvm::cl::opt<bool> CodeView;
   extern llvm::cl::opt<bool> CodeViewSubsectionBytes;
   extern llvm::cl::opt<bool> ARMAttributes;
+  extern llvm::cl::opt<bool> MaxisPLTGOT;
   extern llvm::cl::opt<bool> MipsPLTGOT;
   enum OutputStyleTy { LLVM, GNU };
   extern llvm::cl::opt<OutputStyleTy> Output;

@@ -364,6 +364,7 @@ static ArrayRef<OperandType[2]> getOperandTypes() {
   DECLARE_OP1(DW_CFA_advance_loc1, OT_FactoredCodeOffset);
   DECLARE_OP1(DW_CFA_advance_loc2, OT_FactoredCodeOffset);
   DECLARE_OP1(DW_CFA_advance_loc4, OT_FactoredCodeOffset);
+  DECLARE_OP1(DW_CFA_MAXIS_advance_loc8, OT_FactoredCodeOffset);
   DECLARE_OP1(DW_CFA_MIPS_advance_loc8, OT_FactoredCodeOffset);
   DECLARE_OP2(DW_CFA_def_cfa, OT_Register, OT_Offset);
   DECLARE_OP2(DW_CFA_def_cfa_sf, OT_Register, OT_SignedFactDataOffset);

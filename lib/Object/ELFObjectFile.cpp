@@ -74,6 +74,67 @@ ObjectFile::createELFObjectFile(MemoryBufferRef Obj) {
   return createError("Invalid ELF class");
 }
 
+SubtargetFeatures ELFObjectFileBase::getMAXISFeatures() const {
+  SubtargetFeatures Features;
+  unsigned PlatformFlags;
+  getPlatformFlags(PlatformFlags);
+
+  switch (PlatformFlags & ELF::EF_MAXIS_ARCH) {
+  case ELF::EF_MAXIS_ARCH_1:
+    break;
+  case ELF::EF_MAXIS_ARCH_2:
+    Features.AddFeature("maxis2");
+    break;
+  case ELF::EF_MAXIS_ARCH_3:
+    Features.AddFeature("maxis3");
+    break;
+  case ELF::EF_MAXIS_ARCH_4:
+    Features.AddFeature("maxis4");
+    break;
+  case ELF::EF_MAXIS_ARCH_5:
+    Features.AddFeature("maxis5");
+    break;
+  case ELF::EF_MAXIS_ARCH_32:
+    Features.AddFeature("maxis32");
+    break;
+  case ELF::EF_MAXIS_ARCH_64:
+    Features.AddFeature("maxis64");
+    break;
+  case ELF::EF_MAXIS_ARCH_32R2:
+    Features.AddFeature("maxis32r2");
+    break;
+  case ELF::EF_MAXIS_ARCH_64R2:
+    Features.AddFeature("maxis64r2");
+    break;
+  case ELF::EF_MAXIS_ARCH_32R6:
+    Features.AddFeature("maxis32r6");
+    break;
+  case ELF::EF_MAXIS_ARCH_64R6:
+    Features.AddFeature("maxis64r6");
+    break;
+  default:
+    llvm_unreachable("Unknown EF_MAXIS_ARCH value");
+  }
+
+  switch (PlatformFlags & ELF::EF_MAXIS_MACH) {
+  case ELF::EF_MAXIS_MACH_NONE:
+    // No feature associated with this value.
+    break;
+  case ELF::EF_MAXIS_MACH_OCTEON:
+    Features.AddFeature("cnmaxis");
+    break;
+  default:
+    llvm_unreachable("Unknown EF_MAXIS_ARCH value");
+  }
+
+  if (PlatformFlags & ELF::EF_MAXIS_ARCH_ASE_M16)
+    Features.AddFeature("maxis16");
+  if (PlatformFlags & ELF::EF_MAXIS_MICROMAXIS)
+    Features.AddFeature("micromaxis");
+
+  return Features;
+}
+
 SubtargetFeatures ELFObjectFileBase::getMIPSFeatures() const {
   SubtargetFeatures Features;
   unsigned PlatformFlags;

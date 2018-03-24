@@ -349,7 +349,7 @@ def F : JoinedOrSeparate<["-"], "F">, Flags<[RenderJoined,CC1Option]>,
     HelpText<"Add directory to framework include search path">;
 def G : JoinedOrSeparate<["-"], "G">, Flags<[DriverOption]>, Group<m_Group>,
     MetaVarName<"<size>">, HelpText<"Put objects of at most <size> bytes "
-    "into small data section (MIPS / Hexagon)">;
+    "into small data section (MAXIS / MIPS / Hexagon)">;
 def G_EQ : Joined<["-"], "G=">, Flags<[DriverOption]>, Group<m_Group>, Alias<G>;
 def H : Flag<["-"], "H">, Flags<[CC1Option]>, Group<Preprocessor_Group>,
     HelpText<"Show header includes and nesting depth">;
@@ -1976,6 +1976,10 @@ def mpie_copy_relocations : Flag<["-"], "mpie-copy-relocations">, Group<m_Group>
 def mno_pie_copy_relocations : Flag<["-"], "mno-pie-copy-relocations">, Group<m_Group>;
 def mfentry : Flag<["-"], "mfentry">, HelpText<"Insert calls to fentry at function entry (x86 only)">,
   Flags<[CC1Option]>, Group<m_Group>;
+def maxis16 : Flag<["-"], "maxis16">, Group<m_Group>;
+def mno_maxis16 : Flag<["-"], "mno-maxis16">, Group<m_Group>;
+def mmicromaxis : Flag<["-"], "mmicromaxis">, Group<m_Group>;
+def mno_micromaxis : Flag<["-"], "mno-micromaxis">, Group<m_Group>;
 def mips16 : Flag<["-"], "mips16">, Group<m_Group>;
 def mno_mips16 : Flag<["-"], "mno-mips16">, Group<m_Group>;
 def mmicromips : Flag<["-"], "mmicromips">, Group<m_Group>;
@@ -2003,45 +2007,90 @@ def mmadd4 : Flag<["-"], "mmadd4">, Group<m_Group>,
 def mno_madd4 : Flag<["-"], "mno-madd4">, Group<m_Group>,
   HelpText<"Disable the generation of 4-operand madd.s, madd.d and related instructions.">;
 def mmsa : Flag<["-"], "mmsa">, Group<m_Group>,
-  HelpText<"Enable MSA ASE (MIPS only)">;
+  HelpText<"Enable MSA ASE (MAXIS/MIPS only)">;
 def mno_msa : Flag<["-"], "mno-msa">, Group<m_Group>,
-  HelpText<"Disable MSA ASE (MIPS only)">;
+  HelpText<"Disable MSA ASE (MAXIS/MIPS only)">;
 def mmt : Flag<["-"], "mmt">, Group<m_Group>,
-  HelpText<"Enable MT ASE (MIPS only)">;
+  HelpText<"Enable MT ASE (MAXIS/MIPS only)">;
 def mno_mt : Flag<["-"], "mno-mt">, Group<m_Group>,
-  HelpText<"Disable MT ASE (MIPS only)">;
+  HelpText<"Disable MT ASE (MAXIS/MIPS only)">;
 def mfp64 : Flag<["-"], "mfp64">, Group<m_Group>,
-  HelpText<"Use 64-bit floating point registers (MIPS only)">;
+  HelpText<"Use 64-bit floating point registers (MAXIS/MIPS only)">;
 def mfp32 : Flag<["-"], "mfp32">, Group<m_Group>,
-  HelpText<"Use 32-bit floating point registers (MIPS only)">;
+  HelpText<"Use 32-bit floating point registers (MAXIS/MIPS only)">;
 def mgpopt : Flag<["-"], "mgpopt">, Group<m_Group>,
   HelpText<"Use GP relative accesses for symbols known to be in a small"
-           " data section (MIPS)">;
+           " data section (MAXIS/MIPS)">;
 def mno_gpopt : Flag<["-"], "mno-gpopt">, Group<m_Group>,
   HelpText<"Do not use GP relative accesses for symbols known to be in a small"
-           " data section (MIPS)">;
+           " data section (MAXIS/MIPS)">;
 def mlocal_sdata : Flag<["-"], "mlocal-sdata">, Group<m_Group>,
-  HelpText<"Extend the -G behaviour to object local data (MIPS)">;
+  HelpText<"Extend the -G behaviour to object local data (MAXIS/MIPS)">;
 def mno_local_sdata : Flag<["-"], "mno-local-sdata">, Group<m_Group>,
-  HelpText<"Do not extend the -G behaviour to object local data (MIPS)">;
+  HelpText<"Do not extend the -G behaviour to object local data (MAXIS/MIPS)">;
 def mextern_sdata : Flag<["-"], "mextern-sdata">, Group<m_Group>,
   HelpText<"Assume that externally defined data is in the small data if it"
-           " meets the -G <size> threshold (MIPS)">;
+           " meets the -G <size> threshold (MAXIS/MIPS)">;
 def mno_extern_sdata : Flag<["-"], "mno-extern-sdata">, Group<m_Group>,
   HelpText<"Do not assume that externally defined data is in the small data if"
-           " it meets the -G <size> threshold (MIPS)">;
+           " it meets the -G <size> threshold (MAXIS/MIPS)">;
 def membedded_data : Flag<["-"], "membedded-data">, Group<m_Group>,
   HelpText<"Place constants in the .rodata section instead of the .sdata "
-           "section even if they meet the -G <size> threshold (MIPS)">;
+           "section even if they meet the -G <size> threshold (MAXIS/MIPS)">;
 def mno_embedded_data : Flag<["-"], "mno-embedded-data">, Group<m_Group>,
   HelpText<"Do not place constants in the .rodata section instead of the "
-           ".sdata if they meet the -G <size> threshold (MIPS)">;
+           ".sdata if they meet the -G <size> threshold (MAXIS/MIPS)">;
 def mnan_EQ : Joined<["-"], "mnan=">, Group<m_Group>;
 def mabs_EQ : Joined<["-"], "mabs=">, Group<m_Group>;
 def mabicalls : Flag<["-"], "mabicalls">, Group<m_Group>,
-  HelpText<"Enable SVR4-style position-independent code (Mips only)">;
+  HelpText<"Enable SVR4-style position-independent code (Maxis/Mips only)">;
 def mno_abicalls : Flag<["-"], "mno-abicalls">, Group<m_Group>,
-  HelpText<"Disable SVR4-style position-independent code (Mips only)">;
+  HelpText<"Disable SVR4-style position-independent code (Maxis/Mips only)">;
+def maxis1 : Flag<["-"], "maxis1">,
+  Alias<march_EQ>, AliasArgs<["maxis1"]>,
+  HelpText<"Equivalent to -march=maxis1">, Flags<[HelpHidden]>;
+def maxis2 : Flag<["-"], "maxis2">,
+  Alias<march_EQ>, AliasArgs<["maxis2"]>,
+  HelpText<"Equivalent to -march=maxis2">, Flags<[HelpHidden]>;
+def maxis3 : Flag<["-"], "maxis3">,
+  Alias<march_EQ>, AliasArgs<["maxis3"]>,
+  HelpText<"Equivalent to -march=maxis3">, Flags<[HelpHidden]>;
+def maxis4 : Flag<["-"], "maxis4">,
+  Alias<march_EQ>, AliasArgs<["maxis4"]>,
+  HelpText<"Equivalent to -march=maxis4">, Flags<[HelpHidden]>;
+def maxis5 : Flag<["-"], "maxis5">,
+  Alias<march_EQ>, AliasArgs<["maxis5"]>,
+  HelpText<"Equivalent to -march=maxis5">, Flags<[HelpHidden]>;
+def maxis32 : Flag<["-"], "maxis32">,
+  Alias<march_EQ>, AliasArgs<["maxis32"]>,
+  HelpText<"Equivalent to -march=maxis32">, Flags<[HelpHidden]>;
+def maxis32r2 : Flag<["-"], "maxis32r2">,
+  Alias<march_EQ>, AliasArgs<["maxis32r2"]>,
+  HelpText<"Equivalent to -march=maxis32r2">, Flags<[HelpHidden]>;
+def maxis32r3 : Flag<["-"], "maxis32r3">,
+  Alias<march_EQ>, AliasArgs<["maxis32r3"]>,
+  HelpText<"Equivalent to -march=maxis32r3">, Flags<[HelpHidden]>;
+def maxis32r5 : Flag<["-"], "maxis32r5">,
+  Alias<march_EQ>, AliasArgs<["maxis32r5"]>,
+  HelpText<"Equivalent to -march=maxis32r5">, Flags<[HelpHidden]>;
+def maxis32r6 : Flag<["-"], "maxis32r6">,
+  Alias<march_EQ>, AliasArgs<["maxis32r6"]>,
+  HelpText<"Equivalent to -march=maxis32r6">, Flags<[HelpHidden]>;
+def maxis64 : Flag<["-"], "maxis64">,
+  Alias<march_EQ>, AliasArgs<["maxis64"]>,
+  HelpText<"Equivalent to -march=maxis64">, Flags<[HelpHidden]>;
+def maxis64r2 : Flag<["-"], "maxis64r2">,
+  Alias<march_EQ>, AliasArgs<["maxis64r2"]>,
+  HelpText<"Equivalent to -march=maxis64r2">, Flags<[HelpHidden]>;
+def maxis64r3 : Flag<["-"], "maxis64r3">,
+  Alias<march_EQ>, AliasArgs<["maxis64r3"]>,
+  HelpText<"Equivalent to -march=maxis64r3">, Flags<[HelpHidden]>;
+def maxis64r5 : Flag<["-"], "maxis64r5">,
+  Alias<march_EQ>, AliasArgs<["maxis64r5"]>,
+  HelpText<"Equivalent to -march=maxis64r5">, Flags<[HelpHidden]>;
+def maxis64r6 : Flag<["-"], "maxis64r6">,
+  Alias<march_EQ>, AliasArgs<["maxis64r6"]>,
+  HelpText<"Equivalent to -march=maxis64r6">, Flags<[HelpHidden]>;
 def mips1 : Flag<["-"], "mips1">,
   Alias<march_EQ>, AliasArgs<["mips1"]>,
   HelpText<"Equivalent to -march=mips1">, Flags<[HelpHidden]>;

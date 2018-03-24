@@ -137,6 +137,8 @@ enum {
   EM_MIPS = 8,           // MIPS R3000
   EM_S370 = 9,           // IBM System/370
   EM_MIPS_RS3_LE = 10,   // MIPS RS3000 Little-endian
+  EM_MAXIS = 11,         // MAXIS R3000
+  EM_MAXIS_RS3_LE = 12,   // MAXIS RS3000 Little-endian
   EM_PARISC = 15,        // Hewlett-Packard PA-RISC
   EM_VPP500 = 17,        // Fujitsu VPP500
   EM_SPARC32PLUS = 18,   // Enhanced instruction set SPARC
@@ -233,6 +235,7 @@ enum {
                          // Controller
   EM_CE = 119,           // Freescale Communication Engine RISC core
   EM_M32C = 120,         // Renesas M32C series microprocessors
+  EM_MAXIS_X = 121,      // Stanford MAXIS-X
   EM_TSK3000 = 131,      // Altium TSK3000 core
   EM_RS08 = 132,         // Freescale RS08 embedded processor
   EM_SHARC = 133,        // Analog Devices SHARC family of 32-bit DSP
@@ -482,6 +485,100 @@ enum {
 #include "ELFRelocs/AVR.def"
 };
 
+// Maxis Specific e_flags
+enum : unsigned {
+  EF_MAXIS_NOREORDER = 0x00000001, // Don't reorder instructions
+  EF_MAXIS_PIC = 0x00000002,       // Position independent code
+  EF_MAXIS_CPIC = 0x00000004,      // Call object with Position independent code
+  EF_MAXIS_ABI2 = 0x00000020,      // File uses N32 ABI
+  EF_MAXIS_32BITMODE = 0x00000100, // Code compiled for a 64-bit machine
+                                  // in 32-bit mode
+  EF_MAXIS_FP64 = 0x00000200,      // Code compiled for a 32-bit machine
+                                  // but uses 64-bit FP registers
+  EF_MAXIS_NAN2008 = 0x00000400,   // Uses IEE 754-2008 NaN encoding
+
+  // ABI flags
+  EF_MAXIS_ABI_O32 = 0x00001000, // This file follows the first MAXIS 32 bit ABI
+  EF_MAXIS_ABI_O64 = 0x00002000, // O32 ABI extended for 64-bit architecture.
+  EF_MAXIS_ABI_EABI32 = 0x00003000, // EABI in 32 bit mode.
+  EF_MAXIS_ABI_EABI64 = 0x00004000, // EABI in 64 bit mode.
+  EF_MAXIS_ABI = 0x0000f000,        // Mask for selecting EF_MAXIS_ABI_ variant.
+
+  // MAXIS machine variant
+  EF_MAXIS_MACH_NONE = 0x00000000,    // A standard MAXIS implementation.
+  EF_MAXIS_MACH_3900 = 0x00810000,    // Toshiba R3900
+  EF_MAXIS_MACH_4010 = 0x00820000,    // LSI R4010
+  EF_MAXIS_MACH_4100 = 0x00830000,    // NEC VR4100
+  EF_MAXIS_MACH_4650 = 0x00850000,    // MAXIS R4650
+  EF_MAXIS_MACH_4120 = 0x00870000,    // NEC VR4120
+  EF_MAXIS_MACH_4111 = 0x00880000,    // NEC VR4111/VR4181
+  EF_MAXIS_MACH_SB1 = 0x008a0000,     // Broadcom SB-1
+  EF_MAXIS_MACH_OCTEON = 0x008b0000,  // Cavium Networks Octeon
+  EF_MAXIS_MACH_XLR = 0x008c0000,     // RMI Xlr
+  EF_MAXIS_MACH_OCTEON2 = 0x008d0000, // Cavium Networks Octeon2
+  EF_MAXIS_MACH_OCTEON3 = 0x008e0000, // Cavium Networks Octeon3
+  EF_MAXIS_MACH_5400 = 0x00910000,    // NEC VR5400
+  EF_MAXIS_MACH_5900 = 0x00920000,    // MAXIS R5900
+  EF_MAXIS_MACH_5500 = 0x00980000,    // NEC VR5500
+  EF_MAXIS_MACH_9000 = 0x00990000,    // Unknown
+  EF_MAXIS_MACH_LS2E = 0x00a00000,    // ST Microelectronics Loongson 2E
+  EF_MAXIS_MACH_LS2F = 0x00a10000,    // ST Microelectronics Loongson 2F
+  EF_MAXIS_MACH_LS3A = 0x00a20000,    // Loongson 3A
+  EF_MAXIS_MACH = 0x00ff0000,         // EF_MAXIS_MACH_xxx selection mask
+
+  // ARCH_ASE
+  EF_MAXIS_MICROMAXIS = 0x02000000,     // microMAXIS
+  EF_MAXIS_ARCH_ASE_M16 = 0x04000000,  // Has Maxis-16 ISA extensions
+  EF_MAXIS_ARCH_ASE_MDMX = 0x08000000, // Has MDMX multimedia extensions
+  EF_MAXIS_ARCH_ASE = 0x0f000000,      // Mask for EF_MAXIS_ARCH_ASE_xxx flags
+
+  // ARCH
+  EF_MAXIS_ARCH_1 = 0x00000000,    // MAXIS1 instruction set
+  EF_MAXIS_ARCH_2 = 0x10000000,    // MAXIS2 instruction set
+  EF_MAXIS_ARCH_3 = 0x20000000,    // MAXIS3 instruction set
+  EF_MAXIS_ARCH_4 = 0x30000000,    // MAXIS4 instruction set
+  EF_MAXIS_ARCH_5 = 0x40000000,    // MAXIS5 instruction set
+  EF_MAXIS_ARCH_32 = 0x50000000,   // MAXIS32 instruction set per linux not elf.h
+  EF_MAXIS_ARCH_64 = 0x60000000,   // MAXIS64 instruction set per linux not elf.h
+  EF_MAXIS_ARCH_32R2 = 0x70000000, // maxis32r2, maxis32r3, maxis32r5
+  EF_MAXIS_ARCH_64R2 = 0x80000000, // maxis64r2, maxis64r3, maxis64r5
+  EF_MAXIS_ARCH_32R6 = 0x90000000, // maxis32r6
+  EF_MAXIS_ARCH_64R6 = 0xa0000000, // maxis64r6
+  EF_MAXIS_ARCH = 0xf0000000       // Mask for applying EF_MAXIS_ARCH_ variant
+};
+
+// ELF Relocation types for Maxis
+enum {
+#include "ELFRelocs/Maxis.def"
+};
+
+// Special values for the st_other field in the symbol table entry for MAXIS.
+enum {
+  STO_MAXIS_OPTIONAL = 0x04,  // Symbol whose definition is optional
+  STO_MAXIS_PLT = 0x08,       // PLT entry related dynamic table record
+  STO_MAXIS_PIC = 0x20,       // PIC func in an object mixes PIC/non-PIC
+  STO_MAXIS_MICROMAXIS = 0x80, // MAXIS Specific ISA for MicroMaxis
+  STO_MAXIS_MAXIS16 = 0xf0     // MAXIS Specific ISA for Maxis16
+};
+
+#if 0
+// .MAXIS.options section descriptor kinds
+enum {
+  ODK_NULL = 0,       // Undefined
+  ODK_REGINFO = 1,    // Register usage information
+  ODK_EXCEPTIONS = 2, // Exception processing options
+  ODK_PAD = 3,        // Section padding options
+  ODK_HWPATCH = 4,    // Hardware patches applied
+  ODK_FILL = 5,       // Linker fill value
+  ODK_TAGS = 6,       // Space for tool identification
+  ODK_HWAND = 7,      // Hardware AND patches applied
+  ODK_HWOR = 8,       // Hardware OR patches applied
+  ODK_GP_GROUP = 9,   // GP group to use for text/data sections
+  ODK_IDENT = 10,     // ID information
+  ODK_PAGESIZE = 11   // Page size information
+};
+#endif
+
 // Mips Specific e_flags
 enum : unsigned {
   EF_MIPS_NOREORDER = 0x00000001, // Don't reorder instructions
@@ -573,6 +670,7 @@ enum {
   ODK_IDENT = 10,     // ID information
   ODK_PAGESIZE = 11   // Page size information
 };
+
 
 // Hexagon-specific e_flags
 enum {
@@ -762,6 +860,11 @@ enum : unsigned {
   SHT_MIPS_DWARF = 0x7000001e,    // DWARF debugging section.
   SHT_MIPS_ABIFLAGS = 0x7000002a, // ABI information.
 
+  SHT_MAXIS_REGINFO = 0x70010006,  // Register usage information
+  SHT_MAXIS_OPTIONS = 0x7001000d,  // General options
+  SHT_MAXIS_DWARF = 0x7001001e,    // DWARF debugging section.
+  SHT_MAXIS_ABIFLAGS = 0x7001002a, // ABI information.
+    
   SHT_HIPROC = 0x7fffffff, // Highest processor arch-specific type.
   SHT_LOUSER = 0x80000000, // Lowest type reserved for applications.
   SHT_HIUSER = 0xffffffff  // Highest type reserved for applications.
@@ -835,6 +938,31 @@ enum : unsigned {
   // All sections with the GPREL flag are grouped into a global data area
   // for faster accesses
   SHF_HEX_GPREL = 0x10000000,
+
+  // Section contains text/data which may be replicated in other sections.
+  // Linker must retain only one copy.
+  SHF_MAXIS_NODUPES = 0x01000000,
+
+  // Linker must generate implicit hidden weak names.
+  SHF_MAXIS_NAMES = 0x02000000,
+
+  // Section data local to process.
+  SHF_MAXIS_LOCAL = 0x04000000,
+
+  // Do not strip this section.
+  SHF_MAXIS_NOSTRIP = 0x08000000,
+
+  // Section must be part of global data area.
+  SHF_MAXIS_GPREL = 0x10000000,
+
+  // This section should be merged.
+  SHF_MAXIS_MERGE = 0x20000000,
+
+  // Address size to be inferred from section entry size.
+  SHF_MAXIS_ADDR = 0x40000000,
+
+  // Section data is string data by default.
+  SHF_MAXIS_STRING = 0x80000000,
 
   // Section contains text/data which may be replicated in other sections.
   // Linker must retain only one copy.
@@ -959,7 +1087,7 @@ enum {
 // Symbol number.
 enum { STN_UNDEF = 0 };
 
-// Special relocation symbols used in the MIPS64 ELF relocation entries
+// Special relocation symbols used in the MAXIS64/MIPS64 ELF relocation entries
 enum {
   RSS_UNDEF = 0, // None
   RSS_GP = 1,    // Value of gp
@@ -1096,6 +1224,12 @@ enum {
   PT_MIPS_RTPROC = 0x70000001,   // Runtime procedure table.
   PT_MIPS_OPTIONS = 0x70000002,  // Options segment.
   PT_MIPS_ABIFLAGS = 0x70000003, // Abiflags segment.
+
+  // MAXIS program header types.
+  PT_MAXIS_REGINFO = 0x70010000,  // Register usage information.
+  PT_MAXIS_RTPROC = 0x70010001,   // Runtime procedure table.
+  PT_MAXIS_OPTIONS = 0x70010002,  // Options segment.
+  PT_MAXIS_ABIFLAGS = 0x70010003, // Abiflags segment.
 
   // WebAssembly program header types.
   PT_WEBASSEMBLY_FUNCTIONS = PT_LOPROC + 0, // Function definitions.
@@ -1275,6 +1409,82 @@ enum {
   DT_MIPS_RLD_MAP_REL = 0x70000035,  // Relative offset of run time loader
                                      // map, used for debugging.
 
+  // Maxis specific dynamic table entry tags.
+  DT_MAXIS_RLD_VERSION = 0x70010001,    // 32 bit version number for runtime
+                                       // linker interface.
+  DT_MAXIS_TIME_STAMP = 0x70010002,     // Time stamp.
+  DT_MAXIS_ICHECKSUM = 0x70010003,      // Checksum of external strings
+                                       // and common sizes.
+  DT_MAXIS_IVERSION = 0x70010004,       // Index of version string
+                                       // in string table.
+  DT_MAXIS_FLAGS = 0x70010005,          // 32 bits of flags.
+  DT_MAXIS_BASE_ADDRESS = 0x70010006,   // Base address of the segment.
+  DT_MAXIS_MSYM = 0x70010007,           // Address of .msym section.
+  DT_MAXIS_CONFLICT = 0x70010008,       // Address of .conflict section.
+  DT_MAXIS_LIBLIST = 0x70010009,        // Address of .liblist section.
+  DT_MAXIS_LOCAL_GOTNO = 0x7001000a,    // Number of local global offset
+                                       // table entries.
+  DT_MAXIS_CONFLICTNO = 0x7001000b,     // Number of entries
+                                       // in the .conflict section.
+  DT_MAXIS_LIBLISTNO = 0x70010010,      // Number of entries
+                                       // in the .liblist section.
+  DT_MAXIS_SYMTABNO = 0x70010011,       // Number of entries
+                                       // in the .dynsym section.
+  DT_MAXIS_UNREFEXTNO = 0x70010012,     // Index of first external dynamic symbol
+                                       // not referenced locally.
+  DT_MAXIS_GOTSYM = 0x70010013,         // Index of first dynamic symbol
+                                       // in global offset table.
+  DT_MAXIS_HIPAGENO = 0x70010014,       // Number of page table entries
+                                       // in global offset table.
+  DT_MAXIS_RLD_MAP = 0x70010016,        // Address of run time loader map,
+                                       // used for debugging.
+  DT_MAXIS_DELTA_CLASS = 0x70010017,    // Delta C++ class definition.
+  DT_MAXIS_DELTA_CLASS_NO = 0x70010018, // Number of entries
+                                       // in DT_MAXIS_DELTA_CLASS.
+  DT_MAXIS_DELTA_INSTANCE = 0x70010019, // Delta C++ class instances.
+  DT_MAXIS_DELTA_INSTANCE_NO = 0x7001001A,     // Number of entries
+                                              // in DT_MAXIS_DELTA_INSTANCE.
+  DT_MAXIS_DELTA_RELOC = 0x7001001B,           // Delta relocations.
+  DT_MAXIS_DELTA_RELOC_NO = 0x7001001C,        // Number of entries
+                                              // in DT_MAXIS_DELTA_RELOC.
+  DT_MAXIS_DELTA_SYM = 0x7001001D,             // Delta symbols that Delta
+                                              // relocations refer to.
+  DT_MAXIS_DELTA_SYM_NO = 0x7001001E,          // Number of entries
+                                              // in DT_MAXIS_DELTA_SYM.
+  DT_MAXIS_DELTA_CLASSSYM = 0x70010020,        // Delta symbols that hold
+                                              // class declarations.
+  DT_MAXIS_DELTA_CLASSSYM_NO = 0x70010021,     // Number of entries
+                                              // in DT_MAXIS_DELTA_CLASSSYM.
+  DT_MAXIS_CXX_FLAGS = 0x70010022,             // Flags indicating information
+                                              // about C++ flavor.
+  DT_MAXIS_PIXIE_INIT = 0x70010023,            // Pixie information.
+  DT_MAXIS_SYMBOL_LIB = 0x70010024,            // Address of .MAXIS.symlib
+  DT_MAXIS_LOCALPAGE_GOTIDX = 0x70010025,      // The GOT index of the first PTE
+                                              // for a segment
+  DT_MAXIS_LOCAL_GOTIDX = 0x70010026,          // The GOT index of the first PTE
+                                              // for a local symbol
+  DT_MAXIS_HIDDEN_GOTIDX = 0x70010027,         // The GOT index of the first PTE
+                                              // for a hidden symbol
+  DT_MAXIS_PROTECTED_GOTIDX = 0x70010028,      // The GOT index of the first PTE
+                                              // for a protected symbol
+  DT_MAXIS_OPTIONS = 0x70010029,               // Address of `.MAXIS.options'.
+  DT_MAXIS_INTERFACE = 0x7001002A,             // Address of `.interface'.
+  DT_MAXIS_DYNSTR_ALIGN = 0x7001002B,          // Unknown.
+  DT_MAXIS_INTERFACE_SIZE = 0x7001002C,        // Size of the .interface section.
+  DT_MAXIS_RLD_TEXT_RESOLVE_ADDR = 0x7001002D, // Size of rld_text_resolve
+                                              // function stored in the GOT.
+  DT_MAXIS_PERF_SUFFIX = 0x7001002E,  // Default suffix of DSO to be added
+                                     // by rld on dlopen() calls.
+  DT_MAXIS_COMPACT_SIZE = 0x7001002F, // Size of compact relocation
+                                     // section (O32).
+  DT_MAXIS_GP_VALUE = 0x70010030,     // GP value for auxiliary GOTs.
+  DT_MAXIS_AUX_DYNAMIC = 0x70010031,  // Address of auxiliary .dynamic.
+  DT_MAXIS_PLTGOT = 0x70010032,       // Address of the base of the PLTGOT.
+  DT_MAXIS_RWPLT = 0x70010034,        // Points to the base
+                                     // of a writable PLT.
+  DT_MAXIS_RLD_MAP_REL = 0x70010035,  // Relative offset of run time loader
+                                     // map, used for debugging.
+  
   // Sun machine-independent extensions.
   DT_AUXILIARY = 0x7FFFFFFD, // Shared object to load before self
   DT_FILTER = 0x7FFFFFFF     // Shared object to get values from
@@ -1319,7 +1529,7 @@ enum {
   DF_1_SINGLETON = 0x02000000   // Singleton symbols are used.
 };
 
-// DT_MIPS_FLAGS values.
+// DT_MAXIS/MIPS_FLAGS values.
 enum {
   RHF_NONE = 0x00000000,                   // No flags.
   RHF_QUICKSTART = 0x00000001,             // Uses shortcut pointers.

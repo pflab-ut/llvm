@@ -9,6 +9,7 @@
 
 #include "FreeBSD.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/Sparc.h"
 #include "CommonArgs.h"
@@ -43,6 +44,35 @@ void freebsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   case llvm::Triple::ppc:
     CmdArgs.push_back("-a32");
     break;
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    StringRef CPUName;
+    StringRef ABIName;
+    maxis::getMaxisCPUAndABI(Args, getToolChain().getTriple(), CPUName, ABIName);
+
+    CmdArgs.push_back("-march");
+    CmdArgs.push_back(CPUName.data());
+
+    CmdArgs.push_back("-mabi");
+    CmdArgs.push_back(maxis::getGnuCompatibleMaxisABIName(ABIName).data());
+
+    if (getToolChain().getArch() == llvm::Triple::maxis ||
+        getToolChain().getArch() == llvm::Triple::maxis64)
+      CmdArgs.push_back("-EB");
+    else
+      CmdArgs.push_back("-EL");
+
+    if (Arg *A = Args.getLastArg(options::OPT_G)) {
+      StringRef v = A->getValue();
+      CmdArgs.push_back(Args.MakeArgString("-G" + v));
+      A->claim();
+    }
+
+    AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
+    break;
+  }
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
   case llvm::Triple::mips64:
@@ -179,7 +209,11 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   }
 
   if (Arg *A = Args.getLastArg(options::OPT_G)) {
-    if (ToolChain.getArch() == llvm::Triple::mips ||
+    if (ToolChain.getArch() == llvm::Triple::maxis ||
+      ToolChain.getArch() == llvm::Triple::maxisel ||
+      ToolChain.getArch() == llvm::Triple::maxis64 ||
+      ToolChain.getArch() == llvm::Triple::maxis64el ||
+      ToolChain.getArch() == llvm::Triple::mips ||
       ToolChain.getArch() == llvm::Triple::mipsel ||
       ToolChain.getArch() == llvm::Triple::mips64 ||
       ToolChain.getArch() == llvm::Triple::mips64el) {
@@ -381,12 +415,14 @@ bool FreeBSD::isPIEDefault() const { return getSanitizerArgs().requiresPIE(); }
 SanitizerMask FreeBSD::getSupportedSanitizers() const {
   const bool IsX86 = getTriple().getArch() == llvm::Triple::x86;
   const bool IsX86_64 = getTriple().getArch() == llvm::Triple::x86_64;
+  const bool IsMAXIS64 = getTriple().getArch() == llvm::Triple::maxis64 ||
+                        getTriple().getArch() == llvm::Triple::maxis64el;
   const bool IsMIPS64 = getTriple().getArch() == llvm::Triple::mips64 ||
                         getTriple().getArch() == llvm::Triple::mips64el;
   SanitizerMask Res = ToolChain::getSupportedSanitizers();
   Res |= SanitizerKind::Address;
   Res |= SanitizerKind::Vptr;
-  if (IsX86_64 || IsMIPS64) {
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64) {
     Res |= SanitizerKind::Leak;
     Res |= SanitizerKind::Thread;
   }

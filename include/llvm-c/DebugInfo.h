@@ -105,6 +105,7 @@ typedef enum {
   LLVMDWARFSourceLanguageRenderScript,
   LLVMDWARFSourceLanguageBLISS,
   // Vendor extensions:
+  LLVMDWARFSourceLanguageMaxis_Assembler,
   LLVMDWARFSourceLanguageMips_Assembler,
   LLVMDWARFSourceLanguageGOOGLE_RenderScript,
   LLVMDWARFSourceLanguageBORLAND_Delphi

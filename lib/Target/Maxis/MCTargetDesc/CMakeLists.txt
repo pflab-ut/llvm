@@ -1,0 +1,14 @@
+add_llvm_library(LLVMMaxisDesc
+  MaxisABIInfo.cpp
+  MaxisABIFlagsSection.cpp
+  MaxisAsmBackend.cpp
+  MaxisELFObjectWriter.cpp
+  MaxisELFStreamer.cpp
+  MaxisMCAsmInfo.cpp
+  MaxisMCCodeEmitter.cpp
+  MaxisMCExpr.cpp
+  MaxisMCTargetDesc.cpp
+  MaxisNaClELFStreamer.cpp
+  MaxisOptionRecord.cpp
+  MaxisTargetStreamer.cpp
+  )

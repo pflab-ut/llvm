@@ -60,6 +60,19 @@ TargetInfo *elf::getTarget() {
     return getARMTargetInfo();
   case EM_AVR:
     return getAVRTargetInfo();
+  case EM_MAXIS:
+    switch (Config->EKind) {
+    case ELF32LEKind:
+      return getMaxisTargetInfo<ELF32LE>();
+    case ELF32BEKind:
+      return getMaxisTargetInfo<ELF32BE>();
+    case ELF64LEKind:
+      return getMaxisTargetInfo<ELF64LE>();
+    case ELF64BEKind:
+      return getMaxisTargetInfo<ELF64BE>();
+    default:
+      fatal("unsupported MAXIS target");
+    }
   case EM_MIPS:
     switch (Config->EKind) {
     case ELF32LEKind:

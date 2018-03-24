@@ -288,6 +288,8 @@ class TargetArch<list<string> arches> : TargetSpec {
 }
 def TargetARM : TargetArch<["arm", "thumb", "armeb", "thumbeb"]>;
 def TargetAVR : TargetArch<["avr"]>;
+def TargetMaxis32 : TargetArch<["maxis", "maxisel"]>;
+def TargetAnyMaxis : TargetArch<["maxis", "maxisel", "maxis64", "maxis64el"]>;
 def TargetMips32 : TargetArch<["mips", "mipsel"]>;
 def TargetAnyMips : TargetArch<["mips", "mipsel", "mips64", "mips64el"]>;
 def TargetMSP430 : TargetArch<["msp430"]>;
@@ -629,7 +631,7 @@ def Annotate : InheritableParamAttr {
 
 def ARMInterrupt : InheritableAttr, TargetSpecificAttr<TargetARM> {
   // NOTE: If you add any additional spellings, MSP430Interrupt's,
-  // MipsInterrupt's and AnyX86Interrupt's spellings must match.
+  // MaxisInterrupt's, MipsInterrupt's and AnyX86Interrupt's spellings must match.
   let Spellings = [GCC<"interrupt">];
   let Args = [EnumArgument<"Interrupt", "InterruptType",
                            ["IRQ", "FIQ", "SWI", "ABORT", "UNDEF", ""],
@@ -1177,13 +1179,53 @@ def MSABI : InheritableAttr {
 }
 
 def MSP430Interrupt : InheritableAttr, TargetSpecificAttr<TargetMSP430> {
-  // NOTE: If you add any additional spellings, ARMInterrupt's, MipsInterrupt's
+  // NOTE: If you add any additional spellings, ARMInterrupt's, MaxisInterrupt's, MipsInterrupt's
   // and AnyX86Interrupt's spellings must match.
   let Spellings = [GCC<"interrupt">];
   let Args = [UnsignedArgument<"Number">];
   let ParseKind = "Interrupt";
   let HasCustomParsing = 1;
   let Documentation = [Undocumented];
+}
+
+def Maxis16 : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
+  let Spellings = [GCC<"maxis16">];
+  let Subjects = SubjectList<[Function], ErrorDiag>;
+  let Documentation = [Undocumented];
+}
+
+def MaxisInterrupt : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
+  // NOTE: If you add any additional spellings, ARMInterrupt's,
+  // MSP430Interrupt's and AnyX86Interrupt's spellings must match.
+  let Spellings = [GCC<"interrupt">];
+  let Subjects = SubjectList<[Function]>;
+  let Args = [EnumArgument<"Interrupt", "InterruptType",
+                           ["vector=sw0", "vector=sw1", "vector=hw0",
+                            "vector=hw1", "vector=hw2", "vector=hw3",
+                            "vector=hw4", "vector=hw5", "eic", ""],
+                           ["sw0", "sw1", "hw0", "hw1", "hw2", "hw3",
+                            "hw4", "hw5", "eic", "eic"]
+                           >];
+  let ParseKind = "Interrupt";
+  let Documentation = [MaxisInterruptDocs];
+}
+
+def MicroMaxis : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
+  let Spellings = [GCC<"micromaxis">];
+  let Subjects = SubjectList<[Function], ErrorDiag>;
+  let Documentation = [MicroMaxisDocs];
+}
+
+def MaxisLongCall : InheritableAttr, TargetSpecificAttr<TargetAnyMaxis> {
+  let Spellings = [GCC<"long_call">, GCC<"far">];
+  let Subjects = SubjectList<[Function]>;
+  let Documentation = [MaxisLongCallStyleDocs];
+}
+
+def MaxisShortCall : InheritableAttr, TargetSpecificAttr<TargetAnyMaxis> {
+  let Spellings = [GCC<"short_call">, GCC<"near">];
+  let Subjects = SubjectList<[Function]>;
+  let Documentation = [MaxisShortCallStyleDocs];
 }
 
 def Mips16 : InheritableAttr, TargetSpecificAttr<TargetMips32> {
@@ -1297,6 +1339,18 @@ def NoInline : InheritableAttr {
   let Spellings = [GCC<"noinline">, Declspec<"noinline">];
   let Subjects = SubjectList<[Function]>;
   let Documentation = [Undocumented];
+}
+
+def NoMaxis16 : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
+  let Spellings = [GCC<"nomaxis16">];
+  let Subjects = SubjectList<[Function], ErrorDiag>;
+  let Documentation = [Undocumented];
+}
+
+def NoMicroMaxis : InheritableAttr, TargetSpecificAttr<TargetMaxis32> {
+  let Spellings = [GCC<"nomicromaxis">];
+  let Subjects = SubjectList<[Function], ErrorDiag>;
+  let Documentation = [MicroMaxisDocs];
 }
 
 def NoMips16 : InheritableAttr, TargetSpecificAttr<TargetMips32> {
@@ -2053,7 +2107,7 @@ def LTOVisibilityPublic : InheritableAttr {
 
 def AnyX86Interrupt : InheritableAttr, TargetSpecificAttr<TargetAnyX86> {
   // NOTE: If you add any additional spellings, ARMInterrupt's,
-  // MSP430Interrupt's and MipsInterrupt's spellings must match.
+  // MSP430Interrupt's, MaxisInterrupt's, and MipsInterrupt's spellings must match.
   let Spellings = [GCC<"interrupt">];
   let Subjects = SubjectList<[HasFunctionProto]>;
   let ParseKind = "Interrupt";

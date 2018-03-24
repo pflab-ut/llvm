@@ -57,6 +57,7 @@ raw_ostream &llvm::pdb::operator<<(raw_ostream &OS,
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, NearSysCall, "syscall", OS)
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, FarSysCall , "syscall", OS)
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, ThisCall   , "thiscall", OS)
+    CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, MaxisCall   , "maxiscall", OS)
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, MipsCall   , "mipscall", OS)
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, Generic    , "genericcall", OS)
     CASE_OUTPUT_ENUM_CLASS_STR(PDB_CallingConv, AlphaCall  , "alphacall", OS)
@@ -236,6 +237,9 @@ raw_ostream &llvm::pdb::operator<<(raw_ostream &OS,
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, x86, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, Ia64, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, M32R, OS)
+    CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, Maxis16, OS)
+    CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, MaxisFpu, OS)
+    CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, MaxisFpu16, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, Mips16, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, MipsFpu, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, MipsFpu16, OS)
@@ -247,6 +251,7 @@ raw_ostream &llvm::pdb::operator<<(raw_ostream &OS,
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, SH4, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, SH5, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, Thumb, OS)
+    CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, WceMaxisV2, OS)
     CASE_OUTPUT_ENUM_CLASS_NAME(PDB_Machine, WceMipsV2, OS)
   default:
     OS << "Unknown";

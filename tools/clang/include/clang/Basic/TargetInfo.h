@@ -781,7 +781,7 @@ public:
   virtual const char *getClobbers() const = 0;
 
   /// \brief Returns true if NaN encoding is IEEE 754-2008.
-  /// Only MIPS allows a different encoding.
+  /// Only MAXIS/MIPS allows a different encoding.
   virtual bool isNan2008() const {
     return true;
   }

@@ -29,6 +29,7 @@
 #include "ToolChains/Linux.h"
 #include "ToolChains/MinGW.h"
 #include "ToolChains/Minix.h"
+#include "ToolChains/MaxisLinux.h"
 #include "ToolChains/MipsLinux.h"
 #include "ToolChains/MSVC.h"
 #include "ToolChains/Myriad.h"
@@ -4100,6 +4101,10 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       if (Target.getArch() == llvm::Triple::hexagon)
         TC = llvm::make_unique<toolchains::HexagonToolChain>(*this, Target,
                                                              Args);
+      else if ((Target.getVendor() == llvm::Triple::MaxisTechnologies) &&
+               !Target.hasEnvironment())
+        TC = llvm::make_unique<toolchains::MaxisLLVMToolChain>(*this, Target,
+                                                              Args);
       else if ((Target.getVendor() == llvm::Triple::MipsTechnologies) &&
                !Target.hasEnvironment())
         TC = llvm::make_unique<toolchains::MipsLLVMToolChain>(*this, Target,

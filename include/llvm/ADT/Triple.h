@@ -15,6 +15,7 @@
 // Some system headers or GCC predefined macros conflict with identifiers in
 // this file.  Undefine them here.
 #undef NetBSD
+#undef maxis
 #undef mips
 #undef sparc
 
@@ -55,6 +56,10 @@ public:
     bpfel,          // eBPF or extended BPF or 64-bit BPF (little endian)
     bpfeb,          // eBPF or extended BPF or 64-bit BPF (big endian)
     hexagon,        // Hexagon: hexagon
+    maxis,           // MAXIS: maxis, maxisallegrex
+    maxisel,         // MAXISEL: maxisel, maxisallegrexel
+    maxis64,         // MAXIS64: maxis64
+    maxis64el,       // MAXIS64EL: maxis64el
     mips,           // MIPS: mips, mipsallegrex
     mipsel,         // MIPSEL: mipsel, mipsallegrexel
     mips64,         // MIPS64: mips64
@@ -137,6 +142,7 @@ public:
     Freescale,
     IBM,
     ImaginationTechnologies,
+    MaxisTechnologies,
     MipsTechnologies,
     NVIDIA,
     CSR,

@@ -54,7 +54,7 @@ public:
 };
 
 // For a Relocation to symbol S create a Thunk to be added to a synthetic
-// ThunkSection. At present there are implementations for ARM and Mips Thunks.
+// ThunkSection. At present there are implementations for ARM and Maxis/Mips Thunks.
 Thunk *addThunk(RelType Type, Symbol &S);
 
 } // namespace elf

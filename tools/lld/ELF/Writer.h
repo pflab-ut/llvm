@@ -56,6 +56,15 @@ struct PhdrEntry {
 void addReservedSymbols();
 llvm::StringRef getOutputSectionName(InputSectionBase *S);
 
+template <class ELFT> uint32_t calcMaxisEFlags();
+
+uint8_t getMaxisFpAbiFlag(uint8_t OldFlag, uint8_t NewFlag,
+                         llvm::StringRef FileName);
+
+bool isMaxisN32Abi(const InputFile *F);
+bool isMicroMaxis();
+bool isMaxisR6();
+
 template <class ELFT> uint32_t calcMipsEFlags();
 
 uint8_t getMipsFpAbiFlag(uint8_t OldFlag, uint8_t NewFlag,

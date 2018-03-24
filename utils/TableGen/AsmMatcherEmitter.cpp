@@ -3017,7 +3017,7 @@ void AsmMatcherEmitter::run(raw_ostream &OS) {
       Info.SubtargetFeatures, OS);
 
   // Emit the function to match a register name to number.
-  // This should be omitted for Mips target
+  // This should be omitted for Maxis/Mips target
   if (AsmParser->getValueAsBit("ShouldEmitMatchRegisterName"))
     emitMatchRegisterName(Target, AsmParser, OS);
 

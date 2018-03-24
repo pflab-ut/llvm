@@ -856,7 +856,13 @@ template <class ELFT> void SharedFile<ELFT>::parseRest() {
       continue;
     }
 
-    if (Config->EMachine == EM_MIPS) {
+    if (Config->EMachine == EM_MAXIS) {
+      // FIXME: MAXIS BFD linker puts _gp_disp symbol into DSO files
+      // and incorrectly assigns VER_NDX_LOCAL to this section global
+      // symbol. Here is a workaround for this bug.
+      if (Versym && VersymIndex == VER_NDX_LOCAL && Name == "_gp_disp")
+        continue;
+    } else if (Config->EMachine == EM_MIPS) {
       // FIXME: MIPS BFD linker puts _gp_disp symbol into DSO files
       // and incorrectly assigns VER_NDX_LOCAL to this section global
       // symbol. Here is a workaround for this bug.
@@ -919,6 +925,11 @@ static uint8_t getBitcodeMachineKind(StringRef Path, const Triple &T) {
     return EM_ARM;
   case Triple::avr:
     return EM_AVR;
+  case Triple::maxis:
+  case Triple::maxisel:
+  case Triple::maxis64:
+  case Triple::maxis64el:
+    return EM_MAXIS;
   case Triple::mips:
   case Triple::mipsel:
   case Triple::mips64:

@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "OpenBSD.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/Sparc.h"
 #include "CommonArgs.h"
@@ -58,6 +59,24 @@ void openbsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
     break;
   }
 
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    StringRef CPUName;
+    StringRef ABIName;
+    maxis::getMaxisCPUAndABI(Args, getToolChain().getTriple(), CPUName, ABIName);
+
+    CmdArgs.push_back("-mabi");
+    CmdArgs.push_back(maxis::getGnuCompatibleMaxisABIName(ABIName).data());
+
+    if (getToolChain().getArch() == llvm::Triple::maxis64)
+      CmdArgs.push_back("-EB");
+    else
+      CmdArgs.push_back("-EL");
+
+    AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
+    break;
+  }
+
   case llvm::Triple::mips64:
   case llvm::Triple::mips64el: {
     StringRef CPUName;
@@ -75,7 +94,7 @@ void openbsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
     AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
     break;
   }
-
+  
   default:
     break;
   }
@@ -108,9 +127,11 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // handled somewhere else.
   Args.ClaimAllArgs(options::OPT_w);
 
-  if (getToolChain().getArch() == llvm::Triple::mips64)
+  if (getToolChain().getArch() == llvm::Triple::maxis64 ||
+      getToolChain().getArch() == llvm::Triple::mips64)
     CmdArgs.push_back("-EB");
-  else if (getToolChain().getArch() == llvm::Triple::mips64el)
+  else if (getToolChain().getArch() == llvm::Triple::maxis64el ||
+           getToolChain().getArch() == llvm::Triple::mips64el)
     CmdArgs.push_back("-EL");
 
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_shared)) {

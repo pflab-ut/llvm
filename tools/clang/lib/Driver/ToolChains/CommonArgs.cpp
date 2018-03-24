@@ -12,6 +12,7 @@
 #include "Hexagon.h"
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "Arch/SystemZ.h"
@@ -284,6 +285,16 @@ std::string tools::getCPUName(const ArgList &Args, const llvm::Triple &T,
 
   case llvm::Triple::nios2: {
     return getNios2TargetCPU(Args);
+  }
+
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    StringRef CPUName;
+    StringRef ABIName;
+    maxis::getMaxisCPUAndABI(Args, T, CPUName, ABIName);
+    return CPUName;
   }
 
   case llvm::Triple::mips:
@@ -817,6 +828,10 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
     case llvm::Triple::thumb:
     case llvm::Triple::thumbeb:
     case llvm::Triple::aarch64:
+    case llvm::Triple::maxis:
+    case llvm::Triple::maxisel:
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
     case llvm::Triple::mips:
     case llvm::Triple::mipsel:
     case llvm::Triple::mips64:
@@ -840,6 +855,8 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
     switch (ToolChain.getArch()) {
     case llvm::Triple::arm:
     case llvm::Triple::aarch64:
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
     case llvm::Triple::mips64:
     case llvm::Triple::mips64el:
     case llvm::Triple::x86:
@@ -968,9 +985,11 @@ tools::ParsePICArgs(const ToolChain &ToolChain, const ArgList &Args) {
   if ((ROPI || RWPI) && (PIC || PIE))
     ToolChain.getDriver().Diag(diag::err_drv_ropi_rwpi_incompatible_with_pic);
 
-  // When targettng MIPS64 with N64, the default is PIC, unless -mno-abicalls is
+  // When targettng MAXIS/MIPS64 with N64, the default is PIC, unless -mno-abicalls is
   // used.
-  if ((Triple.getArch() == llvm::Triple::mips64 ||
+  if ((Triple.getArch() == llvm::Triple::maxis64 ||
+       Triple.getArch() == llvm::Triple::maxis64el ||
+       Triple.getArch() == llvm::Triple::mips64 ||
        Triple.getArch() == llvm::Triple::mips64el) &&
       Args.hasArg(options::OPT_mno_abicalls))
     return std::make_tuple(llvm::Reloc::Static, 0U, false);
@@ -1035,8 +1054,8 @@ static void AddLibgcc(const llvm::Triple &Triple, const Driver &D,
   // According to Android ABI, we have to link with libdl if we are
   // linking with non-static libgcc.
   //
-  // NOTE: This fixes a link error on Android MIPS as well.  The non-static
-  // libgcc for MIPS relies on _Unwind_Find_FDE and dl_iterate_phdr from libdl.
+  // NOTE: This fixes a link error on Android MAXIS/MIPS as well.  The non-static
+  // libgcc for MAXIS/MIPS relies on _Unwind_Find_FDE and dl_iterate_phdr from libdl.
   if (isAndroid && !StaticLibgcc)
     CmdArgs.push_back("-ldl");
 }

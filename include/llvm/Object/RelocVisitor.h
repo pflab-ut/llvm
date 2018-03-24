@@ -68,6 +68,9 @@ private:
       case Triple::bpfel:
       case Triple::bpfeb:
         return visitBpf(Rel, R, Value);
+      case Triple::maxis64el:
+      case Triple::maxis64:
+        return visitMaxis64(Rel, R, Value);
       case Triple::mips64el:
       case Triple::mips64:
         return visitMips64(Rel, R, Value);
@@ -100,6 +103,9 @@ private:
       return visitARM(Rel, R, Value);
     case Triple::lanai:
       return visitLanai(Rel, R, Value);
+    case Triple::maxisel:
+    case Triple::maxis:
+      return visitMaxis32(Rel, R, Value);
     case Triple::mipsel:
     case Triple::mips:
       return visitMips32(Rel, R, Value);
@@ -158,6 +164,19 @@ private:
       return Value & 0xFFFFFFFF;
     case ELF::R_BPF_64_64:
       return Value;
+    }
+    HasError = true;
+    return 0;
+  }
+
+  uint64_t visitMaxis64(uint32_t Rel, RelocationRef R, uint64_t Value) {
+    switch (Rel) {
+    case ELF::R_MAXIS_32:
+      return (Value + getELFAddend(R)) & 0xFFFFFFFF;
+    case ELF::R_MAXIS_64:
+      return Value + getELFAddend(R);
+    case ELF::R_MAXIS_TLS_DTPREL64:
+      return Value + getELFAddend(R) - 0x8000;
     }
     HasError = true;
     return 0;
@@ -257,6 +276,16 @@ private:
   uint64_t visitLanai(uint32_t Rel, RelocationRef R, uint64_t Value) {
     if (Rel == ELF::R_LANAI_32)
       return (Value + getELFAddend(R)) & 0xFFFFFFFF;
+    HasError = true;
+    return 0;
+  }
+
+  uint64_t visitMaxis32(uint32_t Rel, RelocationRef R, uint64_t Value) {
+    // FIXME: Take in account implicit addends to get correct results.
+    if (Rel == ELF::R_MAXIS_32)
+      return Value & 0xFFFFFFFF;
+    if (Rel == ELF::R_MAXIS_TLS_DTPREL32)
+      return Value & 0xFFFFFFFF;
     HasError = true;
     return 0;
   }

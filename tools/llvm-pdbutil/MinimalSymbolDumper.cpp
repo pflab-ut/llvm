@@ -219,6 +219,15 @@ static std::string formatMachineType(CPUType Cpu) {
     RETURN_CASE(CPUType, Pentium, "intel pentium");
     RETURN_CASE(CPUType, PentiumPro, "intel pentium pro");
     RETURN_CASE(CPUType, Pentium3, "intel pentium 3");
+    RETURN_CASE(CPUType, MAXIS, "maxis");
+    RETURN_CASE(CPUType, MAXIS16, "maxis-16");
+    RETURN_CASE(CPUType, MAXIS32, "maxis-32");
+    RETURN_CASE(CPUType, MAXIS64, "maxis-64");
+    RETURN_CASE(CPUType, MAXISI, "maxis i");
+    RETURN_CASE(CPUType, MAXISII, "maxis ii");
+    RETURN_CASE(CPUType, MAXISIII, "maxis iii");
+    RETURN_CASE(CPUType, MAXISIV, "maxis iv");
+    RETURN_CASE(CPUType, MAXISV, "maxis v");
     RETURN_CASE(CPUType, MIPS, "mips");
     RETURN_CASE(CPUType, MIPS16, "mips-16");
     RETURN_CASE(CPUType, MIPS32, "mips-32");

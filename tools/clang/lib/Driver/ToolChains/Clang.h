@@ -54,6 +54,8 @@ private:
                         bool KernelOrKext) const;
   void AddARM64TargetArgs(const llvm::opt::ArgList &Args,
                           llvm::opt::ArgStringList &CmdArgs) const;
+  void AddMAXISTargetArgs(const llvm::opt::ArgList &Args,
+                         llvm::opt::ArgStringList &CmdArgs) const;
   void AddMIPSTargetArgs(const llvm::opt::ArgList &Args,
                          llvm::opt::ArgStringList &CmdArgs) const;
   void AddPPCTargetArgs(const llvm::opt::ArgList &Args,
@@ -114,6 +116,8 @@ class LLVM_LIBRARY_VISIBILITY ClangAs : public Tool {
 public:
   ClangAs(const ToolChain &TC)
       : Tool("clang::as", "clang integrated assembler", TC, RF_Full) {}
+  void AddMAXISTargetArgs(const llvm::opt::ArgList &Args,
+                         llvm::opt::ArgStringList &CmdArgs) const;
   void AddMIPSTargetArgs(const llvm::opt::ArgList &Args,
                          llvm::opt::ArgStringList &CmdArgs) const;
   void AddX86TargetArgs(const llvm::opt::ArgList &Args,

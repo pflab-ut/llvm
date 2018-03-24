@@ -8151,7 +8151,7 @@ TargetLowering::LowerCallTo(TargetLowering::CallLoweringInfo &CLI) const {
                            Args[i].Node.getResNo() + Value);
       ISD::ArgFlagsTy Flags;
 
-      // Certain targets (such as MIPS), may have a different ABI alignment
+      // Certain targets (such as MAXIS/MIPS), may have a different ABI alignment
       // for a type depending on the context. Give the target a chance to
       // specify the alignment it wants.
       unsigned OriginalAlignment = getABIAlignmentForCallingConv(ArgTy, DL);
@@ -8633,7 +8633,7 @@ void SelectionDAGISel::LowerArguments(const Function &F) {
       Type *ArgTy = VT.getTypeForEVT(*DAG.getContext());
       ISD::ArgFlagsTy Flags;
 
-      // Certain targets (such as MIPS), may have a different ABI alignment
+      // Certain targets (such as MAXIS/MIPS), may have a different ABI alignment
       // for a type depending on the context. Give the target a chance to
       // specify the alignment it wants.
       unsigned OriginalAlignment =

@@ -194,6 +194,10 @@ bool XRayInstrumentation::runOnMachineFunction(MachineFunction &MF) {
   case Triple::ArchType::arm:
   case Triple::ArchType::thumb:
   case Triple::ArchType::aarch64:
+  case Triple::ArchType::maxis:
+  case Triple::ArchType::maxisel:
+  case Triple::ArchType::maxis64:
+  case Triple::ArchType::maxis64el:
   case Triple::ArchType::mips:
   case Triple::ArchType::mipsel:
   case Triple::ArchType::mips64:

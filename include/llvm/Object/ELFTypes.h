@@ -381,6 +381,7 @@ struct Elf_Dyn_Impl : Elf_Dyn_Base<ELFT> {
   uintX_t getPtr() const { return d_un.d_ptr; }
 };
 
+
 template <endianness TargetEndianness>
 struct Elf_Rel_Impl<ELFType<TargetEndianness, false>, false> {
   LLVM_ELF_IMPORT_TYPES(TargetEndianness, false)
@@ -588,6 +589,62 @@ struct Elf_Chdr_Impl<ELFType<TargetEndianness, true>> {
   Elf_Word ch_reserved;
   Elf_Xword ch_size;
   Elf_Xword ch_addralign;
+};
+
+// MAXIS .reginfo section
+template <class ELFT>
+struct Elf_Maxis_RegInfo;
+
+template <support::endianness TargetEndianness>
+struct Elf_Maxis_RegInfo<ELFType<TargetEndianness, false>> {
+  LLVM_ELF_IMPORT_TYPES(TargetEndianness, false)
+  Elf_Word ri_gprmask;     // bit-mask of used general registers
+  Elf_Word ri_cprmask[4];  // bit-mask of used co-processor registers
+  Elf_Addr ri_gp_value;    // gp register value
+};
+
+template <support::endianness TargetEndianness>
+struct Elf_Maxis_RegInfo<ELFType<TargetEndianness, true>> {
+  LLVM_ELF_IMPORT_TYPES(TargetEndianness, true)
+  Elf_Word ri_gprmask;     // bit-mask of used general registers
+  Elf_Word ri_pad;         // unused padding field
+  Elf_Word ri_cprmask[4];  // bit-mask of used co-processor registers
+  Elf_Addr ri_gp_value;    // gp register value
+};
+
+// .MAXIS.options section
+template <class ELFT> struct Elf_Maxis_Options {
+  LLVM_ELF_IMPORT_TYPES_ELFT(ELFT)
+  uint8_t kind;     // Determines interpretation of variable part of descriptor
+  uint8_t size;     // Byte size of descriptor, including this header
+  Elf_Half section; // Section header index of section affected,
+                    // or 0 for global options
+  Elf_Word info;    // Kind-specific information
+
+  Elf_Maxis_RegInfo<ELFT> &getRegInfo() {
+    assert(kind == ELF::ODK_REGINFO);
+    return *reinterpret_cast<Elf_Maxis_RegInfo<ELFT> *>(
+        (uint8_t *)this + sizeof(Elf_Maxis_Options));
+  }
+  const Elf_Maxis_RegInfo<ELFT> &getRegInfo() const {
+    return const_cast<Elf_Maxis_Options *>(this)->getRegInfo();
+  }
+};
+
+// .MAXIS.abiflags section content
+template <class ELFT> struct Elf_Maxis_ABIFlags {
+  LLVM_ELF_IMPORT_TYPES_ELFT(ELFT)
+  Elf_Half version;  // Version of the structure
+  uint8_t isa_level; // ISA level: 1-5, 32, and 64
+  uint8_t isa_rev;   // ISA revision (0 for MAXIS I - MAXIS V)
+  uint8_t gpr_size;  // General purpose registers size
+  uint8_t cpr1_size; // Co-processor 1 registers size
+  uint8_t cpr2_size; // Co-processor 2 registers size
+  uint8_t fp_abi;    // Floating-point ABI flag
+  Elf_Word isa_ext;  // Processor-specific extension
+  Elf_Word ases;     // ASEs flags
+  Elf_Word flags1;   // General flags
+  Elf_Word flags2;   // General flags
 };
 
 // MIPS .reginfo section

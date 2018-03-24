@@ -10,6 +10,7 @@
 #include "Gnu.h"
 #include "Linux.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "Arch/Sparc.h"
@@ -276,6 +277,18 @@ static const char *getLDMOption(const llvm::Triple &T, const ArgList &Args) {
     return "elf32_sparc";
   case llvm::Triple::sparcv9:
     return "elf64_sparc";
+  case llvm::Triple::maxis:
+    return "elf32btsmaxis";
+  case llvm::Triple::maxisel:
+    return "elf32ltsmaxis";
+  case llvm::Triple::maxis64:
+    if (tools::maxis::hasMaxisAbiArg(Args, "n32"))
+      return "elf32btsmaxisn32";
+    return "elf64btsmaxis";
+  case llvm::Triple::maxis64el:
+    if (tools::maxis::hasMaxisAbiArg(Args, "n32"))
+      return "elf32ltsmaxisn32";
+    return "elf64ltsmaxis";
   case llvm::Triple::mips:
     return "elf32btsmip";
   case llvm::Triple::mipsel:
@@ -327,7 +340,8 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   const bool IsPIE = getPIE(Args, ToolChain);
   const bool HasCRTBeginEndFiles =
       ToolChain.getTriple().hasEnvironment() ||
-      (ToolChain.getTriple().getVendor() != llvm::Triple::MipsTechnologies);
+      (ToolChain.getTriple().getVendor() != llvm::Triple::MaxisTechnologies
+       && ToolChain.getTriple().getVendor() != llvm::Triple::MipsTechnologies);
 
   ArgStringList CmdArgs;
 
@@ -681,6 +695,90 @@ void tools::gnutools::Assembler::ConstructJob(Compilation &C,
 
     break;
   }
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    StringRef CPUName;
+    StringRef ABIName;
+    maxis::getMaxisCPUAndABI(Args, getToolChain().getTriple(), CPUName, ABIName);
+    ABIName = maxis::getGnuCompatibleMaxisABIName(ABIName);
+
+    CmdArgs.push_back("-march");
+    CmdArgs.push_back(CPUName.data());
+
+    CmdArgs.push_back("-mabi");
+    CmdArgs.push_back(ABIName.data());
+
+    // -mno-shared should be emitted unless -fpic, -fpie, -fPIC, -fPIE,
+    // or -mshared (not implemented) is in effect.
+    if (RelocationModel == llvm::Reloc::Static)
+      CmdArgs.push_back("-mno-shared");
+
+    // LLVM doesn't support -mplt yet and acts as if it is always given.
+    // However, -mplt has no effect with the N64 ABI.
+    if (ABIName != "64" && !Args.hasArg(options::OPT_mno_abicalls))
+      CmdArgs.push_back("-call_nonpic");
+
+    if (getToolChain().getArch() == llvm::Triple::maxis ||
+        getToolChain().getArch() == llvm::Triple::maxis64)
+      CmdArgs.push_back("-EB");
+    else
+      CmdArgs.push_back("-EL");
+
+    if (Arg *A = Args.getLastArg(options::OPT_mnan_EQ)) {
+      if (StringRef(A->getValue()) == "2008")
+        CmdArgs.push_back(Args.MakeArgString("-mnan=2008"));
+    }
+
+    // Add the last -mfp32/-mfpxx/-mfp64 or -mfpxx if it is enabled by default.
+    if (Arg *A = Args.getLastArg(options::OPT_mfp32, options::OPT_mfpxx,
+                                 options::OPT_mfp64)) {
+      A->claim();
+      A->render(Args, CmdArgs);
+    } else if (maxis::shouldUseFPXX(
+                   Args, getToolChain().getTriple(), CPUName, ABIName,
+                   maxis::getMaxisFloatABI(getToolChain().getDriver(), Args)))
+      CmdArgs.push_back("-mfpxx");
+
+    // Pass on -mmaxis16 or -mno-maxis16. However, the assembler equivalent of
+    // -mno-maxis16 is actually -no-maxis16.
+    if (Arg *A =
+            Args.getLastArg(options::OPT_maxis16, options::OPT_mno_maxis16)) {
+      if (A->getOption().matches(options::OPT_maxis16)) {
+        A->claim();
+        A->render(Args, CmdArgs);
+      } else {
+        A->claim();
+        CmdArgs.push_back("-no-maxis16");
+      }
+    }
+
+    Args.AddLastArg(CmdArgs, options::OPT_mmicromaxis,
+                    options::OPT_mno_micromaxis);
+    Args.AddLastArg(CmdArgs, options::OPT_mdsp, options::OPT_mno_dsp);
+    Args.AddLastArg(CmdArgs, options::OPT_mdspr2, options::OPT_mno_dspr2);
+
+    if (Arg *A = Args.getLastArg(options::OPT_mmsa, options::OPT_mno_msa)) {
+      // Do not use AddLastArg because not all versions of MAXIS assembler
+      // support -mmsa / -mno-msa options.
+      if (A->getOption().matches(options::OPT_mmsa))
+        CmdArgs.push_back(Args.MakeArgString("-mmsa"));
+    }
+
+    Args.AddLastArg(CmdArgs, options::OPT_mhard_float,
+                    options::OPT_msoft_float);
+
+    Args.AddLastArg(CmdArgs, options::OPT_mdouble_float,
+                    options::OPT_msingle_float);
+
+    Args.AddLastArg(CmdArgs, options::OPT_modd_spreg,
+                    options::OPT_mno_odd_spreg);
+
+    AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
+    break;
+  }
+
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
   case llvm::Triple::mips64:
@@ -834,6 +932,28 @@ static bool isArmOrThumbArch(llvm::Triple::ArchType Arch) {
   return Arch == llvm::Triple::arm || Arch == llvm::Triple::thumb;
 }
 
+static bool isMaxis32(llvm::Triple::ArchType Arch) {
+  return Arch == llvm::Triple::maxis || Arch == llvm::Triple::maxisel;
+}
+
+static bool isMaxis64(llvm::Triple::ArchType Arch) {
+  return Arch == llvm::Triple::maxis64 || Arch == llvm::Triple::maxis64el;
+}
+
+static bool isMaxisEL(llvm::Triple::ArchType Arch) {
+  return Arch == llvm::Triple::maxisel || Arch == llvm::Triple::maxis64el;
+}
+
+static bool isMaxis16(const ArgList &Args) {
+  Arg *A = Args.getLastArg(options::OPT_maxis16, options::OPT_mno_maxis16);
+  return A && A->getOption().matches(options::OPT_maxis16);
+}
+
+static bool isMicroMaxis(const ArgList &Args) {
+  Arg *A = Args.getLastArg(options::OPT_mmicromaxis, options::OPT_mno_micromaxis);
+  return A && A->getOption().matches(options::OPT_mmicromaxis);
+}
+
 static bool isMips32(llvm::Triple::ArchType Arch) {
   return Arch == llvm::Triple::mips || Arch == llvm::Triple::mipsel;
 }
@@ -858,6 +978,505 @@ static bool isMicroMips(const ArgList &Args) {
 
 static Multilib makeMultilib(StringRef commonSuffix) {
   return Multilib(commonSuffix, commonSuffix, commonSuffix);
+}
+
+static bool findMaxisCsMultilibs(const Multilib::flags_list &Flags,
+                                FilterNonExistent &NonExistent,
+                                DetectedMultilibs &Result) {
+  // Check for Code Sourcery toolchain multilibs
+  MultilibSet CSMaxisMultilibs;
+  {
+    auto MArchMaxis16 = makeMultilib("/maxis16").flag("+m32").flag("+maxis16");
+
+    auto MArchMicroMaxis =
+        makeMultilib("/micromaxis").flag("+m32").flag("+mmicromaxis");
+
+    auto MArchDefault = makeMultilib("").flag("-maxis16").flag("-mmicromaxis");
+
+    auto UCLibc = makeMultilib("/uclibc").flag("+muclibc");
+
+    auto SoftFloat = makeMultilib("/soft-float").flag("+msoft-float");
+
+    auto Nan2008 = makeMultilib("/nan2008").flag("+mnan=2008");
+
+    auto DefaultFloat =
+        makeMultilib("").flag("-msoft-float").flag("-mnan=2008");
+
+    auto BigEndian = makeMultilib("").flag("+EB").flag("-EL");
+
+    auto LittleEndian = makeMultilib("/el").flag("+EL").flag("-EB");
+
+    // Note that this one's osSuffix is ""
+    auto MAbi64 = makeMultilib("")
+                      .gccSuffix("/64")
+                      .includeSuffix("/64")
+                      .flag("+mabi=n64")
+                      .flag("-mabi=n32")
+                      .flag("-m32");
+
+    CSMaxisMultilibs =
+        MultilibSet()
+            .Either(MArchMaxis16, MArchMicroMaxis, MArchDefault)
+            .Maybe(UCLibc)
+            .Either(SoftFloat, Nan2008, DefaultFloat)
+            .FilterOut("/micromaxis/nan2008")
+            .FilterOut("/maxis16/nan2008")
+            .Either(BigEndian, LittleEndian)
+            .Maybe(MAbi64)
+            .FilterOut("/maxis16.*/64")
+            .FilterOut("/micromaxis.*/64")
+            .FilterOut(NonExistent)
+            .setIncludeDirsCallback([](const Multilib &M) {
+              std::vector<std::string> Dirs({"/include"});
+              if (StringRef(M.includeSuffix()).startswith("/uclibc"))
+                Dirs.push_back(
+                    "/../../../../maxis-linux-gnu/libc/uclibc/usr/include");
+              else
+                Dirs.push_back("/../../../../maxis-linux-gnu/libc/usr/include");
+              return Dirs;
+            });
+  }
+
+  MultilibSet DebianMaxisMultilibs;
+  {
+    Multilib MAbiN32 =
+        Multilib().gccSuffix("/n32").includeSuffix("/n32").flag("+mabi=n32");
+
+    Multilib M64 = Multilib()
+                       .gccSuffix("/64")
+                       .includeSuffix("/64")
+                       .flag("+m64")
+                       .flag("-m32")
+                       .flag("-mabi=n32");
+
+    Multilib M32 = Multilib().flag("-m64").flag("+m32").flag("-mabi=n32");
+
+    DebianMaxisMultilibs =
+        MultilibSet().Either(M32, M64, MAbiN32).FilterOut(NonExistent);
+  }
+
+  // Sort candidates. Toolchain that best meets the directories tree goes first.
+  // Then select the first toolchains matches command line flags.
+  MultilibSet *Candidates[] = {&CSMaxisMultilibs, &DebianMaxisMultilibs};
+  if (CSMaxisMultilibs.size() < DebianMaxisMultilibs.size())
+    std::iter_swap(Candidates, Candidates + 1);
+  for (const MultilibSet *Candidate : Candidates) {
+    if (Candidate->select(Flags, Result.SelectedMultilib)) {
+      if (Candidate == &DebianMaxisMultilibs)
+        Result.BiarchSibling = Multilib();
+      Result.Multilibs = *Candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool findMaxisAndroidMultilibs(vfs::FileSystem &VFS, StringRef Path,
+                                     const Multilib::flags_list &Flags,
+                                     FilterNonExistent &NonExistent,
+                                     DetectedMultilibs &Result) {
+
+  MultilibSet AndroidMaxisMultilibs =
+      MultilibSet()
+          .Maybe(Multilib("/maxis-r2").flag("+march=maxis32r2"))
+          .Maybe(Multilib("/maxis-r6").flag("+march=maxis32r6"))
+          .FilterOut(NonExistent);
+
+  MultilibSet AndroidMaxiselMultilibs =
+      MultilibSet()
+          .Either(Multilib().flag("+march=maxis32"),
+                  Multilib("/maxis-r2", "", "/maxis-r2").flag("+march=maxis32r2"),
+                  Multilib("/maxis-r6", "", "/maxis-r6").flag("+march=maxis32r6"))
+          .FilterOut(NonExistent);
+
+  MultilibSet AndroidMaxis64elMultilibs =
+      MultilibSet()
+          .Either(
+              Multilib().flag("+march=maxis64r6"),
+              Multilib("/32/maxis-r1", "", "/maxis-r1").flag("+march=maxis32"),
+              Multilib("/32/maxis-r2", "", "/maxis-r2").flag("+march=maxis32r2"),
+              Multilib("/32/maxis-r6", "", "/maxis-r6").flag("+march=maxis32r6"))
+          .FilterOut(NonExistent);
+
+  MultilibSet *MS = &AndroidMaxisMultilibs;
+  if (VFS.exists(Path + "/maxis-r6"))
+    MS = &AndroidMaxiselMultilibs;
+  else if (VFS.exists(Path + "/32"))
+    MS = &AndroidMaxis64elMultilibs;
+  if (MS->select(Flags, Result.SelectedMultilib)) {
+    Result.Multilibs = *MS;
+    return true;
+  }
+  return false;
+}
+
+static bool findMaxisMuslMultilibs(const Multilib::flags_list &Flags,
+                                  FilterNonExistent &NonExistent,
+                                  DetectedMultilibs &Result) {
+  // Musl toolchain multilibs
+  MultilibSet MuslMaxisMultilibs;
+  {
+    auto MArchMaxisR2 = makeMultilib("")
+                           .osSuffix("/maxis-r2-hard-musl")
+                           .flag("+EB")
+                           .flag("-EL")
+                           .flag("+march=maxis32r2");
+
+    auto MArchMaxiselR2 = makeMultilib("/maxisel-r2-hard-musl")
+                             .flag("-EB")
+                             .flag("+EL")
+                             .flag("+march=maxis32r2");
+
+    MuslMaxisMultilibs = MultilibSet().Either(MArchMaxisR2, MArchMaxiselR2);
+
+    // Specify the callback that computes the include directories.
+    MuslMaxisMultilibs.setIncludeDirsCallback([](const Multilib &M) {
+      return std::vector<std::string>(
+          {"/../sysroot" + M.osSuffix() + "/usr/include"});
+    });
+  }
+  if (MuslMaxisMultilibs.select(Flags, Result.SelectedMultilib)) {
+    Result.Multilibs = MuslMaxisMultilibs;
+    return true;
+  }
+  return false;
+}
+
+static bool findMaxisMtiMultilibs(const Multilib::flags_list &Flags,
+                                 FilterNonExistent &NonExistent,
+                                 DetectedMultilibs &Result) {
+  // CodeScape MTI toolchain v1.2 and early.
+  MultilibSet MtiMaxisMultilibsV1;
+  {
+    auto MArchMaxis32 = makeMultilib("/maxis32")
+                           .flag("+m32")
+                           .flag("-m64")
+                           .flag("-mmicromaxis")
+                           .flag("+march=maxis32");
+
+    auto MArchMicroMaxis = makeMultilib("/micromaxis")
+                              .flag("+m32")
+                              .flag("-m64")
+                              .flag("+mmicromaxis");
+
+    auto MArchMaxis64r2 = makeMultilib("/maxis64r2")
+                             .flag("-m32")
+                             .flag("+m64")
+                             .flag("+march=maxis64r2");
+
+    auto MArchMaxis64 = makeMultilib("/maxis64").flag("-m32").flag("+m64").flag(
+        "-march=maxis64r2");
+
+    auto MArchDefault = makeMultilib("")
+                            .flag("+m32")
+                            .flag("-m64")
+                            .flag("-mmicromaxis")
+                            .flag("+march=maxis32r2");
+
+    auto Maxis16 = makeMultilib("/maxis16").flag("+maxis16");
+
+    auto UCLibc = makeMultilib("/uclibc").flag("+muclibc");
+
+    auto MAbi64 =
+        makeMultilib("/64").flag("+mabi=n64").flag("-mabi=n32").flag("-m32");
+
+    auto BigEndian = makeMultilib("").flag("+EB").flag("-EL");
+
+    auto LittleEndian = makeMultilib("/el").flag("+EL").flag("-EB");
+
+    auto SoftFloat = makeMultilib("/sof").flag("+msoft-float");
+
+    auto Nan2008 = makeMultilib("/nan2008").flag("+mnan=2008");
+
+    MtiMaxisMultilibsV1 =
+        MultilibSet()
+            .Either(MArchMaxis32, MArchMicroMaxis, MArchMaxis64r2, MArchMaxis64,
+                    MArchDefault)
+            .Maybe(UCLibc)
+            .Maybe(Maxis16)
+            .FilterOut("/maxis64/maxis16")
+            .FilterOut("/maxis64r2/maxis16")
+            .FilterOut("/micromaxis/maxis16")
+            .Maybe(MAbi64)
+            .FilterOut("/micromaxis/64")
+            .FilterOut("/maxis32/64")
+            .FilterOut("^/64")
+            .FilterOut("/maxis16/64")
+            .Either(BigEndian, LittleEndian)
+            .Maybe(SoftFloat)
+            .Maybe(Nan2008)
+            .FilterOut(".*sof/nan2008")
+            .FilterOut(NonExistent)
+            .setIncludeDirsCallback([](const Multilib &M) {
+              std::vector<std::string> Dirs({"/include"});
+              if (StringRef(M.includeSuffix()).startswith("/uclibc"))
+                Dirs.push_back("/../../../../sysroot/uclibc/usr/include");
+              else
+                Dirs.push_back("/../../../../sysroot/usr/include");
+              return Dirs;
+            });
+  }
+
+  // CodeScape IMG toolchain starting from v1.3.
+  MultilibSet MtiMaxisMultilibsV2;
+  {
+    auto BeHard = makeMultilib("/maxis-r2-hard")
+                      .flag("+EB")
+                      .flag("-msoft-float")
+                      .flag("-mnan=2008")
+                      .flag("-muclibc");
+    auto BeSoft = makeMultilib("/maxis-r2-soft")
+                      .flag("+EB")
+                      .flag("+msoft-float")
+                      .flag("-mnan=2008");
+    auto ElHard = makeMultilib("/maxisel-r2-hard")
+                      .flag("+EL")
+                      .flag("-msoft-float")
+                      .flag("-mnan=2008")
+                      .flag("-muclibc");
+    auto ElSoft = makeMultilib("/maxisel-r2-soft")
+                      .flag("+EL")
+                      .flag("+msoft-float")
+                      .flag("-mnan=2008")
+                      .flag("-mmicromaxis");
+    auto BeHardNan = makeMultilib("/maxis-r2-hard-nan2008")
+                         .flag("+EB")
+                         .flag("-msoft-float")
+                         .flag("+mnan=2008")
+                         .flag("-muclibc");
+    auto ElHardNan = makeMultilib("/maxisel-r2-hard-nan2008")
+                         .flag("+EL")
+                         .flag("-msoft-float")
+                         .flag("+mnan=2008")
+                         .flag("-muclibc")
+                         .flag("-mmicromaxis");
+    auto BeHardNanUclibc = makeMultilib("/maxis-r2-hard-nan2008-uclibc")
+                               .flag("+EB")
+                               .flag("-msoft-float")
+                               .flag("+mnan=2008")
+                               .flag("+muclibc");
+    auto ElHardNanUclibc = makeMultilib("/maxisel-r2-hard-nan2008-uclibc")
+                               .flag("+EL")
+                               .flag("-msoft-float")
+                               .flag("+mnan=2008")
+                               .flag("+muclibc");
+    auto BeHardUclibc = makeMultilib("/maxis-r2-hard-uclibc")
+                            .flag("+EB")
+                            .flag("-msoft-float")
+                            .flag("-mnan=2008")
+                            .flag("+muclibc");
+    auto ElHardUclibc = makeMultilib("/maxisel-r2-hard-uclibc")
+                            .flag("+EL")
+                            .flag("-msoft-float")
+                            .flag("-mnan=2008")
+                            .flag("+muclibc");
+    auto ElMicroHardNan = makeMultilib("/micromaxisel-r2-hard-nan2008")
+                              .flag("+EL")
+                              .flag("-msoft-float")
+                              .flag("+mnan=2008")
+                              .flag("+mmicromaxis");
+    auto ElMicroSoft = makeMultilib("/micromaxisel-r2-soft")
+                           .flag("+EL")
+                           .flag("+msoft-float")
+                           .flag("-mnan=2008")
+                           .flag("+mmicromaxis");
+
+    auto O32 =
+        makeMultilib("/lib").osSuffix("").flag("-mabi=n32").flag("-mabi=n64");
+    auto N32 =
+        makeMultilib("/lib32").osSuffix("").flag("+mabi=n32").flag("-mabi=n64");
+    auto N64 =
+        makeMultilib("/lib64").osSuffix("").flag("-mabi=n32").flag("+mabi=n64");
+
+    MtiMaxisMultilibsV2 =
+        MultilibSet()
+            .Either({BeHard, BeSoft, ElHard, ElSoft, BeHardNan, ElHardNan,
+                     BeHardNanUclibc, ElHardNanUclibc, BeHardUclibc,
+                     ElHardUclibc, ElMicroHardNan, ElMicroSoft})
+            .Either(O32, N32, N64)
+            .FilterOut(NonExistent)
+            .setIncludeDirsCallback([](const Multilib &M) {
+              return std::vector<std::string>({"/../../../../sysroot" +
+                                               M.includeSuffix() +
+                                               "/../usr/include"});
+            })
+            .setFilePathsCallback([](const Multilib &M) {
+              return std::vector<std::string>(
+                  {"/../../../../maxis-mti-linux-gnu/lib" + M.gccSuffix()});
+            });
+  }
+  for (auto Candidate : {&MtiMaxisMultilibsV1, &MtiMaxisMultilibsV2}) {
+    if (Candidate->select(Flags, Result.SelectedMultilib)) {
+      Result.Multilibs = *Candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool findMaxisImgMultilibs(const Multilib::flags_list &Flags,
+                                 FilterNonExistent &NonExistent,
+                                 DetectedMultilibs &Result) {
+  // CodeScape IMG toolchain v1.2 and early.
+  MultilibSet ImgMultilibsV1;
+  {
+    auto Maxis64r6 = makeMultilib("/maxis64r6").flag("+m64").flag("-m32");
+
+    auto LittleEndian = makeMultilib("/el").flag("+EL").flag("-EB");
+
+    auto MAbi64 =
+        makeMultilib("/64").flag("+mabi=n64").flag("-mabi=n32").flag("-m32");
+
+    ImgMultilibsV1 =
+        MultilibSet()
+            .Maybe(Maxis64r6)
+            .Maybe(MAbi64)
+            .Maybe(LittleEndian)
+            .FilterOut(NonExistent)
+            .setIncludeDirsCallback([](const Multilib &M) {
+              return std::vector<std::string>(
+                  {"/include", "/../../../../sysroot/usr/include"});
+            });
+  }
+
+  // CodeScape IMG toolchain starting from v1.3.
+  MultilibSet ImgMultilibsV2;
+  {
+    auto BeHard = makeMultilib("/maxis-r6-hard")
+                      .flag("+EB")
+                      .flag("-msoft-float")
+                      .flag("-mmicromaxis");
+    auto BeSoft = makeMultilib("/maxis-r6-soft")
+                      .flag("+EB")
+                      .flag("+msoft-float")
+                      .flag("-mmicromaxis");
+    auto ElHard = makeMultilib("/maxisel-r6-hard")
+                      .flag("+EL")
+                      .flag("-msoft-float")
+                      .flag("-mmicromaxis");
+    auto ElSoft = makeMultilib("/maxisel-r6-soft")
+                      .flag("+EL")
+                      .flag("+msoft-float")
+                      .flag("-mmicromaxis");
+    auto BeMicroHard = makeMultilib("/micromaxis-r6-hard")
+                           .flag("+EB")
+                           .flag("-msoft-float")
+                           .flag("+mmicromaxis");
+    auto BeMicroSoft = makeMultilib("/micromaxis-r6-soft")
+                           .flag("+EB")
+                           .flag("+msoft-float")
+                           .flag("+mmicromaxis");
+    auto ElMicroHard = makeMultilib("/micromaxisel-r6-hard")
+                           .flag("+EL")
+                           .flag("-msoft-float")
+                           .flag("+mmicromaxis");
+    auto ElMicroSoft = makeMultilib("/micromaxisel-r6-soft")
+                           .flag("+EL")
+                           .flag("+msoft-float")
+                           .flag("+mmicromaxis");
+
+    auto O32 =
+        makeMultilib("/lib").osSuffix("").flag("-mabi=n32").flag("-mabi=n64");
+    auto N32 =
+        makeMultilib("/lib32").osSuffix("").flag("+mabi=n32").flag("-mabi=n64");
+    auto N64 =
+        makeMultilib("/lib64").osSuffix("").flag("-mabi=n32").flag("+mabi=n64");
+
+    ImgMultilibsV2 =
+        MultilibSet()
+            .Either({BeHard, BeSoft, ElHard, ElSoft, BeMicroHard, BeMicroSoft,
+                     ElMicroHard, ElMicroSoft})
+            .Either(O32, N32, N64)
+            .FilterOut(NonExistent)
+            .setIncludeDirsCallback([](const Multilib &M) {
+              return std::vector<std::string>({"/../../../../sysroot" +
+                                               M.includeSuffix() +
+                                               "/../usr/include"});
+            })
+            .setFilePathsCallback([](const Multilib &M) {
+              return std::vector<std::string>(
+                  {"/../../../../maxis-img-linux-gnu/lib" + M.gccSuffix()});
+            });
+  }
+  for (auto Candidate : {&ImgMultilibsV1, &ImgMultilibsV2}) {
+    if (Candidate->select(Flags, Result.SelectedMultilib)) {
+      Result.Multilibs = *Candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool clang::driver::findMAXISMultilibs(const Driver &D,
+                                      const llvm::Triple &TargetTriple,
+                                      StringRef Path, const ArgList &Args,
+                                      DetectedMultilibs &Result) {
+  FilterNonExistent NonExistent(Path, "/crtbegin.o", D.getVFS());
+
+  StringRef CPUName;
+  StringRef ABIName;
+  tools::maxis::getMaxisCPUAndABI(Args, TargetTriple, CPUName, ABIName);
+
+  llvm::Triple::ArchType TargetArch = TargetTriple.getArch();
+
+  Multilib::flags_list Flags;
+  addMultilibFlag(isMaxis32(TargetArch), "m32", Flags);
+  addMultilibFlag(isMaxis64(TargetArch), "m64", Flags);
+  addMultilibFlag(isMaxis16(Args), "maxis16", Flags);
+  addMultilibFlag(CPUName == "maxis32", "march=maxis32", Flags);
+  addMultilibFlag(CPUName == "maxis32r2" || CPUName == "maxis32r3" ||
+                      CPUName == "maxis32r5" || CPUName == "p5600",
+                  "march=maxis32r2", Flags);
+  addMultilibFlag(CPUName == "maxis32r6", "march=maxis32r6", Flags);
+  addMultilibFlag(CPUName == "maxis64", "march=maxis64", Flags);
+  addMultilibFlag(CPUName == "maxis64r2" || CPUName == "maxis64r3" ||
+                      CPUName == "maxis64r5" || CPUName == "octeon",
+                  "march=maxis64r2", Flags);
+  addMultilibFlag(CPUName == "maxis64r6", "march=maxis64r6", Flags);
+  addMultilibFlag(isMicroMaxis(Args), "mmicromaxis", Flags);
+  addMultilibFlag(tools::maxis::isUCLibc(Args), "muclibc", Flags);
+  addMultilibFlag(tools::maxis::isNaN2008(Args, TargetTriple), "mnan=2008",
+                  Flags);
+  addMultilibFlag(ABIName == "n32", "mabi=n32", Flags);
+  addMultilibFlag(ABIName == "n64", "mabi=n64", Flags);
+  addMultilibFlag(isSoftFloatABI(Args), "msoft-float", Flags);
+  addMultilibFlag(!isSoftFloatABI(Args), "mhard-float", Flags);
+  addMultilibFlag(isMaxisEL(TargetArch), "EL", Flags);
+  addMultilibFlag(!isMaxisEL(TargetArch), "EB", Flags);
+
+  if (TargetTriple.isAndroid())
+    return findMaxisAndroidMultilibs(D.getVFS(), Path, Flags, NonExistent,
+                                    Result);
+
+  if (TargetTriple.getVendor() == llvm::Triple::MaxisTechnologies &&
+      TargetTriple.getOS() == llvm::Triple::Linux &&
+      TargetTriple.getEnvironment() == llvm::Triple::UnknownEnvironment)
+    return findMaxisMuslMultilibs(Flags, NonExistent, Result);
+
+  if (TargetTriple.getVendor() == llvm::Triple::MaxisTechnologies &&
+      TargetTriple.getOS() == llvm::Triple::Linux &&
+      TargetTriple.isGNUEnvironment())
+    return findMaxisMtiMultilibs(Flags, NonExistent, Result);
+
+  if (TargetTriple.getVendor() == llvm::Triple::ImaginationTechnologies &&
+      TargetTriple.getOS() == llvm::Triple::Linux &&
+      TargetTriple.isGNUEnvironment())
+    return findMaxisImgMultilibs(Flags, NonExistent, Result);
+
+  if (findMaxisCsMultilibs(Flags, NonExistent, Result))
+    return true;
+
+  // Fallback to the regular toolchain-tree structure.
+  Multilib Default;
+  Result.Multilibs.push_back(Default);
+  Result.Multilibs.FilterOut(NonExistent);
+
+  if (Result.Multilibs.select(Flags, Result.SelectedMultilib)) {
+    Result.BiarchSibling = Multilib();
+    return true;
+  }
+
+  return false;
 }
 
 static bool findMipsCsMultilibs(const Multilib::flags_list &Flags,
@@ -1745,6 +2364,31 @@ bool Generic_GCC::GCCInstallationDetector::getBiarchSibling(Multilib &M) const {
       "i486-slackware-linux", "i686-montavista-linux", "i686-linux-android",
       "i586-linux-gnu"};
 
+  static const char *const MAXISLibDirs[] = {"/lib"};
+  static const char *const MAXISTriples[] = {"maxis-linux-gnu", "maxis-mti-linux",
+                                            "maxis-mti-linux-gnu",
+                                            "maxis-img-linux-gnu"};
+  static const char *const MAXISELLibDirs[] = {"/lib"};
+  static const char *const MAXISELTriples[] = {"maxisel-linux-gnu",
+                                              "maxis-img-linux-gnu"};
+
+  static const char *const MAXIS64LibDirs[] = {"/lib64", "/lib"};
+  static const char *const MAXIS64Triples[] = {
+      "maxis64-linux-gnu", "maxis-mti-linux-gnu", "maxis-img-linux-gnu",
+      "maxis64-linux-gnuabi64"};
+  static const char *const MAXIS64ELLibDirs[] = {"/lib64", "/lib"};
+  static const char *const MAXIS64ELTriples[] = {
+      "maxis64el-linux-gnu", "maxis-mti-linux-gnu", "maxis-img-linux-gnu",
+      "maxis64el-linux-gnuabi64"};
+
+  static const char *const MAXISELAndroidLibDirs[] = {"/lib", "/libr2",
+                                                     "/libr6"};
+  static const char *const MAXISELAndroidTriples[] = {"maxisel-linux-android"};
+  static const char *const MAXIS64ELAndroidLibDirs[] = {"/lib64", "/lib",
+                                                       "/libr2", "/libr6"};
+  static const char *const MAXIS64ELAndroidTriples[] = {
+      "maxis64el-linux-android"};
+
   static const char *const MIPSLibDirs[] = {"/lib"};
   static const char *const MIPSTriples[] = {"mips-linux-gnu", "mips-mti-linux",
                                             "mips-mti-linux-gnu",
@@ -1861,6 +2505,55 @@ bool Generic_GCC::GCCInstallationDetector::getBiarchSibling(Multilib &M) const {
       TripleAliases.append(begin(X86Triples), end(X86Triples));
       BiarchLibDirs.append(begin(X86_64LibDirs), end(X86_64LibDirs));
       BiarchTripleAliases.append(begin(X86_64Triples), end(X86_64Triples));
+    }
+    break;
+  case llvm::Triple::maxis:
+    LibDirs.append(begin(MAXISLibDirs), end(MAXISLibDirs));
+    TripleAliases.append(begin(MAXISTriples), end(MAXISTriples));
+    BiarchLibDirs.append(begin(MAXIS64LibDirs), end(MAXIS64LibDirs));
+    BiarchTripleAliases.append(begin(MAXIS64Triples), end(MAXIS64Triples));
+    break;
+  case llvm::Triple::maxisel:
+    if (TargetTriple.isAndroid()) {
+      LibDirs.append(begin(MAXISELAndroidLibDirs), end(MAXISELAndroidLibDirs));
+      TripleAliases.append(begin(MAXISELAndroidTriples),
+                           end(MAXISELAndroidTriples));
+      BiarchLibDirs.append(begin(MAXIS64ELAndroidLibDirs),
+                           end(MAXIS64ELAndroidLibDirs));
+      BiarchTripleAliases.append(begin(MAXIS64ELAndroidTriples),
+                                 end(MAXIS64ELAndroidTriples));
+
+    } else {
+      LibDirs.append(begin(MAXISELLibDirs), end(MAXISELLibDirs));
+      TripleAliases.append(begin(MAXISELTriples), end(MAXISELTriples));
+      TripleAliases.append(begin(MAXISTriples), end(MAXISTriples));
+      BiarchLibDirs.append(begin(MAXIS64ELLibDirs), end(MAXIS64ELLibDirs));
+      BiarchTripleAliases.append(begin(MAXIS64ELTriples), end(MAXIS64ELTriples));
+    }
+    break;
+  case llvm::Triple::maxis64:
+    LibDirs.append(begin(MAXIS64LibDirs), end(MAXIS64LibDirs));
+    TripleAliases.append(begin(MAXIS64Triples), end(MAXIS64Triples));
+    BiarchLibDirs.append(begin(MAXISLibDirs), end(MAXISLibDirs));
+    BiarchTripleAliases.append(begin(MAXISTriples), end(MAXISTriples));
+    break;
+  case llvm::Triple::maxis64el:
+    if (TargetTriple.isAndroid()) {
+      LibDirs.append(begin(MAXIS64ELAndroidLibDirs),
+                     end(MAXIS64ELAndroidLibDirs));
+      TripleAliases.append(begin(MAXIS64ELAndroidTriples),
+                           end(MAXIS64ELAndroidTriples));
+      BiarchLibDirs.append(begin(MAXISELAndroidLibDirs),
+                           end(MAXISELAndroidLibDirs));
+      BiarchTripleAliases.append(begin(MAXISELAndroidTriples),
+                                 end(MAXISELAndroidTriples));
+
+    } else {
+      LibDirs.append(begin(MAXIS64ELLibDirs), end(MAXIS64ELLibDirs));
+      TripleAliases.append(begin(MAXIS64ELTriples), end(MAXIS64ELTriples));
+      BiarchLibDirs.append(begin(MAXISELLibDirs), end(MAXISELLibDirs));
+      BiarchTripleAliases.append(begin(MAXISELTriples), end(MAXISELTriples));
+      BiarchTripleAliases.append(begin(MAXISTriples), end(MAXISTriples));
     }
     break;
   case llvm::Triple::mips:
@@ -2017,11 +2710,14 @@ bool Generic_GCC::GCCInstallationDetector::ScanGCCForMultilibs(
   DetectedMultilibs Detected;
 
   // Android standalone toolchain could have multilibs for ARM and Thumb.
-  // Debian mips multilibs behave more like the rest of the biarch ones,
+  // Debian maxis/mips multilibs behave more like the rest of the biarch ones,
   // so handle them there
   if (isArmOrThumbArch(TargetArch) && TargetTriple.isAndroid()) {
     // It should also work without multilibs in a simplified toolchain.
     findAndroidArmMultilibs(D, TargetTriple, Path, Args, Detected);
+  } else if (tools::isMaxisArch(TargetArch)) {
+    if (!findMAXISMultilibs(D, TargetTriple, Path, Args, Detected))
+      return false;
   } else if (tools::isMipsArch(TargetArch)) {
     if (!findMIPSMultilibs(D, TargetTriple, Path, Args, Detected))
       return false;
@@ -2210,6 +2906,8 @@ bool Generic_GCC::isPICDefault() const {
   case llvm::Triple::ppc64:
   case llvm::Triple::ppc64le:
     return !getTriple().isOSBinFormatMachO() && !getTriple().isMacOSX();
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
   case llvm::Triple::mips64:
   case llvm::Triple::mips64el:
     return true;
@@ -2241,13 +2939,17 @@ bool Generic_GCC::IsIntegratedAssemblerDefault() const {
   case llvm::Triple::ppc64:
   case llvm::Triple::ppc64le:
   case llvm::Triple::systemz:
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
     return true;
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
   case llvm::Triple::mips64:
   case llvm::Triple::mips64el:
-    // Enabled for Debian and Android mips64/mipsel, as they can precisely
-    // identify the ABI in use (Debian) or only use N64 for MIPS64 (Android).
+    // Enabled for Debian and Android maxis64/maxisel/mips64/mipsel, as they can precisely
+    // identify the ABI in use (Debian) or only use N64 for MAXIS64/MIPS64 (Android).
     // Other targets are unable to distinguish N32 from N64.
     if (getTriple().getEnvironment() == llvm::Triple::GNUABI64 ||
         getTriple().isAndroid())
@@ -2379,6 +3081,8 @@ void Generic_ELF::addClangTargetOptions(const ArgList &DriverArgs,
        ((!GCCInstallation.isValid() || !V.isOlderThan(4, 7, 0)) ||
         getTriple().isAndroid())) ||
       getTriple().getOS() == llvm::Triple::NaCl ||
+      (getTriple().getVendor() == llvm::Triple::MaxisTechnologies &&
+       !getTriple().hasEnvironment()) ||
       (getTriple().getVendor() == llvm::Triple::MipsTechnologies &&
        !getTriple().hasEnvironment()) ||
       getTriple().getOS() == llvm::Triple::Solaris;

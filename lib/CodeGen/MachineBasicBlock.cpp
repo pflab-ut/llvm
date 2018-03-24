@@ -782,7 +782,7 @@ MachineBasicBlock *MachineBasicBlock::SplitCriticalEdge(MachineBasicBlock *Succ,
   else if (Indexes)
     Indexes->insertMBBInMaps(NMBB);
 
-  // On some targets like Mips, branches may kill virtual registers. Make sure
+  // On some targets like Maxis/Mips, branches may kill virtual registers. Make sure
   // that LiveVariables is properly updated after updateTerminator replaces the
   // terminators.
   LiveVariables *LV = P.getAnalysisIfAvailable<LiveVariables>();

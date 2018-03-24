@@ -16,6 +16,7 @@
 #include "llvm/BinaryFormat/ELF.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/MaxisABIFlags.h"
 #include "llvm/Support/MipsABIFlags.h"
 #include "llvm/Support/YAMLTraits.h"
 #include <cassert>
@@ -65,8 +66,10 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_88K);
   ECase(EM_IAMCU);
   ECase(EM_860);
+  ECase(EM_MAXIS);
   ECase(EM_MIPS);
   ECase(EM_S370);
+  ECase(EM_MAXIS_RS3_LE);
   ECase(EM_MIPS_RS3_LE);
   ECase(EM_PARISC);
   ECase(EM_VPP500);
@@ -91,6 +94,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_H8S);
   ECase(EM_H8_500);
   ECase(EM_IA_64);
+  ECase(EM_MAXIS_X);
   ECase(EM_MIPS_X);
   ECase(EM_COLDFIRE);
   ECase(EM_68HC12);
@@ -286,6 +290,51 @@ void ScalarBitSetTraits<ELFYAML::ELF_EF>::bitset(IO &IO,
     BCaseMask(EF_ARM_EABI_VER4, EF_ARM_EABIMASK);
     BCaseMask(EF_ARM_EABI_VER5, EF_ARM_EABIMASK);
     break;
+  case ELF::EM_MAXIS:
+    BCase(EF_MAXIS_NOREORDER);
+    BCase(EF_MAXIS_PIC);
+    BCase(EF_MAXIS_CPIC);
+    BCase(EF_MAXIS_ABI2);
+    BCase(EF_MAXIS_32BITMODE);
+    BCase(EF_MAXIS_FP64);
+    BCase(EF_MAXIS_NAN2008);
+    BCase(EF_MAXIS_MICROMAXIS);
+    BCase(EF_MAXIS_ARCH_ASE_M16);
+    BCase(EF_MAXIS_ARCH_ASE_MDMX);
+    BCaseMask(EF_MAXIS_ABI_O32, EF_MAXIS_ABI);
+    BCaseMask(EF_MAXIS_ABI_O64, EF_MAXIS_ABI);
+    BCaseMask(EF_MAXIS_ABI_EABI32, EF_MAXIS_ABI);
+    BCaseMask(EF_MAXIS_ABI_EABI64, EF_MAXIS_ABI);
+    BCaseMask(EF_MAXIS_MACH_3900, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_4010, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_4100, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_4650, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_4120, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_4111, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_SB1, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_OCTEON, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_XLR, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_OCTEON2, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_OCTEON3, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_5400, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_5900, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_5500, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_9000, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_LS2E, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_LS2F, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_MACH_LS3A, EF_MAXIS_MACH);
+    BCaseMask(EF_MAXIS_ARCH_1, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_2, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_3, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_4, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_5, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_32, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_64, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_32R2, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_64R2, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_32R6, EF_MAXIS_ARCH);
+    BCaseMask(EF_MAXIS_ARCH_64R6, EF_MAXIS_ARCH);
+    break;
   case ELF::EM_MIPS:
     BCase(EF_MIPS_NOREORDER);
     BCase(EF_MIPS_PIC);
@@ -429,6 +478,11 @@ void ScalarEnumerationTraits<ELFYAML::ELF_SHT>::enumeration(
   case ELF::EM_X86_64:
     ECase(SHT_X86_64_UNWIND);
     break;
+  case ELF::EM_MAXIS:
+    ECase(SHT_MAXIS_REGINFO);
+    ECase(SHT_MAXIS_OPTIONS);
+    ECase(SHT_MAXIS_ABIFLAGS);
+    break;
   case ELF::EM_MIPS:
     ECase(SHT_MIPS_REGINFO);
     ECase(SHT_MIPS_OPTIONS);
@@ -471,6 +525,16 @@ void ScalarBitSetTraits<ELFYAML::ELF_SHF>::bitset(IO &IO,
     break;
   case ELF::EM_HEXAGON:
     BCase(SHF_HEX_GPREL);
+    break;
+  case ELF::EM_MAXIS:
+    BCase(SHF_MAXIS_NODUPES);
+    BCase(SHF_MAXIS_NAMES);
+    BCase(SHF_MAXIS_LOCAL);
+    BCase(SHF_MAXIS_NOSTRIP);
+    BCase(SHF_MAXIS_GPREL);
+    BCase(SHF_MAXIS_MERGE);
+    BCase(SHF_MAXIS_ADDR);
+    BCase(SHF_MAXIS_STRING);
     break;
   case ELF::EM_MIPS:
     BCase(SHF_MIPS_NODUPES);
@@ -544,6 +608,12 @@ void ScalarBitSetTraits<ELFYAML::ELF_STO>::bitset(IO &IO,
   assert(Object && "The IO context is not initialized");
 #define BCase(X) IO.bitSetCase(Value, #X, ELF::X)
   switch (Object->Header.Machine) {
+  case ELF::EM_MAXIS:
+    BCase(STO_MAXIS_OPTIONAL);
+    BCase(STO_MAXIS_PLT);
+    BCase(STO_MAXIS_PIC);
+    BCase(STO_MAXIS_MICROMAXIS);
+    break;
   case ELF::EM_MIPS:
     BCase(STO_MIPS_OPTIONAL);
     BCase(STO_MIPS_PLT);
@@ -575,6 +645,9 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
   switch (Object->Header.Machine) {
   case ELF::EM_X86_64:
 #include "llvm/BinaryFormat/ELFRelocs/x86_64.def"
+    break;
+  case ELF::EM_MAXIS:
+#include "llvm/BinaryFormat/ELFRelocs/Maxis.def"
     break;
   case ELF::EM_MIPS:
 #include "llvm/BinaryFormat/ELFRelocs/Mips.def"
@@ -612,6 +685,93 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
   }
 #undef ELF_RELOC
   IO.enumFallback<Hex32>(Value);
+}
+
+void ScalarEnumerationTraits<ELFYAML::MAXIS_AFL_REG>::enumeration(
+    IO &IO, ELFYAML::MAXIS_AFL_REG &Value) {
+#define ECase(X) IO.enumCase(Value, #X, Maxis::AFL_##X)
+  ECase(REG_NONE);
+  ECase(REG_32);
+  ECase(REG_64);
+  ECase(REG_128);
+#undef ECase
+}
+
+void ScalarEnumerationTraits<ELFYAML::MAXIS_ABI_FP>::enumeration(
+    IO &IO, ELFYAML::MAXIS_ABI_FP &Value) {
+#define ECase(X) IO.enumCase(Value, #X, Maxis::Val_GNU_MAXIS_ABI_##X)
+  ECase(FP_ANY);
+  ECase(FP_DOUBLE);
+  ECase(FP_SINGLE);
+  ECase(FP_SOFT);
+  ECase(FP_OLD_64);
+  ECase(FP_XX);
+  ECase(FP_64);
+  ECase(FP_64A);
+#undef ECase
+}
+
+void ScalarEnumerationTraits<ELFYAML::MAXIS_AFL_EXT>::enumeration(
+    IO &IO, ELFYAML::MAXIS_AFL_EXT &Value) {
+#define ECase(X) IO.enumCase(Value, #X, Maxis::AFL_##X)
+  ECase(EXT_NONE);
+  ECase(EXT_XLR);
+  ECase(EXT_OCTEON2);
+  ECase(EXT_OCTEONP);
+  ECase(EXT_LOONGSON_3A);
+  ECase(EXT_OCTEON);
+  ECase(EXT_5900);
+  ECase(EXT_4650);
+  ECase(EXT_4010);
+  ECase(EXT_4100);
+  ECase(EXT_3900);
+  ECase(EXT_10000);
+  ECase(EXT_SB1);
+  ECase(EXT_4111);
+  ECase(EXT_4120);
+  ECase(EXT_5400);
+  ECase(EXT_5500);
+  ECase(EXT_LOONGSON_2E);
+  ECase(EXT_LOONGSON_2F);
+  ECase(EXT_OCTEON3);
+#undef ECase
+}
+
+void ScalarEnumerationTraits<ELFYAML::MAXIS_ISA>::enumeration(
+    IO &IO, ELFYAML::MAXIS_ISA &Value) {
+  IO.enumCase(Value, "MAXIS1", 1);
+  IO.enumCase(Value, "MAXIS2", 2);
+  IO.enumCase(Value, "MAXIS3", 3);
+  IO.enumCase(Value, "MAXIS4", 4);
+  IO.enumCase(Value, "MAXIS5", 5);
+  IO.enumCase(Value, "MAXIS32", 32);
+  IO.enumCase(Value, "MAXIS64", 64);
+}
+
+void ScalarBitSetTraits<ELFYAML::MAXIS_AFL_ASE>::bitset(
+    IO &IO, ELFYAML::MAXIS_AFL_ASE &Value) {
+#define BCase(X) IO.bitSetCase(Value, #X, Maxis::AFL_ASE_##X)
+  BCase(DSP);
+  BCase(DSPR2);
+  BCase(EVA);
+  BCase(MCU);
+  BCase(MDMX);
+  BCase(MAXIS3D);
+  BCase(MT);
+  BCase(SMARTMAXIS);
+  BCase(VIRT);
+  BCase(MSA);
+  BCase(MAXIS16);
+  BCase(MICROMAXIS);
+  BCase(XPA);
+#undef BCase
+}
+
+void ScalarBitSetTraits<ELFYAML::MAXIS_AFL_FLAGS1>::bitset(
+    IO &IO, ELFYAML::MAXIS_AFL_FLAGS1 &Value) {
+#define BCase(X) IO.bitSetCase(Value, #X, Maxis::AFL_FLAGS1_##X)
+  BCase(ODDSPREG);
+#undef BCase
 }
 
 void ScalarEnumerationTraits<ELFYAML::MIPS_AFL_REG>::enumeration(
@@ -813,6 +973,26 @@ void MappingTraits<ELFYAML::SectionName>::mapping(
   IO.mapRequired("Section", sectionName.Section);
 }
 
+static void sectionMapping(IO &IO, ELFYAML::MaxisABIFlags &Section) {
+  commonSectionMapping(IO, Section);
+  IO.mapOptional("Version", Section.Version, Hex16(0));
+  IO.mapRequired("ISA", Section.ISALevel);
+  IO.mapOptional("ISARevision", Section.ISARevision, Hex8(0));
+  IO.mapOptional("ISAExtension", Section.ISAExtension,
+                 ELFYAML::MAXIS_AFL_EXT(Maxis::AFL_EXT_NONE));
+  IO.mapOptional("ASEs", Section.ASEs, ELFYAML::MAXIS_AFL_ASE(0));
+  IO.mapOptional("FpABI", Section.FpABI,
+                 ELFYAML::MAXIS_ABI_FP(Maxis::Val_GNU_MAXIS_ABI_FP_ANY));
+  IO.mapOptional("GPRSize", Section.GPRSize,
+                 ELFYAML::MAXIS_AFL_REG(Maxis::AFL_REG_NONE));
+  IO.mapOptional("CPR1Size", Section.CPR1Size,
+                 ELFYAML::MAXIS_AFL_REG(Maxis::AFL_REG_NONE));
+  IO.mapOptional("CPR2Size", Section.CPR2Size,
+                 ELFYAML::MAXIS_AFL_REG(Maxis::AFL_REG_NONE));
+  IO.mapOptional("Flags1", Section.Flags1, ELFYAML::MAXIS_AFL_FLAGS1(0));
+  IO.mapOptional("Flags2", Section.Flags2, Hex32(0));
+}
+
 static void sectionMapping(IO &IO, ELFYAML::MipsABIFlags &Section) {
   commonSectionMapping(IO, Section);
   IO.mapOptional("Version", Section.Version, Hex16(0));
@@ -858,6 +1038,11 @@ void MappingTraits<std::unique_ptr<ELFYAML::Section>>::mapping(
       Section.reset(new ELFYAML::NoBitsSection());
     sectionMapping(IO, *cast<ELFYAML::NoBitsSection>(Section.get()));
     break;
+  case ELF::SHT_MAXIS_ABIFLAGS:
+    if (!IO.outputting())
+      Section.reset(new ELFYAML::MaxisABIFlags());
+    sectionMapping(IO, *cast<ELFYAML::MaxisABIFlags>(Section.get()));
+    break;
   case ELF::SHT_MIPS_ABIFLAGS:
     if (!IO.outputting())
       Section.reset(new ELFYAML::MipsABIFlags());
@@ -879,6 +1064,27 @@ StringRef MappingTraits<std::unique_ptr<ELFYAML::Section>>::validate(
 }
 
 namespace {
+
+struct NormalizedMaxis64RelType {
+  NormalizedMaxis64RelType(IO &)
+      : Type(ELFYAML::ELF_REL(ELF::R_MAXIS_NONE)),
+        Type2(ELFYAML::ELF_REL(ELF::R_MAXIS_NONE)),
+        Type3(ELFYAML::ELF_REL(ELF::R_MAXIS_NONE)),
+        SpecSym(ELFYAML::ELF_REL(ELF::RSS_UNDEF)) {}
+  NormalizedMaxis64RelType(IO &, ELFYAML::ELF_REL Original)
+      : Type(Original & 0xFF), Type2(Original >> 8 & 0xFF),
+        Type3(Original >> 16 & 0xFF), SpecSym(Original >> 24 & 0xFF) {}
+
+  ELFYAML::ELF_REL denormalize(IO &) {
+    ELFYAML::ELF_REL Res = Type | Type2 << 8 | Type3 << 16 | SpecSym << 24;
+    return Res;
+  }
+
+  ELFYAML::ELF_REL Type;
+  ELFYAML::ELF_REL Type2;
+  ELFYAML::ELF_REL Type3;
+  ELFYAML::ELF_RSS SpecSym;
+};
 
 struct NormalizedMips64RelType {
   NormalizedMips64RelType(IO &)
@@ -911,7 +1117,15 @@ void MappingTraits<ELFYAML::Relocation>::mapping(IO &IO,
   IO.mapRequired("Offset", Rel.Offset);
   IO.mapOptional("Symbol", Rel.Symbol);
 
-  if (Object->Header.Machine == ELFYAML::ELF_EM(ELF::EM_MIPS) &&
+  if (Object->Header.Machine == ELFYAML::ELF_EM(ELF::EM_MAXIS) &&
+      Object->Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64)) {
+    MappingNormalization<NormalizedMaxis64RelType, ELFYAML::ELF_REL> Key(
+        IO, Rel.Type);
+    IO.mapRequired("Type", Key->Type);
+    IO.mapOptional("Type2", Key->Type2, ELFYAML::ELF_REL(ELF::R_MAXIS_NONE));
+    IO.mapOptional("Type3", Key->Type3, ELFYAML::ELF_REL(ELF::R_MAXIS_NONE));
+    IO.mapOptional("SpecSym", Key->SpecSym, ELFYAML::ELF_RSS(ELF::RSS_UNDEF));
+  } else if (Object->Header.Machine == ELFYAML::ELF_EM(ELF::EM_MIPS) &&
       Object->Header.Class == ELFYAML::ELF_ELFCLASS(ELF::ELFCLASS64)) {
     MappingNormalization<NormalizedMips64RelType, ELFYAML::ELF_REL> Key(
         IO, Rel.Type);
@@ -936,6 +1150,12 @@ void MappingTraits<ELFYAML::Object>::mapping(IO &IO, ELFYAML::Object &Object) {
   IO.mapOptional("DynamicSymbols", Object.DynamicSymbols);
   IO.setContext(nullptr);
 }
+
+LLVM_YAML_STRONG_TYPEDEF(uint8_t, MAXIS_AFL_REG)
+LLVM_YAML_STRONG_TYPEDEF(uint8_t, MAXIS_ABI_FP)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_EXT)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_ASE)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_FLAGS1)
 
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, MIPS_AFL_REG)
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, MIPS_ABI_FP)

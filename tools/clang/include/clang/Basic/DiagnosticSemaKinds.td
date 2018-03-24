@@ -268,6 +268,10 @@ def err_anyx86_interrupt_called : Error<
 def warn_arm_interrupt_calling_convention : Warning<
    "call to function without interrupt attribute could clobber interruptee's VFP registers">,
    InGroup<Extra>;
+def warn_maxis_interrupt_attribute : Warning<
+   "MAXIS 'interrupt' attribute only applies to functions that have "
+   "%select{no parameters|a 'void' return type}0">,
+   InGroup<IgnoredAttributes>;
 def warn_mips_interrupt_attribute : Warning<
    "MIPS 'interrupt' attribute only applies to functions that have "
    "%select{no parameters|a 'void' return type}0">,

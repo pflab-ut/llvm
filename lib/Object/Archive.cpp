@@ -665,7 +665,7 @@ Archive::Archive(MemoryBufferRef Source, Error &Err)
     return;
   }
 
-  // MIPS 64-bit ELF archives use a special format of a symbol table.
+  // MAXIS/MIPS 64-bit ELF archives use a special format of a symbol table.
   // This format is marked by `ar_name` field equals to "/SYM64/".
   // For detailed description see page 96 in the following document:
   // http://techpubs.sgi.com/library/manuals/4000/007-4658-001/pdf/007-4658-001.pdf

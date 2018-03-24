@@ -102,6 +102,8 @@ static const uint64_t kSmallX86_64ShadowOffsetAlignMask = ~0xFFFULL;
 static const uint64_t kLinuxKasan_ShadowOffset64 = 0xdffffc0000000000;
 static const uint64_t kPPC64_ShadowOffset64 = 1ULL << 44;
 static const uint64_t kSystemZ_ShadowOffset64 = 1ULL << 52;
+static const uint64_t kMAXIS32_ShadowOffset32 = 0x0aaa0000;
+static const uint64_t kMAXIS64_ShadowOffset64 = 1ULL << 37;
 static const uint64_t kMIPS32_ShadowOffset32 = 0x0aaa0000;
 static const uint64_t kMIPS64_ShadowOffset64 = 1ULL << 37;
 static const uint64_t kAArch64_ShadowOffset64 = 1ULL << 36;
@@ -485,6 +487,10 @@ static ShadowMapping getShadowMapping(Triple &TargetTriple, int LongSize,
   bool IsSystemZ = TargetTriple.getArch() == Triple::systemz;
   bool IsX86 = TargetTriple.getArch() == Triple::x86;
   bool IsX86_64 = TargetTriple.getArch() == Triple::x86_64;
+  bool IsMAXIS32 = TargetTriple.getArch() == Triple::maxis ||
+                  TargetTriple.getArch() == Triple::maxisel;
+  bool IsMAXIS64 = TargetTriple.getArch() == Triple::maxis64 ||
+                  TargetTriple.getArch() == Triple::maxis64el;
   bool IsMIPS32 = TargetTriple.getArch() == Triple::mips ||
                   TargetTriple.getArch() == Triple::mipsel;
   bool IsMIPS64 = TargetTriple.getArch() == Triple::mips64 ||
@@ -504,6 +510,8 @@ static ShadowMapping getShadowMapping(Triple &TargetTriple, int LongSize,
   if (LongSize == 32) {
     if (IsAndroid)
       Mapping.Offset = kDynamicShadowSentinel;
+    else if (IsMAXIS32)
+      Mapping.Offset = kMAXIS32_ShadowOffset32;
     else if (IsMIPS32)
       Mapping.Offset = kMIPS32_ShadowOffset32;
     else if (IsFreeBSD)
@@ -538,7 +546,9 @@ static ShadowMapping getShadowMapping(Triple &TargetTriple, int LongSize,
                           (kSmallX86_64ShadowOffsetAlignMask << Mapping.Scale));
     } else if (IsWindows && IsX86_64) {
       Mapping.Offset = kWindowsShadowOffset64;
-    } else if (IsMIPS64)
+    } else if (IsMAXIS64)
+      Mapping.Offset = kMAXIS64_ShadowOffset64;
+    else if (IsMIPS64)
       Mapping.Offset = kMIPS64_ShadowOffset64;
     else if (IsIOS)
       // If we're targeting iOS and x86, the binary is built for iOS simulator.

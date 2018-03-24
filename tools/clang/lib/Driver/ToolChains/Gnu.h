@@ -30,6 +30,10 @@ struct DetectedMultilibs {
   llvm::Optional<Multilib> BiarchSibling;
 };
 
+bool findMAXISMultilibs(const Driver &D, const llvm::Triple &TargetTriple,
+                       StringRef Path, const llvm::opt::ArgList &Args,
+                       DetectedMultilibs &Result);
+
 bool findMIPSMultilibs(const Driver &D, const llvm::Triple &TargetTriple,
                        StringRef Path, const llvm::opt::ArgList &Args,
                        DetectedMultilibs &Result);

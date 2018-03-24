@@ -122,6 +122,9 @@ enum class PDB_Machine {
   Mips16 = 0x266,
   MipsFpu = 0x366,
   MipsFpu16 = 0x466,
+  Maxis16 = 0x267,
+  MaxisFpu = 0x367,
+  MaxisFpu16 = 0x467,
   PowerPC = 0x1F0,
   PowerPCFP = 0x1F1,
   R4000 = 0x166,
@@ -130,7 +133,8 @@ enum class PDB_Machine {
   SH4 = 0x1A6,
   SH5 = 0x1A8,
   Thumb = 0x1C2,
-  WceMipsV2 = 0x169
+  WceMipsV2 = 0x169,
+  WceMaxisV2 = 0x16a
 };
 
 /// These values correspond to the CV_call_e enumeration, and are documented

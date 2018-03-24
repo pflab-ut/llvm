@@ -689,7 +689,7 @@ public:
                                   unsigned &NumIntermediates,
                                   MVT &RegisterVT) const;
 
-  /// Certain targets such as MIPS require that some types such as vectors are
+  /// Certain targets such as MAXIS/MIPS require that some types such as vectors are
   /// always broken down into scalars in some contexts. This occurs even if the
   /// vector type is legal.
   virtual unsigned getVectorTypeBreakdownForCallingConv(
@@ -1109,7 +1109,7 @@ public:
 
   /// Certain combinations of ABIs, Targets and features require that types
   /// are legal for some operations and not for other operations.
-  /// For MIPS all vector types must be passed through the integer register set.
+  /// For MAXIS/MIPS all vector types must be passed through the integer register set.
   virtual MVT getRegisterTypeForCallingConv(MVT VT) const {
     return getRegisterType(VT);
   }
@@ -1119,7 +1119,7 @@ public:
     return getRegisterType(Context, VT);
   }
 
-  /// Certain targets require unusual breakdowns of certain types. For MIPS,
+  /// Certain targets require unusual breakdowns of certain types. For MAXIS/MIPS,
   /// this occurs when a vector type is used, as vector are passed through the
   /// integer register set.
   virtual unsigned getNumRegistersForCallingConv(LLVMContext &Context,

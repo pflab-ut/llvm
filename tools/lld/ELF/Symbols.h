@@ -134,6 +134,7 @@ protected:
   Symbol(Kind K, InputFile *File, StringRefZ Name, uint8_t Binding,
          uint8_t StOther, uint8_t Type)
       : Binding(Binding), File(File), SymbolKind(K), NeedsPltAddr(false),
+        IsInGlobalMaxisGot(false), Is32BitMaxisGot(false),
         IsInGlobalMipsGot(false), Is32BitMipsGot(false), IsInIplt(false),
         IsInIgot(false), IsPreemptible(false), Used(!Config->GcSections),
         Type(Type), StOther(StOther), Name(Name) {}
@@ -144,6 +145,12 @@ public:
   // True the symbol should point to its PLT entry.
   // For SharedSymbol only.
   unsigned NeedsPltAddr : 1;
+  // True if this symbol has an entry in the global part of MAXIS GOT.
+  unsigned IsInGlobalMaxisGot : 1;
+
+  // True if this symbol is referenced by 32-bit GOT relocations.
+  unsigned Is32BitMaxisGot : 1;
+
   // True if this symbol has an entry in the global part of MIPS GOT.
   unsigned IsInGlobalMipsGot : 1;
 
@@ -329,6 +336,11 @@ struct ElfSym {
   // be at some offset from the base of the .got section, usually 0 or
   // the end of the .got.
   static Defined *GlobalOffsetTable;
+
+  // _gp, _gp_disp and __gnu_local_gp symbols. Only for MAXIS.
+  static Defined *MaxisGp;
+  static Defined *MaxisGpDisp;
+  static Defined *MaxisLocalGp;
 
   // _gp, _gp_disp and __gnu_local_gp symbols. Only for MIPS.
   static Defined *MipsGp;

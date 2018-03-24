@@ -120,6 +120,7 @@ static const EnumEntry<uint8_t> CallingConventions[] = {
     ENUM_ENTRY(CallingConvention, NearSysCall),
     ENUM_ENTRY(CallingConvention, FarSysCall),
     ENUM_ENTRY(CallingConvention, ThisCall),
+    ENUM_ENTRY(CallingConvention, MaxisCall),
     ENUM_ENTRY(CallingConvention, MipsCall),
     ENUM_ENTRY(CallingConvention, Generic),
     ENUM_ENTRY(CallingConvention, AlphaCall),

@@ -9149,9 +9149,9 @@ static bool TryEvaluateBuiltinNaN(const ASTContext &Context,
       Result = llvm::APFloat::getQNaN(Sem, false, &fill);
   } else {
     // Prior to IEEE 754-2008, architectures were allowed to choose whether
-    // the first bit of their significand was set for qNaN or sNaN. MIPS chose
+    // the first bit of their significand was set for qNaN or sNaN. MAXIS/MIPS chose
     // a different encoding to what became a standard in 2008, and for pre-
-    // 2008 revisions, MIPS interpreted sNaN-2008 as qNan and qNaN-2008 as
+    // 2008 revisions, MAXIS/MIPS interpreted sNaN-2008 as qNan and qNaN-2008 as
     // sNaN. This is now known as "legacy NaN" encoding.
     if (SNaN)
       Result = llvm::APFloat::getQNaN(Sem, false, &fill);

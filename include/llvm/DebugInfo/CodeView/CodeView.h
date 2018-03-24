@@ -99,6 +99,15 @@ enum class CPUType : uint16_t {
   M68020 = 0x22,
   M68030 = 0x23,
   M68040 = 0x24,
+  MAXIS = 0x25,
+  MAXIS16 = 0x26,
+  MAXIS32 = 0x27,
+  MAXIS64 = 0x28,
+  MAXISI = 0x29,
+  MAXISII = 0x2a,
+  MAXISIII = 0x2b,
+  MAXISIV = 0x2c,
+  MAXISV = 0x2d,
   Alpha = 0x30,
   Alpha21164 = 0x31,
   Alpha21164A = 0x32,
@@ -195,7 +204,8 @@ enum class CallingConvention : uint8_t {
   ClrCall = 0x16,     // clr call
   Inline =
       0x17, // Marker for routines always inlined and thus lacking a convention
-  NearVector = 0x18 // near left to right push with regs, callee pops stack
+    NearVector = 0x18, // near left to right push with regs, callee pops stack
+  MaxisCall = 0x19,    // Maxis call
 };
 
 enum class ClassOptions : uint16_t {

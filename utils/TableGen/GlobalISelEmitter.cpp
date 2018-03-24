@@ -3013,7 +3013,7 @@ Expected<action_iterator> GlobalISelEmitter::importExplicitUseRenderer(
     // Similarly, imm is an operator in TreePatternNode's view but must be
     // rendered as operands.
     // FIXME: The target should be able to choose sign-extended when appropriate
-    //        (e.g. on Mips).
+    //        (e.g. on Maxis/Mips).
     if (DstChild->getOperator()->getName() == "imm") {
       DstMIBuilder.addRenderer<CopyConstantAsImmRenderer>(DstChild->getName());
       return InsertPt;

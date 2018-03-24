@@ -185,6 +185,8 @@ def note_invalid_subexpr_in_const_expr : Note<
 def err_target_unknown_triple : Error<
   "unknown target triple '%0', please use -triple or -arch">;
 def err_target_unknown_cpu : Error<"unknown target CPU '%0'">;
+def err_target_unsupported_cpu_for_micromaxis : Error<
+  "micromaxis is not supported for target CPU '%0'">;
 def err_target_unsupported_cpu_for_micromips : Error<
   "micromips is not supported for target CPU '%0'">;
 def err_target_unknown_abi : Error<"unknown target ABI '%0'">;

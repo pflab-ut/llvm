@@ -38,6 +38,13 @@ StringRef llvm::object::getELFRelocationTypeName(uint32_t Machine,
       break;
     }
     break;
+  case ELF::EM_MAXIS:
+    switch (Type) {
+#include "llvm/BinaryFormat/ELFRelocs/Maxis.def"
+    default:
+      break;
+    }
+    break;
   case ELF::EM_MIPS:
     switch (Type) {
 #include "llvm/BinaryFormat/ELFRelocs/Mips.def"

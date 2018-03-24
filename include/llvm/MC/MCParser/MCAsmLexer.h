@@ -59,7 +59,7 @@ public:
     Less, LessEqual, LessLess, LessGreater,
     Greater, GreaterEqual, GreaterGreater, At,
 
-    // MIPS unary expression operators such as %neg.
+    // MAXIS/MIPS unary expression operators such as %neg.
     PercentCall16, PercentCall_Hi, PercentCall_Lo, PercentDtprel_Hi,
     PercentDtprel_Lo, PercentGot, PercentGot_Disp, PercentGot_Hi, PercentGot_Lo,
     PercentGot_Ofst, PercentGot_Page, PercentGottprel, PercentGp_Rel, PercentHi,

@@ -5282,6 +5282,65 @@ static void handleMSP430InterruptAttr(Sema &S, Decl *D,
   D->addAttr(UsedAttr::CreateImplicit(S.Context));
 }
 
+static void handleMaxisInterruptAttr(Sema &S, Decl *D,
+                                    const AttributeList &Attr) {
+  // Only one optional argument permitted.
+  if (Attr.getNumArgs() > 1) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_too_many_arguments)
+        << Attr.getName() << 1;
+    return;
+  }
+
+  StringRef Str;
+  SourceLocation ArgLoc;
+
+  if (Attr.getNumArgs() == 0)
+    Str = "";
+  else if (!S.checkStringLiteralArgumentAttr(Attr, 0, Str, &ArgLoc))
+    return;
+
+  // Semantic checks for a function with the 'interrupt' attribute for MAXIS:
+  // a) Must be a function.
+  // b) Must have no parameters.
+  // c) Must have the 'void' return type.
+  // d) Cannot have the 'maxis16' attribute, as that instruction set
+  //    lacks the 'eret' instruction.
+  // e) The attribute itself must either have no argument or one of the
+  //    valid interrupt types, see [MaxisInterruptDocs].
+
+  if (!isFunctionOrMethod(D)) {
+    S.Diag(D->getLocation(), diag::warn_attribute_wrong_decl_type)
+        << "'interrupt'" << ExpectedFunctionOrMethod;
+    return;
+  }
+
+  if (hasFunctionProto(D) && getFunctionOrMethodNumParams(D) != 0) {
+    S.Diag(D->getLocation(), diag::warn_maxis_interrupt_attribute)
+        << 0;
+    return;
+  }
+
+  if (!getFunctionOrMethodResultType(D)->isVoidType()) {
+    S.Diag(D->getLocation(), diag::warn_maxis_interrupt_attribute)
+        << 1;
+    return;
+  }
+
+  if (checkAttrMutualExclusion<Maxis16Attr>(S, D, Attr.getRange(),
+                                           Attr.getName()))
+    return;
+
+  MaxisInterruptAttr::InterruptType Kind;
+  if (!MaxisInterruptAttr::ConvertStrToInterruptType(Str, Kind)) {
+    S.Diag(Attr.getLoc(), diag::warn_attribute_type_not_supported)
+        << Attr.getName() << "'" + std::string(Str) + "'";
+    return;
+  }
+
+  D->addAttr(::new (S.Context) MaxisInterruptAttr(
+      Attr.getLoc(), S.Context, Kind, Attr.getAttributeSpellingListIndex()));
+}
+
 static void handleMipsInterruptAttr(Sema &S, Decl *D,
                                     const AttributeList &Attr) {
   // Only one optional argument permitted.

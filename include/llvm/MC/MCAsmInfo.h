@@ -40,6 +40,7 @@ enum class EncodingType {
   CE,      /// Windows CE ARM, PowerPC, SH3, SH4
   Itanium, /// Windows x64, Windows Itanium (IA-64)
   X86,     /// Windows x86, uses no CFI, just EH tables
+  MAXIS = Alpha,
   MIPS = Alpha,
 };
 
@@ -184,18 +185,18 @@ protected:
   const char *Data64bitsDirective;
 
   /// If non-null, a directive that is used to emit a word which should be
-  /// relocated as a 64-bit GP-relative offset, e.g. .gpdword on Mips.  Defaults
+  /// relocated as a 64-bit GP-relative offset, e.g. .gpdword on Maxis/Mips.  Defaults
   /// to nullptr.
   const char *GPRel64Directive = nullptr;
 
   /// If non-null, a directive that is used to emit a word which should be
-  /// relocated as a 32-bit GP-relative offset, e.g. .gpword on Mips or .gprel32
+  /// relocated as a 32-bit GP-relative offset, e.g. .gpword on Maxis/Mips or .gprel32
   /// on Alpha.  Defaults to nullptr.
   const char *GPRel32Directive = nullptr;
 
   /// If non-null, directives that are used to emit a word/dword which should
   /// be relocated as a 32/64-bit DTP/TP-relative offset, e.g. .dtprelword/
-  /// .dtpreldword/.tprelword/.tpreldword on Mips.
+  /// .dtpreldword/.tprelword/.tpreldword on Maxis/Mips.
   const char *DTPRel32Directive = nullptr;
   const char *DTPRel64Directive = nullptr;
   const char *TPRel32Directive = nullptr;
@@ -370,6 +371,10 @@ protected:
   // If true, emit GOTPCRELX/REX_GOTPCRELX instead of GOTPCREL, on
   // X86_64 ELF.
   bool RelaxELFRelocations = true;
+
+  // If true, then the lexer and expression parser will support %neg(),
+  // %hi(), and similar unary operators.
+  bool HasMaxisExpressions = false;
 
   // If true, then the lexer and expression parser will support %neg(),
   // %hi(), and similar unary operators.
@@ -616,6 +621,7 @@ public:
 
   bool canRelaxRelocations() const { return RelaxELFRelocations; }
   void setRelaxELFRelocations(bool V) { RelaxELFRelocations = V; }
+  bool hasMaxisExpressions() const { return HasMaxisExpressions; }
   bool hasMipsExpressions() const { return HasMipsExpressions; }
 };
 

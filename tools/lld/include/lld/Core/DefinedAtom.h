@@ -189,6 +189,11 @@ public:
   // Attributes describe a code model used by the atom.
   enum CodeModel {
     codeNA,           // no specific code model
+    // MAXIS code models
+    codeMaxisPIC,      // PIC function in a PIC / non-PIC mixed file
+    codeMaxisMicro,    // microMAXIS instruction encoding
+    codeMaxisMicroPIC, // microMAXIS instruction encoding + PIC
+    codeMaxis16,       // MAXIS-16 instruction encoding
     // MIPS code models
     codeMipsPIC,      // PIC function in a PIC / non-PIC mixed file
     codeMipsMicro,    // microMIPS instruction encoding

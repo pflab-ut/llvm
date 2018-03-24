@@ -55,6 +55,13 @@ LLVM_YAML_STRONG_TYPEDEF(uint8_t, ELF_STT)
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, ELF_STV)
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, ELF_STO)
 
+LLVM_YAML_STRONG_TYPEDEF(uint8_t, MAXIS_AFL_REG)
+LLVM_YAML_STRONG_TYPEDEF(uint8_t, MAXIS_ABI_FP)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_EXT)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_ASE)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_AFL_FLAGS1)
+LLVM_YAML_STRONG_TYPEDEF(uint32_t, MAXIS_ISA)
+
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, MIPS_AFL_REG)
 LLVM_YAML_STRONG_TYPEDEF(uint8_t, MIPS_ABI_FP)
 LLVM_YAML_STRONG_TYPEDEF(uint32_t, MIPS_AFL_EXT)
@@ -113,6 +120,7 @@ struct Section {
     RawContent,
     Relocation,
     NoBits,
+    MaxisABIFlags,
     MipsABIFlags
   };
   SectionKind Kind;
@@ -174,6 +182,27 @@ struct RelocationSection : Section {
 
   static bool classof(const Section *S) {
     return S->Kind == SectionKind::Relocation;
+  }
+};
+
+// Represents .MAXIS.abiflags section
+struct MaxisABIFlags : Section {
+  llvm::yaml::Hex16 Version;
+  MAXIS_ISA ISALevel;
+  llvm::yaml::Hex8 ISARevision;
+  MAXIS_AFL_REG GPRSize;
+  MAXIS_AFL_REG CPR1Size;
+  MAXIS_AFL_REG CPR2Size;
+  MAXIS_ABI_FP FpABI;
+  MAXIS_AFL_EXT ISAExtension;
+  MAXIS_AFL_ASE ASEs;
+  MAXIS_AFL_FLAGS1 Flags1;
+  llvm::yaml::Hex32 Flags2;
+
+  MaxisABIFlags() : Section(SectionKind::MaxisABIFlags) {}
+
+  static bool classof(const Section *S) {
+    return S->Kind == SectionKind::MaxisABIFlags;
   }
 };
 
@@ -298,6 +327,36 @@ struct ScalarEnumerationTraits<ELFYAML::ELF_REL> {
 template <>
 struct ScalarEnumerationTraits<ELFYAML::ELF_RSS> {
   static void enumeration(IO &IO, ELFYAML::ELF_RSS &Value);
+};
+
+template <>
+struct ScalarEnumerationTraits<ELFYAML::MAXIS_AFL_REG> {
+  static void enumeration(IO &IO, ELFYAML::MAXIS_AFL_REG &Value);
+};
+
+template <>
+struct ScalarEnumerationTraits<ELFYAML::MAXIS_ABI_FP> {
+  static void enumeration(IO &IO, ELFYAML::MAXIS_ABI_FP &Value);
+};
+
+template <>
+struct ScalarEnumerationTraits<ELFYAML::MAXIS_AFL_EXT> {
+  static void enumeration(IO &IO, ELFYAML::MAXIS_AFL_EXT &Value);
+};
+
+template <>
+struct ScalarEnumerationTraits<ELFYAML::MAXIS_ISA> {
+  static void enumeration(IO &IO, ELFYAML::MAXIS_ISA &Value);
+};
+
+template <>
+struct ScalarBitSetTraits<ELFYAML::MAXIS_AFL_ASE> {
+  static void bitset(IO &IO, ELFYAML::MAXIS_AFL_ASE &Value);
+};
+
+template <>
+struct ScalarBitSetTraits<ELFYAML::MAXIS_AFL_FLAGS1> {
+  static void bitset(IO &IO, ELFYAML::MAXIS_AFL_FLAGS1 &Value);
 };
 
 template <>

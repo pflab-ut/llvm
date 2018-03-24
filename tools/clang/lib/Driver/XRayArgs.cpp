@@ -40,6 +40,10 @@ XRayArgs::XRayArgs(const ToolChain &TC, const ArgList &Args) {
       case llvm::Triple::arm:
       case llvm::Triple::aarch64:
       case llvm::Triple::ppc64le:
+      case llvm::Triple::maxis:
+      case llvm::Triple::maxisel:
+      case llvm::Triple::maxis64:
+      case llvm::Triple::maxis64el:
       case llvm::Triple::mips:
       case llvm::Triple::mipsel:
       case llvm::Triple::mips64:

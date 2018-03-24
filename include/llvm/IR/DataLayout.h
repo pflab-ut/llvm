@@ -120,6 +120,7 @@ private:
     MM_MachO,
     MM_WinCOFF,
     MM_WinCOFFX86,
+    MM_Maxis,
     MM_Mips
   };
   ManglingModeT ManglingMode;
@@ -268,6 +269,7 @@ public:
     switch (ManglingMode) {
     case MM_None:
     case MM_ELF:
+    case MM_Maxis:
     case MM_Mips:
     case MM_WinCOFF:
       return '\0';
@@ -285,6 +287,8 @@ public:
     case MM_ELF:
     case MM_WinCOFF:
       return ".L";
+    case MM_Maxis:
+      return "$";
     case MM_Mips:
       return "$";
     case MM_MachO:

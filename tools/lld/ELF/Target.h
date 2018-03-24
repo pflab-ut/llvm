@@ -132,6 +132,7 @@ TargetInfo *getSPARCV9TargetInfo();
 TargetInfo *getX32TargetInfo();
 TargetInfo *getX86TargetInfo();
 TargetInfo *getX86_64TargetInfo();
+template <class ELFT> TargetInfo *getMaxisTargetInfo();
 template <class ELFT> TargetInfo *getMipsTargetInfo();
 
 std::string getErrorLocation(const uint8_t *Loc);
@@ -142,6 +143,7 @@ uint64_t getAArch64Page(uint64_t Expr);
 extern TargetInfo *Target;
 TargetInfo *getTarget();
 
+template <class ELFT> bool isMaxisPIC(const Defined *Sym);
 template <class ELFT> bool isMipsPIC(const Defined *Sym);
 
 static inline void reportRangeError(uint8_t *Loc, RelType Type, const Twine &V,

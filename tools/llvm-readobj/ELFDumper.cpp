@@ -44,6 +44,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/MaxisABIFlags.h"
 #include "llvm/Support/MipsABIFlags.h"
 #include "llvm/Support/ScopedPrinter.h"
 #include "llvm/Support/raw_ostream.h"
@@ -153,6 +154,11 @@ public:
   void printGroupSections() override;
 
   void printAttributes() override;
+  void printMaxisPLTGOT() override;
+  void printMaxisABIFlags() override;
+  void printMaxisReginfo() override;
+  void printMaxisOptions() override;
+
   void printMipsPLTGOT() override;
   void printMipsABIFlags() override;
   void printMipsReginfo() override;
@@ -291,6 +297,7 @@ void ELFDumper<ELFT>::printSymbolsHelper(bool IsDynamic) const {
     ELFDumperStyle->printSymbol(Obj, &Sym, Syms.begin(), StrTable, IsDynamic);
 }
 
+template <class ELFT> class MaxisGOTParser;
 template <class ELFT> class MipsGOTParser;
 
 template <typename ELFT> class DumpStyle {
@@ -316,6 +323,8 @@ public:
   virtual void printProgramHeaders(const ELFFile<ELFT> *Obj) = 0;
   virtual void printHashHistogram(const ELFFile<ELFT> *Obj) = 0;
   virtual void printNotes(const ELFFile<ELFT> *Obj) = 0;
+  virtual void printMaxisGOT(const MaxisGOTParser<ELFT> &Parser) = 0;
+  virtual void printMaxisPLT(const MaxisGOTParser<ELFT> &Parser) = 0;
   virtual void printMipsGOT(const MipsGOTParser<ELFT> &Parser) = 0;
   virtual void printMipsPLT(const MipsGOTParser<ELFT> &Parser) = 0;
   const ELFDumper<ELFT> *dumper() const { return Dumper; }
@@ -345,6 +354,8 @@ public:
   void printProgramHeaders(const ELFO *Obj) override;
   void printHashHistogram(const ELFFile<ELFT> *Obj) override;
   void printNotes(const ELFFile<ELFT> *Obj) override;
+  void printMaxisGOT(const MaxisGOTParser<ELFT> &Parser) override;
+  void printMaxisPLT(const MaxisGOTParser<ELFT> &Parser) override;
   void printMipsGOT(const MipsGOTParser<ELFT> &Parser) override;
   void printMipsPLT(const MipsGOTParser<ELFT> &Parser) override;
 
@@ -405,6 +416,8 @@ public:
   void printProgramHeaders(const ELFO *Obj) override;
   void printHashHistogram(const ELFFile<ELFT> *Obj) override;
   void printNotes(const ELFFile<ELFT> *Obj) override;
+  void printMaxisGOT(const MaxisGOTParser<ELFT> &Parser) override;
+  void printMaxisPLT(const MaxisGOTParser<ELFT> &Parser) override;
   void printMipsGOT(const MipsGOTParser<ELFT> &Parser) override;
   void printMipsPLT(const MipsGOTParser<ELFT> &Parser) override;
 
@@ -858,8 +871,10 @@ static const EnumEntry<unsigned> ElfMachineType[] = {
   ENUM_ENT(EM_88K,           "MC88000"),
   ENUM_ENT(EM_IAMCU,         "EM_IAMCU"),
   ENUM_ENT(EM_860,           "Intel 80860"),
+  ENUM_ENT(EM_MAXIS,          "MAXIS R3000"),
   ENUM_ENT(EM_MIPS,          "MIPS R3000"),
   ENUM_ENT(EM_S370,          "IBM System/370"),
+  ENUM_ENT(EM_MAXIS_RS3_LE,   "MAXIS R3000 little-endian"),
   ENUM_ENT(EM_MIPS_RS3_LE,   "MIPS R3000 little-endian"),
   ENUM_ENT(EM_PARISC,        "HPPA"),
   ENUM_ENT(EM_VPP500,        "Fujitsu VPP500"),
@@ -884,6 +899,7 @@ static const EnumEntry<unsigned> ElfMachineType[] = {
   ENUM_ENT(EM_H8S,           "Hitachi H8S"),
   ENUM_ENT(EM_H8_500,        "Hitachi H8/500"),
   ENUM_ENT(EM_IA_64,         "Intel IA-64"),
+  ENUM_ENT(EM_MAXIS_X,        "Stanford MAXIS-X"),
   ENUM_ENT(EM_MIPS_X,        "Stanford MIPS-X"),
   ENUM_ENT(EM_COLDFIRE,      "Motorola Coldfire"),
   ENUM_ENT(EM_68HC12,        "Motorola MC68HC12 Microcontroller"),
@@ -1075,6 +1091,17 @@ static const EnumEntry<unsigned> ElfHexagonSectionFlags[] = {
   LLVM_READOBJ_ENUM_ENT(ELF, SHF_HEX_GPREL)
 };
 
+static const EnumEntry<unsigned> ElfMaxisSectionFlags[] = {
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_NODUPES),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_NAMES  ),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_LOCAL  ),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_NOSTRIP),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_GPREL  ),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_MERGE  ),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_ADDR   ),
+  LLVM_READOBJ_ENUM_ENT(ELF, SHF_MAXIS_STRING )
+};
+
 static const EnumEntry<unsigned> ElfMipsSectionFlags[] = {
   LLVM_READOBJ_ENUM_ENT(ELF, SHF_MIPS_NODUPES),
   LLVM_READOBJ_ENUM_ENT(ELF, SHF_MIPS_NAMES  ),
@@ -1129,6 +1156,15 @@ static const char *getElfSegmentType(unsigned Arch, unsigned Type) {
     switch (Type) {
     LLVM_READOBJ_ENUM_CASE(ELF, PT_ARM_EXIDX);
     }
+  case ELF::EM_MAXIS:
+  case ELF::EM_MAXIS_RS3_LE:
+    switch (Type) {
+    LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_REGINFO);
+    LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_RTPROC);
+    LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_OPTIONS);
+    LLVM_READOBJ_ENUM_CASE(ELF, PT_MAXIS_ABIFLAGS);
+    }
+  }
   case ELF::EM_MIPS:
   case ELF::EM_MIPS_RS3_LE:
     switch (Type) {
@@ -1184,6 +1220,20 @@ static std::string getElfPtType(unsigned Arch, unsigned Type) {
       if (Type == ELF::PT_ARM_EXIDX)
         return "EXIDX";
       return "";
+    case ELF::EM_MAXIS:
+    case ELF::EM_MAXIS_RS3_LE:
+      switch (Type) {
+      case PT_MAXIS_REGINFO:
+        return "REGINFO";
+      case PT_MAXIS_RTPROC:
+        return "RTPROC";
+      case PT_MAXIS_OPTIONS:
+        return "OPTIONS";
+      case PT_MAXIS_ABIFLAGS:
+        return "ABIFLAGS";
+      }
+      return "";
+    }
     case ELF::EM_MIPS:
     case ELF::EM_MIPS_RS3_LE:
       switch (Type) {
@@ -1206,6 +1256,52 @@ static const EnumEntry<unsigned> ElfSegmentFlags[] = {
   LLVM_READOBJ_ENUM_ENT(ELF, PF_X),
   LLVM_READOBJ_ENUM_ENT(ELF, PF_W),
   LLVM_READOBJ_ENUM_ENT(ELF, PF_R)
+};
+
+static const EnumEntry<unsigned> ElfHeaderMaxisFlags[] = {
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_NOREORDER),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_PIC),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_CPIC),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ABI2),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_32BITMODE),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_FP64),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_NAN2008),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ABI_O32),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ABI_O64),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ABI_EABI32),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ABI_EABI64),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_3900),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_4010),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_4100),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_4650),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_4120),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_4111),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_SB1),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_OCTEON),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_XLR),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_OCTEON2),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_OCTEON3),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_5400),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_5900),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_5500),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_9000),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_LS2E),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_LS2F),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MACH_LS3A),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_MICROMAXIS),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_ASE_M16),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_ASE_MDMX),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_1),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_2),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_3),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_4),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_5),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_32),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_64),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_32R2),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_64R2),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_32R6),
+  LLVM_READOBJ_ENUM_ENT(ELF, EF_MAXIS_ARCH_64R6)
 };
 
 static const EnumEntry<unsigned> ElfHeaderMipsFlags[] = {
@@ -1274,6 +1370,37 @@ static const EnumEntry<unsigned> ElfSymOtherFlags[] = {
   LLVM_READOBJ_ENUM_ENT(ELF, STV_PROTECTED)
 };
 
+static const EnumEntry<unsigned> ElfMaxisSymOtherFlags[] = {
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_OPTIONAL),
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_PLT),
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_PIC),
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_MICROMAXIS)
+};
+
+static const EnumEntry<unsigned> ElfMaxis16SymOtherFlags[] = {
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_OPTIONAL),
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_PLT),
+  LLVM_READOBJ_ENUM_ENT(ELF, STO_MAXIS_MAXIS16)
+};
+
+static const char *getElfMaxisOptionsOdkType(unsigned Odk) {
+  switch (Odk) {
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_NULL);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_REGINFO);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_EXCEPTIONS);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_PAD);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_HWPATCH);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_FILL);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_TAGS);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_HWAND);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_HWOR);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_GP_GROUP);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_IDENT);
+  LLVM_READOBJ_ENUM_CASE(ELF, ODK_PAGESIZE);
+  default:
+    return "Unknown";
+  }
+}
 static const EnumEntry<unsigned> ElfMipsSymOtherFlags[] = {
   LLVM_READOBJ_ENUM_ENT(ELF, STO_MIPS_OPTIONAL),
   LLVM_READOBJ_ENUM_ENT(ELF, STO_MIPS_PLT),
@@ -1512,6 +1639,21 @@ static const char *getTypeString(unsigned Arch, uint64_t Type) {
     LLVM_READOBJ_TYPE_CASE(HEXAGON_VER);
     LLVM_READOBJ_TYPE_CASE(HEXAGON_PLT);
     }
+  case EM_MAXIS:
+    switch (Type) {
+    LLVM_READOBJ_TYPE_CASE(MAXIS_RLD_MAP_REL);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_RLD_VERSION);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_FLAGS);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_BASE_ADDRESS);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_LOCAL_GOTNO);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_SYMTABNO);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_UNREFEXTNO);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_GOTSYM);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_RLD_MAP);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_PLTGOT);
+    LLVM_READOBJ_TYPE_CASE(MAXIS_OPTIONS);
+    }
+  }
   case EM_MIPS:
     switch (Type) {
     LLVM_READOBJ_TYPE_CASE(MIPS_RLD_MAP_REL);
@@ -1623,6 +1765,25 @@ static const EnumEntry<unsigned> ElfDynamicDTFlags1[] = {
   LLVM_READOBJ_DT_FLAG_ENT(DF_1, SINGLETON)
 };
 
+static const EnumEntry<unsigned> ElfDynamicDTMaxisFlags[] = {
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, NONE),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, QUICKSTART),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, NOTPOT),
+  LLVM_READOBJ_DT_FLAG_ENT(RHS, NO_LIBRARY_REPLACEMENT),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, NO_MOVE),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, SGI_ONLY),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, GUARANTEE_INIT),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, DELTA_C_PLUS_PLUS),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, GUARANTEE_START_INIT),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, PIXIE),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, DEFAULT_DELAY_LOAD),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, REQUICKSTART),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, REQUICKSTARTED),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, CORD),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, NO_UNRES_UNDEF),
+  LLVM_READOBJ_DT_FLAG_ENT(RHF, RLD_ORDER_SAFE)
+};
+
 static const EnumEntry<unsigned> ElfDynamicDTMipsFlags[] = {
   LLVM_READOBJ_DT_FLAG_ENT(RHF, NONE),
   LLVM_READOBJ_DT_FLAG_ENT(RHF, QUICKSTART),
@@ -1706,6 +1867,12 @@ void ELFDumper<ELFT>::printValue(uint64_t Type, uint64_t Value) {
   case DT_VERSYM:
   case DT_GNU_HASH:
   case DT_NULL:
+  case DT_MAXIS_BASE_ADDRESS:
+  case DT_MAXIS_GOTSYM:
+  case DT_MAXIS_RLD_MAP:
+  case DT_MAXIS_RLD_MAP_REL:
+  case DT_MAXIS_PLTGOT:
+  case DT_MAXIS_OPTIONS:
   case DT_MIPS_BASE_ADDRESS:
   case DT_MIPS_GOTSYM:
   case DT_MIPS_RLD_MAP:
@@ -1718,6 +1885,10 @@ void ELFDumper<ELFT>::printValue(uint64_t Type, uint64_t Value) {
   case DT_RELCOUNT:
   case DT_VERDEFNUM:
   case DT_VERNEEDNUM:
+  case DT_MAXIS_RLD_VERSION:
+  case DT_MAXIS_LOCAL_GOTNO:
+  case DT_MAXIS_SYMTABNO:
+  case DT_MAXIS_UNREFEXTNO:
   case DT_MIPS_RLD_VERSION:
   case DT_MIPS_LOCAL_GOTNO:
   case DT_MIPS_SYMTABNO:
@@ -1753,6 +1924,9 @@ void ELFDumper<ELFT>::printValue(uint64_t Type, uint64_t Value) {
   case DT_RPATH:
   case DT_RUNPATH:
     OS << getDynamicString(Value);
+    break;
+  case DT_MAXIS_FLAGS:
+    printFlags(Value, makeArrayRef(ElfDynamicDTMaxisFlags), OS);
     break;
   case DT_MIPS_FLAGS:
     printFlags(Value, makeArrayRef(ElfDynamicDTMipsFlags), OS);
@@ -1913,6 +2087,56 @@ template <> void ELFDumper<ELFType<support::little, false>>::printAttributes() {
   }
 }
 
+template <class ELFT> class MaxisGOTParser {
+public:
+  TYPEDEF_ELF_TYPES(ELFT)
+  using Entry = typename ELFO::Elf_Addr;
+  using Entries = ArrayRef<Entry>;
+
+  const bool IsStatic;
+  const ELFO * const Obj;
+
+  MaxisGOTParser(const ELFO *Obj, Elf_Dyn_Range DynTable, Elf_Sym_Range DynSyms);
+
+  bool hasGot() const { return !GotEntries.empty(); }
+  bool hasPlt() const { return !PltEntries.empty(); }
+
+  uint64_t getGp() const;
+
+  const Entry *getGotLazyResolver() const;
+  const Entry *getGotModulePointer() const;
+  const Entry *getPltLazyResolver() const;
+  const Entry *getPltModulePointer() const;
+
+  Entries getLocalEntries() const;
+  Entries getGlobalEntries() const;
+  Entries getOtherEntries() const;
+  Entries getPltEntries() const;
+
+  uint64_t getGotAddress(const Entry * E) const;
+  int64_t getGotOffset(const Entry * E) const;
+  const Elf_Sym *getGotSym(const Entry *E) const;
+
+  uint64_t getPltAddress(const Entry * E) const;
+  const Elf_Sym *getPltSym(const Entry *E) const;
+
+  StringRef getPltStrTable() const { return PltStrTable; }
+
+private:
+  const Elf_Shdr *GotSec;
+  size_t LocalNum;
+  size_t GlobalNum;
+
+  const Elf_Shdr *PltSec;
+  const Elf_Shdr *PltRelSec;
+  const Elf_Shdr *PltSymTable;
+  Elf_Sym_Range GotDynSyms;
+  StringRef PltStrTable;
+
+  Entries GotEntries;
+  Entries PltEntries;
+};
+
 template <class ELFT> class MipsGOTParser {
 public:
   TYPEDEF_ELF_TYPES(ELFT)
@@ -1964,6 +2188,386 @@ private:
 };
 
 } // end anonymous namespace
+
+template <class ELFT>
+MaxisGOTParser<ELFT>::MaxisGOTParser(const ELFO *Obj, Elf_Dyn_Range DynTable,
+                                   Elf_Sym_Range DynSyms)
+    : IsStatic(DynTable.empty()), Obj(Obj), GotSec(nullptr), LocalNum(0),
+      GlobalNum(0), PltSec(nullptr), PltRelSec(nullptr), PltSymTable(nullptr) {
+  // See "Global Offset Table" in Chapter 5 in the following document
+  // for detailed GOT description.
+  // ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+
+  // Find static GOT secton.
+  if (IsStatic) {
+    GotSec = findSectionByName(*Obj, ".got");
+    if (!GotSec)
+      reportError("Cannot find .got section");
+
+    ArrayRef<uint8_t> Content = unwrapOrError(Obj->getSectionContents(GotSec));
+    GotEntries = Entries(reinterpret_cast<const Entry *>(Content.data()),
+                         Content.size() / sizeof(Entry));
+    LocalNum = GotEntries.size();
+    return;
+  }
+
+  // Lookup dynamic table tags which define GOT/PLT layouts.
+  Optional<uint64_t> DtPltGot;
+  Optional<uint64_t> DtLocalGotNum;
+  Optional<uint64_t> DtGotSym;
+  Optional<uint64_t> DtMaxisPltGot;
+  Optional<uint64_t> DtJmpRel;
+  for (const auto &Entry : DynTable) {
+    switch (Entry.getTag()) {
+    case ELF::DT_PLTGOT:
+      DtPltGot = Entry.getVal();
+      break;
+    case ELF::DT_MAXIS_LOCAL_GOTNO:
+      DtLocalGotNum = Entry.getVal();
+      break;
+    case ELF::DT_MAXIS_GOTSYM:
+      DtGotSym = Entry.getVal();
+      break;
+    case ELF::DT_MAXIS_PLTGOT:
+      DtMaxisPltGot = Entry.getVal();
+      break;
+    case ELF::DT_JMPREL:
+      DtJmpRel = Entry.getVal();
+      break;
+    }
+  }
+
+  // Find dynamic GOT section.
+  if (DtPltGot || DtLocalGotNum || DtGotSym) {
+    if (!DtPltGot)
+      report_fatal_error("Cannot find PLTGOT dynamic table tag.");
+    if (!DtLocalGotNum)
+      report_fatal_error("Cannot find MAXIS_LOCAL_GOTNO dynamic table tag.");
+    if (!DtGotSym)
+      report_fatal_error("Cannot find MAXIS_GOTSYM dynamic table tag.");
+
+    size_t DynSymTotal = DynSyms.size();
+    if (*DtGotSym > DynSymTotal)
+      reportError("MAXIS_GOTSYM exceeds a number of dynamic symbols");
+
+    GotSec = findNotEmptySectionByAddress(Obj, *DtPltGot);
+    if (!GotSec)
+      reportError("There is no not empty GOT section at 0x" +
+                  Twine::utohexstr(*DtPltGot));
+
+    LocalNum = *DtLocalGotNum;
+    GlobalNum = DynSymTotal - *DtGotSym;
+
+    ArrayRef<uint8_t> Content = unwrapOrError(Obj->getSectionContents(GotSec));
+    GotEntries = Entries(reinterpret_cast<const Entry *>(Content.data()),
+                         Content.size() / sizeof(Entry));
+    GotDynSyms = DynSyms.drop_front(*DtGotSym);
+  }
+
+  // Find PLT section.
+  if (DtMaxisPltGot || DtJmpRel) {
+    if (!DtMaxisPltGot)
+      report_fatal_error("Cannot find MAXIS_PLTGOT dynamic table tag.");
+    if (!DtJmpRel)
+      report_fatal_error("Cannot find JMPREL dynamic table tag.");
+
+    PltSec = findNotEmptySectionByAddress(Obj, *DtMaxisPltGot);
+    if (!PltSec)
+      report_fatal_error("There is no not empty PLTGOT section at 0x " +
+                         Twine::utohexstr(*DtMaxisPltGot));
+
+    PltRelSec = findNotEmptySectionByAddress(Obj, *DtJmpRel);
+    if (!PltRelSec)
+      report_fatal_error("There is no not empty RELPLT section at 0x" +
+                         Twine::utohexstr(*DtJmpRel));
+
+    ArrayRef<uint8_t> PltContent =
+        unwrapOrError(Obj->getSectionContents(PltSec));
+    PltEntries = Entries(reinterpret_cast<const Entry *>(PltContent.data()),
+                         PltContent.size() / sizeof(Entry));
+
+    PltSymTable = unwrapOrError(Obj->getSection(PltRelSec->sh_link));
+    PltStrTable = unwrapOrError(Obj->getStringTableForSymtab(*PltSymTable));
+  }
+}
+
+template <class ELFT> uint64_t MaxisGOTParser<ELFT>::getGp() const {
+  return GotSec->sh_addr + 0x7ff0;
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Entry *
+MaxisGOTParser<ELFT>::getGotLazyResolver() const {
+  return LocalNum > 0 ? &GotEntries[0] : nullptr;
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Entry *
+MaxisGOTParser<ELFT>::getGotModulePointer() const {
+  if (LocalNum < 2)
+    return nullptr;
+  const Entry &E = GotEntries[1];
+  if ((E >> (sizeof(Entry) * 8 - 1)) == 0)
+    return nullptr;
+  return &E;
+}
+
+template <class ELFT>
+typename MaxisGOTParser<ELFT>::Entries
+MaxisGOTParser<ELFT>::getLocalEntries() const {
+  size_t Skip = getGotModulePointer() ? 2 : 1;
+  if (LocalNum - Skip <= 0)
+    return Entries();
+  return GotEntries.slice(Skip, LocalNum - Skip);
+}
+
+template <class ELFT>
+typename MaxisGOTParser<ELFT>::Entries
+MaxisGOTParser<ELFT>::getGlobalEntries() const {
+  if (GlobalNum == 0)
+    return Entries();
+  return GotEntries.slice(LocalNum, GlobalNum);
+}
+
+template <class ELFT>
+typename MaxisGOTParser<ELFT>::Entries
+MaxisGOTParser<ELFT>::getOtherEntries() const {
+  size_t OtherNum = GotEntries.size() - LocalNum - GlobalNum;
+  if (OtherNum == 0)
+    return Entries();
+  return GotEntries.slice(LocalNum + GlobalNum, OtherNum);
+}
+
+template <class ELFT>
+uint64_t MaxisGOTParser<ELFT>::getGotAddress(const Entry *E) const {
+  int64_t Offset = std::distance(GotEntries.data(), E) * sizeof(Entry);
+  return GotSec->sh_addr + Offset;
+}
+
+template <class ELFT>
+int64_t MaxisGOTParser<ELFT>::getGotOffset(const Entry *E) const {
+  int64_t Offset = std::distance(GotEntries.data(), E) * sizeof(Entry);
+  return Offset - 0x7ff0;
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Elf_Sym *
+MaxisGOTParser<ELFT>::getGotSym(const Entry *E) const {
+  int64_t Offset = std::distance(GotEntries.data(), E);
+  return &GotDynSyms[Offset - LocalNum];
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Entry *
+MaxisGOTParser<ELFT>::getPltLazyResolver() const {
+  return PltEntries.empty() ? nullptr : &PltEntries[0];
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Entry *
+MaxisGOTParser<ELFT>::getPltModulePointer() const {
+  return PltEntries.size() < 2 ? nullptr : &PltEntries[1];
+}
+
+template <class ELFT>
+typename MaxisGOTParser<ELFT>::Entries
+MaxisGOTParser<ELFT>::getPltEntries() const {
+  if (PltEntries.size() <= 2)
+    return Entries();
+  return PltEntries.slice(2, PltEntries.size() - 2);
+}
+
+template <class ELFT>
+uint64_t MaxisGOTParser<ELFT>::getPltAddress(const Entry *E) const {
+  int64_t Offset = std::distance(PltEntries.data(), E) * sizeof(Entry);
+  return PltSec->sh_addr + Offset;
+}
+
+template <class ELFT>
+const typename MaxisGOTParser<ELFT>::Elf_Sym *
+MaxisGOTParser<ELFT>::getPltSym(const Entry *E) const {
+  int64_t Offset = std::distance(getPltEntries().data(), E);
+  if (PltRelSec->sh_type == ELF::SHT_REL) {
+    Elf_Rel_Range Rels = unwrapOrError(Obj->rels(PltRelSec));
+    return unwrapOrError(Obj->getRelocationSymbol(&Rels[Offset], PltSymTable));
+  } else {
+    Elf_Rela_Range Rels = unwrapOrError(Obj->relas(PltRelSec));
+    return unwrapOrError(Obj->getRelocationSymbol(&Rels[Offset], PltSymTable));
+  }
+}
+
+template <class ELFT> void ELFDumper<ELFT>::printMaxisPLTGOT() {
+  if (Obj->getHeader()->e_machine != EM_MAXIS)
+    reportError("MAXIS PLT GOT is available for MAXIS targets only");
+
+  MaxisGOTParser<ELFT> Parser(Obj, dynamic_table(), dynamic_symbols());
+  if (Parser.hasGot())
+    ELFDumperStyle->printMaxisGOT(Parser);
+  if (Parser.hasPlt())
+    ELFDumperStyle->printMaxisPLT(Parser);
+}
+
+static const EnumEntry<unsigned> ElfMaxisISAExtType[] = {
+  {"None",                    Maxis::AFL_EXT_NONE},
+  {"Broadcom SB-1",           Maxis::AFL_EXT_SB1},
+  {"Cavium Networks Octeon",  Maxis::AFL_EXT_OCTEON},
+  {"Cavium Networks Octeon2", Maxis::AFL_EXT_OCTEON2},
+  {"Cavium Networks OcteonP", Maxis::AFL_EXT_OCTEONP},
+  {"Cavium Networks Octeon3", Maxis::AFL_EXT_OCTEON3},
+  {"LSI R4010",               Maxis::AFL_EXT_4010},
+  {"Loongson 2E",             Maxis::AFL_EXT_LOONGSON_2E},
+  {"Loongson 2F",             Maxis::AFL_EXT_LOONGSON_2F},
+  {"Loongson 3A",             Maxis::AFL_EXT_LOONGSON_3A},
+  {"MAXIS R4650",              Maxis::AFL_EXT_4650},
+  {"MAXIS R5900",              Maxis::AFL_EXT_5900},
+  {"MAXIS R10000",             Maxis::AFL_EXT_10000},
+  {"NEC VR4100",              Maxis::AFL_EXT_4100},
+  {"NEC VR4111/VR4181",       Maxis::AFL_EXT_4111},
+  {"NEC VR4120",              Maxis::AFL_EXT_4120},
+  {"NEC VR5400",              Maxis::AFL_EXT_5400},
+  {"NEC VR5500",              Maxis::AFL_EXT_5500},
+  {"RMI Xlr",                 Maxis::AFL_EXT_XLR},
+  {"Toshiba R3900",           Maxis::AFL_EXT_3900}
+};
+
+static const EnumEntry<unsigned> ElfMaxisASEFlags[] = {
+  {"DSP",                Maxis::AFL_ASE_DSP},
+  {"DSPR2",              Maxis::AFL_ASE_DSPR2},
+  {"Enhanced VA Scheme", Maxis::AFL_ASE_EVA},
+  {"MCU",                Maxis::AFL_ASE_MCU},
+  {"MDMX",               Maxis::AFL_ASE_MDMX},
+  {"MAXIS-3D",            Maxis::AFL_ASE_MAXIS3D},
+  {"MT",                 Maxis::AFL_ASE_MT},
+  {"SmartMAXIS",          Maxis::AFL_ASE_SMARTMAXIS},
+  {"VZ",                 Maxis::AFL_ASE_VIRT},
+  {"MSA",                Maxis::AFL_ASE_MSA},
+  {"MAXIS16",             Maxis::AFL_ASE_MAXIS16},
+  {"microMAXIS",          Maxis::AFL_ASE_MICROMAXIS},
+  {"XPA",                Maxis::AFL_ASE_XPA}
+};
+
+static const EnumEntry<unsigned> ElfMaxisFpABIType[] = {
+  {"Hard or soft float",                  Maxis::Val_GNU_MAXIS_ABI_FP_ANY},
+  {"Hard float (double precision)",       Maxis::Val_GNU_MAXIS_ABI_FP_DOUBLE},
+  {"Hard float (single precision)",       Maxis::Val_GNU_MAXIS_ABI_FP_SINGLE},
+  {"Soft float",                          Maxis::Val_GNU_MAXIS_ABI_FP_SOFT},
+  {"Hard float (MAXIS32r2 64-bit FPU 12 callee-saved)",
+   Maxis::Val_GNU_MAXIS_ABI_FP_OLD_64},
+  {"Hard float (32-bit CPU, Any FPU)",    Maxis::Val_GNU_MAXIS_ABI_FP_XX},
+  {"Hard float (32-bit CPU, 64-bit FPU)", Maxis::Val_GNU_MAXIS_ABI_FP_64},
+  {"Hard float compat (32-bit CPU, 64-bit FPU)",
+   Maxis::Val_GNU_MAXIS_ABI_FP_64A}
+};
+
+static const EnumEntry<unsigned> ElfMaxisFlags1[] {
+  {"ODDSPREG", Maxis::AFL_FLAGS1_ODDSPREG},
+};
+
+static int getMaxisRegisterSize(uint8_t Flag) {
+  switch (Flag) {
+  case Maxis::AFL_REG_NONE:
+    return 0;
+  case Maxis::AFL_REG_32:
+    return 32;
+  case Maxis::AFL_REG_64:
+    return 64;
+  case Maxis::AFL_REG_128:
+    return 128;
+  default:
+    return -1;
+  }
+}
+
+template <class ELFT> void ELFDumper<ELFT>::printMaxisABIFlags() {
+  const Elf_Shdr *Shdr = findSectionByName(*Obj, ".MAXIS.abiflags");
+  if (!Shdr) {
+    W.startLine() << "There is no .MAXIS.abiflags section in the file.\n";
+    return;
+  }
+  ArrayRef<uint8_t> Sec = unwrapOrError(Obj->getSectionContents(Shdr));
+  if (Sec.size() != sizeof(Elf_Maxis_ABIFlags<ELFT>)) {
+    W.startLine() << "The .MAXIS.abiflags section has a wrong size.\n";
+    return;
+  }
+
+  auto *Flags = reinterpret_cast<const Elf_Maxis_ABIFlags<ELFT> *>(Sec.data());
+
+  raw_ostream &OS = W.getOStream();
+  DictScope GS(W, "MAXIS ABI Flags");
+
+  W.printNumber("Version", Flags->version);
+  W.startLine() << "ISA: ";
+  if (Flags->isa_rev <= 1)
+    OS << format("MAXIS%u", Flags->isa_level);
+  else
+    OS << format("MAXIS%ur%u", Flags->isa_level, Flags->isa_rev);
+  OS << "\n";
+  W.printEnum("ISA Extension", Flags->isa_ext, makeArrayRef(ElfMaxisISAExtType));
+  W.printFlags("ASEs", Flags->ases, makeArrayRef(ElfMaxisASEFlags));
+  W.printEnum("FP ABI", Flags->fp_abi, makeArrayRef(ElfMaxisFpABIType));
+  W.printNumber("GPR size", getMaxisRegisterSize(Flags->gpr_size));
+  W.printNumber("CPR1 size", getMaxisRegisterSize(Flags->cpr1_size));
+  W.printNumber("CPR2 size", getMaxisRegisterSize(Flags->cpr2_size));
+  W.printFlags("Flags 1", Flags->flags1, makeArrayRef(ElfMaxisFlags1));
+  W.printHex("Flags 2", Flags->flags2);
+}
+
+template <class ELFT>
+static void printMaxisReginfoData(ScopedPrinter &W,
+                                 const Elf_Maxis_RegInfo<ELFT> &Reginfo) {
+  W.printHex("GP", Reginfo.ri_gp_value);
+  W.printHex("General Mask", Reginfo.ri_gprmask);
+  W.printHex("Co-Proc Mask0", Reginfo.ri_cprmask[0]);
+  W.printHex("Co-Proc Mask1", Reginfo.ri_cprmask[1]);
+  W.printHex("Co-Proc Mask2", Reginfo.ri_cprmask[2]);
+  W.printHex("Co-Proc Mask3", Reginfo.ri_cprmask[3]);
+}
+
+template <class ELFT> void ELFDumper<ELFT>::printMaxisReginfo() {
+  const Elf_Shdr *Shdr = findSectionByName(*Obj, ".reginfo");
+  if (!Shdr) {
+    W.startLine() << "There is no .reginfo section in the file.\n";
+    return;
+  }
+  ArrayRef<uint8_t> Sec = unwrapOrError(Obj->getSectionContents(Shdr));
+  if (Sec.size() != sizeof(Elf_Maxis_RegInfo<ELFT>)) {
+    W.startLine() << "The .reginfo section has a wrong size.\n";
+    return;
+  }
+
+  DictScope GS(W, "MAXIS RegInfo");
+  auto *Reginfo = reinterpret_cast<const Elf_Maxis_RegInfo<ELFT> *>(Sec.data());
+  printMaxisReginfoData(W, *Reginfo);
+}
+
+template <class ELFT> void ELFDumper<ELFT>::printMaxisOptions() {
+  const Elf_Shdr *Shdr = findSectionByName(*Obj, ".MAXIS.options");
+  if (!Shdr) {
+    W.startLine() << "There is no .MAXIS.options section in the file.\n";
+    return;
+  }
+
+  DictScope GS(W, "MAXIS Options");
+
+  ArrayRef<uint8_t> Sec = unwrapOrError(Obj->getSectionContents(Shdr));
+  while (!Sec.empty()) {
+    if (Sec.size() < sizeof(Elf_Maxis_Options<ELFT>)) {
+      W.startLine() << "The .MAXIS.options section has a wrong size.\n";
+      return;
+    }
+    auto *O = reinterpret_cast<const Elf_Maxis_Options<ELFT> *>(Sec.data());
+    DictScope GS(W, getElfMaxisOptionsOdkType(O->kind));
+    switch (O->kind) {
+    case ODK_REGINFO:
+      printMaxisReginfoData(W, O->getRegInfo());
+      break;
+    default:
+      W.startLine() << "Unsupported MAXIS options tag.\n";
+      break;
+    }
+    Sec = Sec.slice(O->size);
+  }
+}
 
 template <class ELFT>
 MipsGOTParser<ELFT>::MipsGOTParser(const ELFO *Obj, Elf_Dyn_Range DynTable,
@@ -2531,7 +3135,11 @@ void GNUStyle<ELFT>::printRelocation(const ELFO *Obj, const Elf_Shdr *SymTab,
   // First two fields are bit width dependent. The rest of them are after are
   // fixed width.
   Field Fields[5] = {0, 10 + Bias, 19 + 2 * Bias, 42 + 2 * Bias, 53 + 2 * Bias};
-  Obj->getRelocationTypeName(R.getType(Obj->isMips64EL()), RelocName);
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    Obj->getRelocationTypeName(R.getType(Obj->isMaxis64EL()), RelocName);
+  } else {
+    Obj->getRelocationTypeName(R.getType(Obj->isMips64EL()), RelocName);
+  }
   Sym = unwrapOrError(Obj->getRelocationSymbol(&R, SymTab));
   if (Sym && Sym->getType() == ELF::STT_SECTION) {
     const Elf_Shdr *Sec = unwrapOrError(
@@ -2646,6 +3254,19 @@ std::string getSectionTypeString(unsigned Arch, unsigned Type) {
     case SHT_X86_64_UNWIND:
       return "X86_64_UNWIND";
     }
+  case EM_MAXIS:
+  case EM_MAXIS_RS3_LE:
+    switch (Type) {
+    case SHT_MAXIS_REGINFO:
+      return "MAXIS_REGINFO";
+    case SHT_MAXIS_OPTIONS:
+      return "MAXIS_OPTIONS";
+    case SHT_MAXIS_ABIFLAGS:
+      return "MAXIS_ABIFLAGS";
+    case SHT_MAXIS_DWARF:
+      return "SHT_MAXIS_DWARF";
+    }
+  }
   case EM_MIPS:
   case EM_MIPS_RS3_LE:
     switch (Type) {
@@ -3159,9 +3780,18 @@ void GNUStyle<ELFT>::printDynamicRelocation(const ELFO *Obj, Elf_Rela R,
   // fixed width.
   Field Fields[5] = {0, 10 + Bias, 19 + 2 * Bias, 42 + 2 * Bias, 53 + 2 * Bias};
 
-  uint32_t SymIndex = R.getSymbol(Obj->isMips64EL());
-  const Elf_Sym *Sym = this->dumper()->dynamic_symbols().begin() + SymIndex;
-  Obj->getRelocationTypeName(R.getType(Obj->isMips64EL()), RelocName);
+  uint32_t SymIndex;
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    SymIndex = R.getSymbol(Obj->isMaxis64EL());
+  } else {
+    SymIndex = R.getSymbol(Obj->isMips64EL());
+  }
+  const Elf_Sym *Sym = this->dumper()->dynamic_symbols().begin() + SymIndex;  
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    Obj->getRelocationTypeName(R.getType(Obj->isMaxis64EL()), RelocName);
+  } else {
+    Obj->getRelocationTypeName(R.getType(Obj->isMips64EL()), RelocName);
+  }
   SymbolName =
       unwrapOrError(Sym->getName(this->dumper()->getDynamicStringTable()));
   std::string Addend, Info, Offset, Value;
@@ -3559,6 +4189,119 @@ void GNUStyle<ELFT>::printNotes(const ELFFile<ELFT> *Obj) {
 }
 
 template <class ELFT>
+void GNUStyle<ELFT>::printMaxisGOT(const MaxisGOTParser<ELFT> &Parser) {
+  size_t Bias = ELFT::Is64Bits ? 8 : 0;
+  auto PrintEntry = [&](const Elf_Addr *E, StringRef Purpose) {
+    OS.PadToColumn(2);
+    OS << format_hex_no_prefix(Parser.getGotAddress(E), 8 + Bias);
+    OS.PadToColumn(11 + Bias);
+    OS << format_decimal(Parser.getGotOffset(E), 6) << "(gp)";
+    OS.PadToColumn(22 + Bias);
+    OS << format_hex_no_prefix(*E, 8 + Bias);
+    OS.PadToColumn(31 + 2 * Bias);
+    OS << Purpose << "\n";
+  };
+
+  OS << (Parser.IsStatic ? "Static GOT:\n" : "Primary GOT:\n");
+  OS << " Canonical gp value: "
+     << format_hex_no_prefix(Parser.getGp(), 8 + Bias) << "\n\n";
+
+  OS << " Reserved entries:\n";
+  OS << "   Address     Access  Initial Purpose\n";
+  PrintEntry(Parser.getGotLazyResolver(), "Lazy resolver");
+  if (Parser.getGotModulePointer())
+    PrintEntry(Parser.getGotModulePointer(), "Module pointer (GNU extension)");
+
+  if (!Parser.getLocalEntries().empty()) {
+    OS << "\n";
+    OS << " Local entries:\n";
+    OS << "   Address     Access  Initial\n";
+    for (auto &E : Parser.getLocalEntries())
+      PrintEntry(&E, "");
+  }
+
+  if (Parser.IsStatic)
+    return;
+
+  if (!Parser.getGlobalEntries().empty()) {
+    OS << "\n";
+    OS << " Global entries:\n";
+    OS << "   Address     Access  Initial Sym.Val. Type    Ndx Name\n";
+    for (auto &E : Parser.getGlobalEntries()) {
+      const Elf_Sym *Sym = Parser.getGotSym(&E);
+      std::string SymName = this->dumper()->getFullSymbolName(
+          Sym, this->dumper()->getDynamicStringTable(), false);
+
+      OS.PadToColumn(2);
+      OS << to_string(format_hex_no_prefix(Parser.getGotAddress(&E), 8 + Bias));
+      OS.PadToColumn(11 + Bias);
+      OS << to_string(format_decimal(Parser.getGotOffset(&E), 6)) + "(gp)";
+      OS.PadToColumn(22 + Bias);
+      OS << to_string(format_hex_no_prefix(E, 8 + Bias));
+      OS.PadToColumn(31 + 2 * Bias);
+      OS << to_string(format_hex_no_prefix(Sym->st_value, 8 + Bias));
+      OS.PadToColumn(40 + 3 * Bias);
+      OS << printEnum(Sym->getType(), makeArrayRef(ElfSymbolTypes));
+      OS.PadToColumn(48 + 3 * Bias);
+      OS << getSymbolSectionNdx(Parser.Obj, Sym,
+                                this->dumper()->dynamic_symbols().begin());
+      OS.PadToColumn(52 + 3 * Bias);
+      OS << SymName << "\n";
+    }
+  }
+
+  if (!Parser.getOtherEntries().empty())
+    OS << "\n Number of TLS and multi-GOT entries "
+       << Parser.getOtherEntries().size() << "\n";
+}
+
+template <class ELFT>
+void GNUStyle<ELFT>::printMaxisPLT(const MaxisGOTParser<ELFT> &Parser) {
+  size_t Bias = ELFT::Is64Bits ? 8 : 0;
+  auto PrintEntry = [&](const Elf_Addr *E, StringRef Purpose) {
+    OS.PadToColumn(2);
+    OS << format_hex_no_prefix(Parser.getGotAddress(E), 8 + Bias);
+    OS.PadToColumn(11 + Bias);
+    OS << format_hex_no_prefix(*E, 8 + Bias);
+    OS.PadToColumn(20 + 2 * Bias);
+    OS << Purpose << "\n";
+  };
+
+  OS << "PLT GOT:\n\n";
+
+  OS << " Reserved entries:\n";
+  OS << "   Address  Initial Purpose\n";
+  PrintEntry(Parser.getPltLazyResolver(), "PLT lazy resolver");
+  if (Parser.getPltModulePointer())
+    PrintEntry(Parser.getGotModulePointer(), "Module pointer");
+
+  if (!Parser.getPltEntries().empty()) {
+    OS << "\n";
+    OS << " Entries:\n";
+    OS << "   Address  Initial Sym.Val. Type    Ndx Name\n";
+    for (auto &E : Parser.getPltEntries()) {
+      const Elf_Sym *Sym = Parser.getPltSym(&E);
+      std::string SymName = this->dumper()->getFullSymbolName(
+          Sym, this->dumper()->getDynamicStringTable(), false);
+
+      OS.PadToColumn(2);
+      OS << to_string(format_hex_no_prefix(Parser.getGotAddress(&E), 8 + Bias));
+      OS.PadToColumn(11 + Bias);
+      OS << to_string(format_hex_no_prefix(E, 8 + Bias));
+      OS.PadToColumn(20 + 2 * Bias);
+      OS << to_string(format_hex_no_prefix(Sym->st_value, 8 + Bias));
+      OS.PadToColumn(29 + 3 * Bias);
+      OS << printEnum(Sym->getType(), makeArrayRef(ElfSymbolTypes));
+      OS.PadToColumn(37 + 3 * Bias);
+      OS << getSymbolSectionNdx(Parser.Obj, Sym,
+                                this->dumper()->dynamic_symbols().begin());
+      OS.PadToColumn(41 + 3 * Bias);
+      OS << SymName << "\n";
+    }
+  }
+}
+
+template <class ELFT>
 void GNUStyle<ELFT>::printMipsGOT(const MipsGOTParser<ELFT> &Parser) {
   size_t Bias = ELFT::Is64Bits ? 8 : 0;
   auto PrintEntry = [&](const Elf_Addr *E, StringRef Purpose) {
@@ -3709,7 +4452,11 @@ template <class ELFT> void LLVMStyle<ELFT>::printFileHeaders(const ELFO *Obj) {
     W.printHex("Entry", e->e_entry);
     W.printHex("ProgramHeaderOffset", e->e_phoff);
     W.printHex("SectionHeaderOffset", e->e_shoff);
-    if (e->e_machine == EM_MIPS)
+    if (e->e_machine == EM_MAXIS)
+      W.printFlags("Flags", e->e_flags, makeArrayRef(ElfHeaderMaxisFlags),
+                   unsigned(ELF::EF_MAXIS_ARCH), unsigned(ELF::EF_MAXIS_ABI),
+                   unsigned(ELF::EF_MAXIS_MACH));
+    else if (e->e_machine == EM_MIPS)
       W.printFlags("Flags", e->e_flags, makeArrayRef(ElfHeaderMipsFlags),
                    unsigned(ELF::EF_MIPS_ARCH), unsigned(ELF::EF_MIPS_ABI),
                    unsigned(ELF::EF_MIPS_MACH));
@@ -3815,7 +4562,11 @@ template <class ELFT>
 void LLVMStyle<ELFT>::printRelocation(const ELFO *Obj, Elf_Rela Rel,
                                       const Elf_Shdr *SymTab) {
   SmallString<32> RelocName;
-  Obj->getRelocationTypeName(Rel.getType(Obj->isMips64EL()), RelocName);
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    Obj->getRelocationTypeName(Rel.getType(Obj->isMaxis64EL()), RelocName);
+  } else {
+    Obj->getRelocationTypeName(Rel.getType(Obj->isMips64EL()), RelocName);
+  }
   StringRef TargetName;
   const Elf_Sym *Sym = unwrapOrError(Obj->getRelocationSymbol(&Rel, SymTab));
   if (Sym && Sym->getType() == ELF::STT_SECTION) {
@@ -3830,9 +4581,15 @@ void LLVMStyle<ELFT>::printRelocation(const ELFO *Obj, Elf_Rela Rel,
   if (opts::ExpandRelocs) {
     DictScope Group(W, "Relocation");
     W.printHex("Offset", Rel.r_offset);
-    W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMips64EL()));
-    W.printNumber("Symbol", !TargetName.empty() ? TargetName : "-",
-                  Rel.getSymbol(Obj->isMips64EL()));
+    if (Obj->getHeader()->e_machine == EM_MAXIS) {
+      W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMaxis64EL()));
+      W.printNumber("Symbol", !TargetName.empty() ? TargetName : "-",
+                    Rel.getSymbol(Obj->isMaxis64EL()));
+    } else {
+      W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMips64EL()));
+      W.printNumber("Symbol", !TargetName.empty() ? TargetName : "-",
+                    Rel.getSymbol(Obj->isMips64EL()));
+    }
     W.printHex("Addend", Rel.r_addend);
   } else {
     raw_ostream &OS = W.startLine();
@@ -3869,6 +4626,10 @@ template <class ELFT> void LLVMStyle<ELFT>::printSections(const ELFO *Obj) {
       SectionFlags.insert(SectionFlags.end(),
                           std::begin(ElfHexagonSectionFlags),
                           std::end(ElfHexagonSectionFlags));
+      break;
+    case EM_MAXIS:
+      SectionFlags.insert(SectionFlags.end(), std::begin(ElfMaxisSectionFlags),
+                          std::end(ElfMaxisSectionFlags));
       break;
     case EM_MIPS:
       SectionFlags.insert(SectionFlags.end(), std::begin(ElfMipsSectionFlags),
@@ -3950,7 +4711,19 @@ void LLVMStyle<ELFT>::printSymbol(const ELFO *Obj, const Elf_Sym *Symbol,
   else {
     std::vector<EnumEntry<unsigned>> SymOtherFlags(std::begin(ElfSymOtherFlags),
                                                    std::end(ElfSymOtherFlags));
-    if (Obj->getHeader()->e_machine == EM_MIPS) {
+    if (Obj->getHeader()->e_machine == EM_MAXIS) {
+      // Someones in their infinite wisdom decided to make STO_MAXIS_MAXIS16
+      // flag overlapped with other ST_MAXIS_xxx flags. So consider both
+      // cases separately.
+      if ((Symbol->st_other & STO_MAXIS_MAXIS16) == STO_MAXIS_MAXIS16)
+        SymOtherFlags.insert(SymOtherFlags.end(),
+                             std::begin(ElfMaxis16SymOtherFlags),
+                             std::end(ElfMaxis16SymOtherFlags));
+      else
+        SymOtherFlags.insert(SymOtherFlags.end(),
+                             std::begin(ElfMaxisSymOtherFlags),
+                             std::end(ElfMaxisSymOtherFlags));
+    } else if (Obj->getHeader()->e_machine == EM_MIPS) {
       // Someones in their infinite wisdom decided to make STO_MIPS_MIPS16
       // flag overlapped with other ST_MIPS_xxx flags. So consider both
       // cases separately.
@@ -4017,16 +4790,29 @@ void LLVMStyle<ELFT>::printDynamicRelocations(const ELFO *Obj) {
 template <class ELFT>
 void LLVMStyle<ELFT>::printDynamicRelocation(const ELFO *Obj, Elf_Rela Rel) {
   SmallString<32> RelocName;
-  Obj->getRelocationTypeName(Rel.getType(Obj->isMips64EL()), RelocName);
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    Obj->getRelocationTypeName(Rel.getType(Obj->isMaxis64EL()), RelocName);
+  } else {
+    Obj->getRelocationTypeName(Rel.getType(Obj->isMips64EL()), RelocName);
+  }
   StringRef SymbolName;
-  uint32_t SymIndex = Rel.getSymbol(Obj->isMips64EL());
+  uint32_t SymIndex;
+  if (Obj->getHeader()->e_machine == EM_MAXIS) {
+    SymIndex = Rel.getSymbol(Obj->isMaxis64EL());
+  } else {
+    SymIndex = Rel.getSymbol(Obj->isMips64EL());
+  }
   const Elf_Sym *Sym = this->dumper()->dynamic_symbols().begin() + SymIndex;
   SymbolName =
       unwrapOrError(Sym->getName(this->dumper()->getDynamicStringTable()));
   if (opts::ExpandRelocs) {
     DictScope Group(W, "Relocation");
     W.printHex("Offset", Rel.r_offset);
-    W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMips64EL()));
+    if (Obj->getHeader()->e_machine == EM_MAXIS) {
+      W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMaxis64EL()));
+    } else {
+      W.printNumber("Type", RelocName, (int)Rel.getType(Obj->isMips64EL()));
+    }
     W.printString("Symbol", !SymbolName.empty() ? SymbolName : "-");
     W.printHex("Addend", Rel.r_addend);
   } else {
@@ -4064,6 +4850,117 @@ void LLVMStyle<ELFT>::printHashHistogram(const ELFFile<ELFT> *Obj) {
 template <class ELFT>
 void LLVMStyle<ELFT>::printNotes(const ELFFile<ELFT> *Obj) {
   W.startLine() << "printNotes not implemented!\n";
+}
+
+template <class ELFT>
+void LLVMStyle<ELFT>::printMaxisGOT(const MaxisGOTParser<ELFT> &Parser) {
+  auto PrintEntry = [&](const Elf_Addr *E) {
+    W.printHex("Address", Parser.getGotAddress(E));
+    W.printNumber("Access", Parser.getGotOffset(E));
+    W.printHex("Initial", *E);
+  };
+
+  DictScope GS(W, Parser.IsStatic ? "Static GOT" : "Primary GOT");
+
+  W.printHex("Canonical gp value", Parser.getGp());
+  {
+    ListScope RS(W, "Reserved entries");
+    {
+      DictScope D(W, "Entry");
+      PrintEntry(Parser.getGotLazyResolver());
+      W.printString("Purpose", StringRef("Lazy resolver"));
+    }
+
+    if (Parser.getGotModulePointer()) {
+      DictScope D(W, "Entry");
+      PrintEntry(Parser.getGotModulePointer());
+      W.printString("Purpose", StringRef("Module pointer (GNU extension)"));
+    }
+  }
+  {
+    ListScope LS(W, "Local entries");
+    for (auto &E : Parser.getLocalEntries()) {
+      DictScope D(W, "Entry");
+      PrintEntry(&E);
+    }
+  }
+
+  if (Parser.IsStatic)
+    return;
+
+  {
+    ListScope GS(W, "Global entries");
+    for (auto &E : Parser.getGlobalEntries()) {
+      DictScope D(W, "Entry");
+
+      PrintEntry(&E);
+
+      const Elf_Sym *Sym = Parser.getGotSym(&E);
+      W.printHex("Value", Sym->st_value);
+      W.printEnum("Type", Sym->getType(), makeArrayRef(ElfSymbolTypes));
+
+      unsigned SectionIndex = 0;
+      StringRef SectionName;
+      this->dumper()->getSectionNameIndex(
+          Sym, this->dumper()->dynamic_symbols().begin(), SectionName,
+          SectionIndex);
+      W.printHex("Section", SectionName, SectionIndex);
+
+      std::string SymName = this->dumper()->getFullSymbolName(
+          Sym, this->dumper()->getDynamicStringTable(), true);
+      W.printNumber("Name", SymName, Sym->st_name);
+    }
+  }
+
+  W.printNumber("Number of TLS and multi-GOT entries",
+                uint64_t(Parser.getOtherEntries().size()));
+}
+
+template <class ELFT>
+void LLVMStyle<ELFT>::printMaxisPLT(const MaxisGOTParser<ELFT> &Parser) {
+  auto PrintEntry = [&](const Elf_Addr *E) {
+    W.printHex("Address", Parser.getPltAddress(E));
+    W.printHex("Initial", *E);
+  };
+
+  DictScope GS(W, "PLT GOT");
+
+  {
+    ListScope RS(W, "Reserved entries");
+    {
+      DictScope D(W, "Entry");
+      PrintEntry(Parser.getPltLazyResolver());
+      W.printString("Purpose", StringRef("PLT lazy resolver"));
+    }
+
+    if (auto E = Parser.getPltModulePointer()) {
+      DictScope D(W, "Entry");
+      PrintEntry(E);
+      W.printString("Purpose", StringRef("Module pointer"));
+    }
+  }
+  {
+    ListScope LS(W, "Entries");
+    for (auto &E : Parser.getPltEntries()) {
+      DictScope D(W, "Entry");
+      PrintEntry(&E);
+
+      const Elf_Sym *Sym = Parser.getPltSym(&E);
+      W.printHex("Value", Sym->st_value);
+      W.printEnum("Type", Sym->getType(), makeArrayRef(ElfSymbolTypes));
+
+      unsigned SectionIndex = 0;
+      StringRef SectionName;
+      this->dumper()->getSectionNameIndex(
+          Sym, this->dumper()->dynamic_symbols().begin(), SectionName,
+          SectionIndex);
+      W.printHex("Section", SectionName, SectionIndex);
+
+      std::string SymName =
+          this->dumper()->getFullSymbolName(Sym, Parser.getPltStrTable(), true);
+      W.printNumber("Name", SymName, Sym->st_name);
+    }
+  }
 }
 
 template <class ELFT>

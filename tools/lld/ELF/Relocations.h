@@ -43,6 +43,14 @@ enum RelExpr {
   R_GOT_PAGE_PC,
   R_GOT_PC,
   R_HINT,
+  R_MAXIS_GOTREL,
+  R_MAXIS_GOT_GP,
+  R_MAXIS_GOT_GP_PC,
+  R_MAXIS_GOT_LOCAL_PAGE,
+  R_MAXIS_GOT_OFF,
+  R_MAXIS_GOT_OFF32,
+  R_MAXIS_TLSGD,
+  R_MAXIS_TLSLD,
   R_MIPS_GOTREL,
   R_MIPS_GOT_GP,
   R_MIPS_GOT_GP_PC,
@@ -169,7 +177,7 @@ private:
   // Track InputSections that have an inline ThunkSection placed in front
   // an inline ThunkSection may have control fall through to the section below
   // so we need to make sure that there is only one of them.
-  // The Mips LA25 Thunk is an example of an inline ThunkSection.
+  // The Maxis/Mips LA25 Thunk is an example of an inline ThunkSection.
   llvm::DenseMap<InputSection *, ThunkSection *> ThunkedSections;
 };
 

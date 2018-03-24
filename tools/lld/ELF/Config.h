@@ -128,6 +128,7 @@ struct Configuration {
   bool ICF;
   bool ICFData;
   bool MergeArmExidx;
+  bool MaxisN32Abi = false;
   bool MipsN32Abi = false;
   bool NoGnuUnique;
   bool NoUndefinedVersion;
@@ -195,6 +196,20 @@ struct Configuration {
 
   // endianness::little if IsLE is true. endianness::big otherwise.
   llvm::support::endianness Endianness;
+
+  // True if the target is the little-endian MAXIS64.
+  //
+  // The reason why we have this variable only for the MAXIS is because
+  // we use this often.  Some ELF headers for MAXIS64EL are in a
+  // mixed-endian (which is horrible and I'd say that's a serious spec
+  // bug), and we need to know whether we are reading MAXIS ELF files or
+  // not in various places.
+  //
+  // (Note that MAXIS64EL is not a typo for MAXIS64LE. This is the official
+  // name whatever that means. A fun hypothesis is that "EL" is short for
+  // little-endian written in the little-endian order, but I don't know
+  // if that's true.)
+  bool IsMaxis64EL;
 
   // True if the target is the little-endian MIPS64.
   //

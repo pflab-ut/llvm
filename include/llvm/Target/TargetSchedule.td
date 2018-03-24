@@ -101,7 +101,7 @@ class SchedMachineModel {
 
   // A processor may only implement part of published ISA, due to either new ISA
   // extensions, (e.g. Pentium 4 doesn't have AVX) or implementation
-  // (ARM/MIPS/PowerPC/SPARC soft float cores).
+  // (ARM/MAXIS/MIPS/PowerPC/SPARC soft float cores).
   //
   // For a processor which doesn't support some feature(s), the schedule model
   // can use:

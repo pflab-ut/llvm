@@ -66,9 +66,9 @@ class RuntimeDyldELF : public RuntimeDyldImpl {
       return 20; // movz; movk; movk; movk; br
     if (Arch == Triple::arm || Arch == Triple::thumb)
       return 8; // 32-bit instruction and 32-bit address
-    else if (IsMipsO32ABI || IsMipsN32ABI)
+    else if (IsMaxisO32ABI || IsMaxisN32ABI || IsMipsO32ABI || IsMipsN32ABI)
       return 16;
-    else if (IsMipsN64ABI)
+    else if (IsMaxisN64ABI || IsMipsN64ABI)
       return 32;
     else if (Arch == Triple::ppc64 || Arch == Triple::ppc64le)
       return 44;
@@ -86,6 +86,8 @@ class RuntimeDyldELF : public RuntimeDyldImpl {
     else
       return 1;
   }
+
+  void setMaxisABI(const ObjectFile &Obj) override;
 
   void setMipsABI(const ObjectFile &Obj) override;
 
@@ -126,6 +128,10 @@ private:
   void processSimpleRelocation(unsigned SectionID, uint64_t Offset, unsigned RelType, RelocationValueRef Value);
 
   // Return matching *LO16 relocation (Mips specific)
+  uint32_t getMaxisMatchingLoRelocation(uint32_t RelType,
+                                   bool IsLocal = false) const;
+  
+  // Return matching *LO16 relocation (Maxis specific)
   uint32_t getMatchingLoRelocation(uint32_t RelType,
                                    bool IsLocal = false) const;
 
@@ -139,15 +145,15 @@ private:
 
 protected:
   // A map from section to a GOT section that has entries for section's GOT
-  // relocations. (Mips64 specific)
+  // relocations. (Maxis64/Mips64 specific)
   DenseMap<SID, SID> SectionToGOTMap;
 
 private:
-  // A map to avoid duplicate got entries (Mips64 specific)
+  // A map to avoid duplicate got entries (Maxis64/Mips64 specific)
   StringMap<uint64_t> GOTSymbolOffsets;
 
   // *HI16 relocations will be added for resolving when we find matching
-  // *LO16 part. (Mips specific)
+  // *LO16 part. (Maxis/Mips specific)
   SmallVector<std::pair<RelocationValueRef, RelocationEntry>, 8> PendingRelocs;
 
   // When a module is loaded we save the SectionID of the EH frame section

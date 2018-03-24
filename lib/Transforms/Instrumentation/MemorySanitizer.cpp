@@ -280,6 +280,14 @@ static const MemoryMapParams Linux_X86_64_MemoryMapParams = {
 #endif
 };
 
+// maxis64 Linux
+static const MemoryMapParams Linux_MAXIS64_MemoryMapParams = {
+  0,               // AndMask (not used)
+  0x008000000000,  // XorMask
+  0,               // ShadowBase (not used)
+  0x002000000000,  // OriginBase
+};
+
 // mips64 Linux
 static const MemoryMapParams Linux_MIPS64_MemoryMapParams = {
   0,               // AndMask (not used)
@@ -331,6 +339,11 @@ static const MemoryMapParams NetBSD_X86_64_MemoryMapParams = {
 static const PlatformMemoryMapParams Linux_X86_MemoryMapParams = {
   &Linux_I386_MemoryMapParams,
   &Linux_X86_64_MemoryMapParams,
+};
+
+static const PlatformMemoryMapParams Linux_MAXIS_MemoryMapParams = {
+  nullptr,
+  &Linux_MAXIS64_MemoryMapParams,
 };
 
 static const PlatformMemoryMapParams Linux_MIPS_MemoryMapParams = {
@@ -387,6 +400,7 @@ public:
 private:
   friend struct MemorySanitizerVisitor;
   friend struct VarArgAMD64Helper;
+  friend struct VarArgMAXIS64Helper;
   friend struct VarArgMIPS64Helper;
   friend struct VarArgAArch64Helper;
   friend struct VarArgPowerPC64Helper;
@@ -606,6 +620,10 @@ bool MemorySanitizer::doInitialization(Module &M) {
           break;
         case Triple::x86:
           MapParams = Linux_X86_MemoryMapParams.bits32;
+          break;
+        case Triple::maxis64:
+        case Triple::maxis64el:
+          MapParams = Linux_MAXIS_MemoryMapParams.bits64;
           break;
         case Triple::mips64:
         case Triple::mips64el:
@@ -3241,6 +3259,115 @@ struct VarArgAMD64Helper : public VarArgHelper {
                                              AMD64FpEndOffset);
       IRB.CreateMemCpy(OverflowArgAreaShadowPtr, SrcPtr, VAArgOverflowSize,
                        Alignment);
+    }
+  }
+};
+
+/// \brief MAXIS64-specific implementation of VarArgHelper.
+struct VarArgMAXIS64Helper : public VarArgHelper {
+  Function &F;
+  MemorySanitizer &MS;
+  MemorySanitizerVisitor &MSV;
+  Value *VAArgTLSCopy = nullptr;
+  Value *VAArgSize = nullptr;
+
+  SmallVector<CallInst*, 16> VAStartInstrumentationList;
+
+  VarArgMAXIS64Helper(Function &F, MemorySanitizer &MS,
+                    MemorySanitizerVisitor &MSV) : F(F), MS(MS), MSV(MSV) {}
+
+  void visitCallSite(CallSite &CS, IRBuilder<> &IRB) override {
+    unsigned VAArgOffset = 0;
+    const DataLayout &DL = F.getParent()->getDataLayout();
+    for (CallSite::arg_iterator ArgIt = CS.arg_begin() +
+         CS.getFunctionType()->getNumParams(), End = CS.arg_end();
+         ArgIt != End; ++ArgIt) {
+      Triple TargetTriple(F.getParent()->getTargetTriple());
+      Value *A = *ArgIt;
+      Value *Base;
+      uint64_t ArgSize = DL.getTypeAllocSize(A->getType());
+      if (TargetTriple.getArch() == Triple::maxis64) {
+        // Adjusting the shadow for argument with size < 8 to match the placement
+        // of bits in big endian system
+        if (ArgSize < 8)
+          VAArgOffset += (8 - ArgSize);
+      }
+      Base = getShadowPtrForVAArgument(A->getType(), IRB, VAArgOffset);
+      VAArgOffset += ArgSize;
+      VAArgOffset = alignTo(VAArgOffset, 8);
+      IRB.CreateAlignedStore(MSV.getShadow(A), Base, kShadowTLSAlignment);
+    }
+
+    Constant *TotalVAArgSize = ConstantInt::get(IRB.getInt64Ty(), VAArgOffset);
+    // Here using VAArgOverflowSizeTLS as VAArgSizeTLS to avoid creation of
+    // a new class member i.e. it is the total size of all VarArgs.
+    IRB.CreateStore(TotalVAArgSize, MS.VAArgOverflowSizeTLS);
+  }
+
+  /// \brief Compute the shadow address for a given va_arg.
+  Value *getShadowPtrForVAArgument(Type *Ty, IRBuilder<> &IRB,
+                                   int ArgOffset) {
+    Value *Base = IRB.CreatePointerCast(MS.VAArgTLS, MS.IntptrTy);
+    Base = IRB.CreateAdd(Base, ConstantInt::get(MS.IntptrTy, ArgOffset));
+    return IRB.CreateIntToPtr(Base, PointerType::get(MSV.getShadowTy(Ty), 0),
+                              "_msarg");
+  }
+
+  void visitVAStartInst(VAStartInst &I) override {
+    IRBuilder<> IRB(&I);
+    VAStartInstrumentationList.push_back(&I);
+    Value *VAListTag = I.getArgOperand(0);
+    Value *ShadowPtr, *OriginPtr;
+    unsigned Alignment = 8;
+    std::tie(ShadowPtr, OriginPtr) =
+        MSV.getShadowOriginPtr(VAListTag, IRB, IRB.getInt8Ty(), Alignment);
+    IRB.CreateMemSet(ShadowPtr, Constant::getNullValue(IRB.getInt8Ty()),
+                     /* size */ 8, Alignment, false);
+  }
+
+  void visitVACopyInst(VACopyInst &I) override {
+    IRBuilder<> IRB(&I);
+    VAStartInstrumentationList.push_back(&I);
+    Value *VAListTag = I.getArgOperand(0);
+    Value *ShadowPtr, *OriginPtr;
+    unsigned Alignment = 8;
+    std::tie(ShadowPtr, OriginPtr) =
+        MSV.getShadowOriginPtr(VAListTag, IRB, IRB.getInt8Ty(), Alignment);
+    IRB.CreateMemSet(ShadowPtr, Constant::getNullValue(IRB.getInt8Ty()),
+                     /* size */ 8, Alignment, false);
+  }
+
+  void finalizeInstrumentation() override {
+    assert(!VAArgSize && !VAArgTLSCopy &&
+           "finalizeInstrumentation called twice");
+    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+    VAArgSize = IRB.CreateLoad(MS.VAArgOverflowSizeTLS);
+    Value *CopySize = IRB.CreateAdd(ConstantInt::get(MS.IntptrTy, 0),
+                                    VAArgSize);
+
+    if (!VAStartInstrumentationList.empty()) {
+      // If there is a va_start in this function, make a backup copy of
+      // va_arg_tls somewhere in the function entry block.
+      VAArgTLSCopy = IRB.CreateAlloca(Type::getInt8Ty(*MS.C), CopySize);
+      IRB.CreateMemCpy(VAArgTLSCopy, MS.VAArgTLS, CopySize, 8);
+    }
+
+    // Instrument va_start.
+    // Copy va_list shadow from the backup copy of the TLS contents.
+    for (size_t i = 0, n = VAStartInstrumentationList.size(); i < n; i++) {
+      CallInst *OrigInst = VAStartInstrumentationList[i];
+      IRBuilder<> IRB(OrigInst->getNextNode());
+      Value *VAListTag = OrigInst->getArgOperand(0);
+      Value *RegSaveAreaPtrPtr =
+        IRB.CreateIntToPtr(IRB.CreatePtrToInt(VAListTag, MS.IntptrTy),
+                        Type::getInt64PtrTy(*MS.C));
+      Value *RegSaveAreaPtr = IRB.CreateLoad(RegSaveAreaPtrPtr);
+      Value *RegSaveAreaShadowPtr, *RegSaveAreaOriginPtr;
+      unsigned Alignment = 8;
+      std::tie(RegSaveAreaShadowPtr, RegSaveAreaOriginPtr) =
+          MSV.getShadowOriginPtr(RegSaveAreaPtr, IRB, IRB.getInt8Ty(),
+                                 Alignment);
+      IRB.CreateMemCpy(RegSaveAreaShadowPtr, VAArgTLSCopy, CopySize, Alignment);
     }
   }
 };

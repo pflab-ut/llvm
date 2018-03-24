@@ -1188,8 +1188,8 @@ bool AsmParser::parsePrimaryExpr(const MCExpr *&Res, SMLoc &EndLoc) {
       return true;
     Res = MCUnaryExpr::createNot(Res, getContext(), FirstTokenLoc);
     return false;
-  // MIPS unary expression operators. The lexer won't generate these tokens if
-  // MCAsmInfo::HasMipsExpressions is false for the target.
+  // MAXIS/MIPS unary expression operators. The lexer won't generate these tokens if
+  // MCAsmInfo::HasMaxisExpressions/MCAsmInfo::HasMipsExpressions are false for the target.
   case AsmToken::PercentCall16:
   case AsmToken::PercentCall_Hi:
   case AsmToken::PercentCall_Lo:

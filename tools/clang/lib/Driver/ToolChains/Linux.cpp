@@ -9,6 +9,7 @@
 
 #include "Linux.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "CommonArgs.h"
@@ -90,6 +91,26 @@ static std::string getMultiarchTriple(const Driver &D,
     if (D.getVFS().exists(SysRoot + "/lib/aarch64_be-linux-gnu"))
       return "aarch64_be-linux-gnu";
     break;
+  case llvm::Triple::maxis:
+    if (D.getVFS().exists(SysRoot + "/lib/maxis-linux-gnu"))
+      return "maxis-linux-gnu";
+    break;
+  case llvm::Triple::maxisel:
+    if (D.getVFS().exists(SysRoot + "/lib/maxisel-linux-gnu"))
+      return "maxisel-linux-gnu";
+    break;
+  case llvm::Triple::maxis64:
+    if (D.getVFS().exists(SysRoot + "/lib/maxis64-linux-gnu"))
+      return "maxis64-linux-gnu";
+    if (D.getVFS().exists(SysRoot + "/lib/maxis64-linux-gnuabi64"))
+      return "maxis64-linux-gnuabi64";
+    break;
+  case llvm::Triple::maxis64el:
+    if (D.getVFS().exists(SysRoot + "/lib/maxis64el-linux-gnu"))
+      return "maxis64el-linux-gnu";
+    if (D.getVFS().exists(SysRoot + "/lib/maxis64el-linux-gnuabi64"))
+      return "maxis64el-linux-gnuabi64";
+    break;
   case llvm::Triple::mips:
     if (D.getVFS().exists(SysRoot + "/lib/mips-linux-gnu"))
       return "mips-linux-gnu";
@@ -141,7 +162,23 @@ static std::string getMultiarchTriple(const Driver &D,
 }
 
 static StringRef getOSLibDir(const llvm::Triple &Triple, const ArgList &Args) {
-  if (tools::isMipsArch(Triple.getArch())) {
+  if (tools::isMaxisArch(Triple.getArch())) {
+    if (Triple.isAndroid()) {
+      StringRef CPUName;
+      StringRef ABIName;
+      tools::maxis::getMaxisCPUAndABI(Args, Triple, CPUName, ABIName);
+      if (CPUName == "maxis32r6")
+        return "libr6";
+      if (CPUName == "maxis32r2")
+        return "libr2";
+    }
+    // lib32 directory has a special meaning on MAXIS targets.
+    // It contains N32 ABI binaries. Use this folder if produce
+    // code for N32 ABI only.
+    if (tools::maxis::hasMaxisAbiArg(Args, "n32"))
+      return "lib32";
+    return Triple.isArch32Bit() ? "lib" : "lib64";
+  } else if (tools::isMipsArch(Triple.getArch())) {
     if (Triple.isAndroid()) {
       StringRef CPUName;
       StringRef ABIName;
@@ -224,19 +261,22 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
     ExtraOpts.push_back("-X");
 
   const bool IsAndroid = Triple.isAndroid();
+  const bool IsMaxis = tools::isMaxisArch(Arch);
   const bool IsMips = tools::isMipsArch(Arch);
   const bool IsHexagon = Arch == llvm::Triple::hexagon;
 
   if (IsMips && !SysRoot.empty())
     ExtraOpts.push_back("--sysroot=" + SysRoot);
+  if (IsMaxis && !SysRoot.empty())
+    ExtraOpts.push_back("--sysroot=" + SysRoot);
 
-  // Do not use 'gnu' hash style for Mips targets because .gnu.hash
-  // and the MIPS ABI require .dynsym to be sorted in different ways.
-  // .gnu.hash needs symbols to be grouped by hash code whereas the MIPS
+  // Do not use 'gnu' hash style for Maxis/Mips targets because .gnu.hash
+  // and the MAXIS/MIPS ABI require .dynsym to be sorted in different ways.
+  // .gnu.hash needs symbols to be grouped by hash code whereas the MAXIS/MIPS
   // ABI requires a mapping between the GOT and the symbol table.
   // Android loader does not support .gnu.hash.
   // Hexagon linker/loader does not support .gnu.hash
-  if (!IsMips && !IsAndroid && !IsHexagon) {
+  if (!IsMaxis && !IsMips && !IsAndroid && !IsHexagon) {
     if (Distro.IsRedhat() || Distro.IsOpenSUSE() || Distro.IsAlpineLinux() ||
         (Distro.IsUbuntu() && Distro >= Distro::UbuntuMaverick))
       ExtraOpts.push_back("--hash-style=gnu");
@@ -277,7 +317,7 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
     addMultilibsFilePaths(D, Multilibs, Multilib,
                           GCCInstallation.getInstallPath(), Paths);
 
-    // Sourcery CodeBench MIPS toolchain holds some libraries under
+    // Sourcery CodeBench MAXIS/MIPS toolchain holds some libraries under
     // a biarch-like suffix of the GCC installation.
     addPathIfExists(D, GCCInstallation.getInstallPath() + Multilib.gccSuffix(),
                     Paths);
@@ -389,10 +429,12 @@ std::string Linux::computeSysRoot() const {
   if (!getDriver().SysRoot.empty())
     return getDriver().SysRoot;
 
-  if (!GCCInstallation.isValid() || !tools::isMipsArch(getTriple().getArch()))
+  if (!GCCInstallation.isValid()
+      || !tools::isMaxisArch(getTriple().getArch())
+      || !tools::isMipsArch(getTriple().getArch()))
     return std::string();
 
-  // Standalone MIPS toolchains use different names for sysroot folder
+  // Standalone MAXIS/MIPS toolchains use different names for sysroot folder
   // and put it into different places. Here we try to check some known
   // variants.
 
@@ -475,6 +517,26 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
 
     LibDir = "lib";
     Loader = HF ? "ld-linux-armhf.so.3" : "ld-linux.so.3";
+    break;
+  }
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el: {
+    bool LE = (Triple.getArch() == llvm::Triple::maxisel) ||
+              (Triple.getArch() == llvm::Triple::maxis64el);
+    bool IsNaN2008 = tools::maxis::isNaN2008(Args, Triple);
+
+    LibDir = "lib" + tools::maxis::getMaxisABILibSuffix(Args, Triple);
+
+    if (tools::maxis::isUCLibc(Args))
+      Loader = IsNaN2008 ? "ld-uClibc-maxisn8.so.0" : "ld-uClibc.so.0";
+    else if (!Triple.hasEnvironment() &&
+             Triple.getVendor() == llvm::Triple::VendorType::MaxisTechnologies)
+      Loader = LE ? "ld-musl-maxisel.so.1" : "ld-musl-maxis.so.1";
+    else
+      Loader = IsNaN2008 ? "ld-linux-maxisn8.so.1" : "ld.so.1";
+
     break;
   }
   case llvm::Triple::mips:
@@ -615,6 +677,14 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
       "/usr/include/armeb-linux-gnueabi"};
   const StringRef ARMEBHFMultiarchIncludeDirs[] = {
       "/usr/include/armeb-linux-gnueabihf"};
+  const StringRef MAXISMultiarchIncludeDirs[] = {"/usr/include/maxis-linux-gnu"};
+  const StringRef MAXISELMultiarchIncludeDirs[] = {
+      "/usr/include/maxisel-linux-gnu"};
+  const StringRef MAXIS64MultiarchIncludeDirs[] = {
+      "/usr/include/maxis64-linux-gnu", "/usr/include/maxis64-linux-gnuabi64"};
+  const StringRef MAXIS64ELMultiarchIncludeDirs[] = {
+      "/usr/include/maxis64el-linux-gnu",
+      "/usr/include/maxis64el-linux-gnuabi64"};
   const StringRef MIPSMultiarchIncludeDirs[] = {"/usr/include/mips-linux-gnu"};
   const StringRef MIPSELMultiarchIncludeDirs[] = {
       "/usr/include/mipsel-linux-gnu"};
@@ -660,6 +730,18 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
       MultiarchIncludeDirs = ARMEBHFMultiarchIncludeDirs;
     else
       MultiarchIncludeDirs = ARMEBMultiarchIncludeDirs;
+    break;
+  case llvm::Triple::maxis:
+    MultiarchIncludeDirs = MAXISMultiarchIncludeDirs;
+    break;
+  case llvm::Triple::maxisel:
+    MultiarchIncludeDirs = MAXISELMultiarchIncludeDirs;
+    break;
+  case llvm::Triple::maxis64:
+    MultiarchIncludeDirs = MAXIS64MultiarchIncludeDirs;
+    break;
+  case llvm::Triple::maxis64el:
+    MultiarchIncludeDirs = MAXIS64ELMultiarchIncludeDirs;
     break;
   case llvm::Triple::mips:
     MultiarchIncludeDirs = MIPSMultiarchIncludeDirs;
@@ -823,6 +905,8 @@ bool Linux::isPIEDefault() const {
 SanitizerMask Linux::getSupportedSanitizers() const {
   const bool IsX86 = getTriple().getArch() == llvm::Triple::x86;
   const bool IsX86_64 = getTriple().getArch() == llvm::Triple::x86_64;
+  const bool IsMAXIS64 = getTriple().getArch() == llvm::Triple::maxis64 ||
+                        getTriple().getArch() == llvm::Triple::maxis64el;
   const bool IsMIPS64 = getTriple().getArch() == llvm::Triple::mips64 ||
                         getTriple().getArch() == llvm::Triple::mips64el;
   const bool IsPowerPC64 = getTriple().getArch() == llvm::Triple::ppc64 ||
@@ -840,19 +924,19 @@ SanitizerMask Linux::getSupportedSanitizers() const {
   Res |= SanitizerKind::KernelAddress;
   Res |= SanitizerKind::Vptr;
   Res |= SanitizerKind::SafeStack;
-  if (IsX86_64 || IsMIPS64 || IsAArch64)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64 || IsAArch64)
     Res |= SanitizerKind::DataFlow;
-  if (IsX86_64 || IsMIPS64 || IsAArch64 || IsX86 || IsArmArch || IsPowerPC64)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64 || IsAArch64 || IsX86 || IsArmArch || IsPowerPC64)
     Res |= SanitizerKind::Leak;
-  if (IsX86_64 || IsMIPS64 || IsAArch64 || IsPowerPC64)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64 || IsAArch64 || IsPowerPC64)
     Res |= SanitizerKind::Thread;
-  if (IsX86_64 || IsMIPS64 || IsPowerPC64 || IsAArch64)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64 || IsPowerPC64 || IsAArch64)
     Res |= SanitizerKind::Memory;
-  if (IsX86_64 || IsMIPS64)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64)
     Res |= SanitizerKind::Efficiency;
   if (IsX86 || IsX86_64)
     Res |= SanitizerKind::Function;
-  if (IsX86_64 || IsMIPS64 || IsAArch64 || IsX86 || IsArmArch)
+  if (IsX86_64 || IsMAXIS64 || IsMIPS64 || IsAArch64 || IsX86 || IsArmArch)
     Res |= SanitizerKind::Scudo;
   if (IsAArch64)
     Res |= SanitizerKind::HWAddress;

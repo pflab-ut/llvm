@@ -116,9 +116,11 @@ static std::tuple<ELFKind, uint16_t, uint8_t> parseEmulation(StringRef Emul) {
           .Cases("aarch64elf", "aarch64linux", {ELF64LEKind, EM_AARCH64})
           .Cases("armelf", "armelf_linux_eabi", {ELF32LEKind, EM_ARM})
           .Case("elf32_x86_64", {ELF32LEKind, EM_X86_64})
-          .Cases("elf32btsmip", "elf32btsmipn32", {ELF32BEKind, EM_MIPS})
+          .Cases("elf32btsmaxis", "elf32btsmaxisn32", {ELF32BEKind, EM_MAXIS})
           .Cases("elf32ltsmip", "elf32ltsmipn32", {ELF32LEKind, EM_MIPS})
           .Case("elf32ppc", {ELF32BEKind, EM_PPC})
+          .Case("elf64btsmaxis", {ELF64BEKind, EM_MAXIS})
+          .Case("elf64ltsmaxis", {ELF64LEKind, EM_MAXIS})
           .Case("elf64btsmip", {ELF64BEKind, EM_MIPS})
           .Case("elf64ltsmip", {ELF64LEKind, EM_MIPS})
           .Case("elf64ppc", {ELF64BEKind, EM_PPC64})
@@ -265,8 +267,11 @@ static void initLLVM(opt::InputArgList &Args) {
 // Some command line options or some combinations of them are not allowed.
 // This function checks for such errors.
 static void checkOptions(opt::InputArgList &Args) {
-  // The MIPS ABI as of 2016 does not support the GNU-style symbol lookup
+  // The MAXIS/MIPS ABI as of 2016 does not support the GNU-style symbol lookup
   // table which is a relatively new feature.
+  if (Config->EMachine == EM_MAXIS && Config->GnuHash)
+    error("the .gnu.hash section is not compatible with the MAXIS target.");
+
   if (Config->EMachine == EM_MIPS && Config->GnuHash)
     error("the .gnu.hash section is not compatible with the MIPS target.");
 
@@ -712,6 +717,7 @@ void LinkerDriver::readConfigs(opt::InputArgList &Args) {
     StringRef S = Arg->getValue();
     std::tie(Config->EKind, Config->EMachine, Config->OSABI) =
         parseEmulation(S);
+    Config->MaxisN32Abi = (S == "elf32btsmaxisn32" || S == "elf32ltsmaxisn32");
     Config->MipsN32Abi = (S == "elf32btsmipn32" || S == "elf32ltsmipn32");
     Config->Emulation = S;
   }
@@ -801,8 +807,9 @@ static void setConfigs() {
   Config->IsLE = (Kind == ELF32LEKind || Kind == ELF64LEKind);
   Config->Endianness =
       Config->IsLE ? support::endianness::little : support::endianness::big;
+  Config->IsMaxis64EL = (Kind == ELF64LEKind && Machine == EM_MAXIS);
   Config->IsMips64EL = (Kind == ELF64LEKind && Machine == EM_MIPS);
-  Config->IsRela = Config->Is64 || IsX32 || Config->MipsN32Abi;
+  Config->IsRela = Config->Is64 || IsX32 || Config->MaxisN32Abi || Config->MipsN32Abi;
   Config->Pic = Config->Pie || Config->Shared;
   Config->Wordsize = Config->Is64 ? 8 : 4;
 }
@@ -880,6 +887,7 @@ void LinkerDriver::inferMachineType() {
     Config->EKind = F->EKind;
     Config->EMachine = F->EMachine;
     Config->OSABI = F->OSABI;
+    Config->MaxisN32Abi = Config->EMachine == EM_MAXIS && isMaxisN32Abi(F);
     Config->MipsN32Abi = Config->EMachine == EM_MIPS && isMipsN32Abi(F);
     return;
   }
@@ -971,7 +979,7 @@ template <class ELFT> void LinkerDriver::link(opt::InputArgList &Args) {
   // If a -hash-style option was not given, set to a default value,
   // which varies depending on the target.
   if (!Args.hasArg(OPT_hash_style)) {
-    if (Config->EMachine == EM_MIPS)
+    if (Config->EMachine == EM_MAXIS || Config->EMachine == EM_MIPS)
       Config->SysvHash = true;
     else
       Config->SysvHash = Config->GnuHash = true;
@@ -992,7 +1000,7 @@ template <class ELFT> void LinkerDriver::link(opt::InputArgList &Args) {
     return;
 
   // Use default entry point name if no name was given via the command
-  // line nor linker scripts. For some reason, MIPS entry point name is
+  // line nor linker scripts. For some reason, MAXIS/MIPS entry point name is
   // different from others.
   Config->WarnMissingEntry =
       (!Config->Entry.empty() || (!Config->Shared && !Config->Relocatable));

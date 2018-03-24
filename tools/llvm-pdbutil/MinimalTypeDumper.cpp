@@ -87,6 +87,7 @@ static std::string formatCallingConvention(CallingConvention Convention) {
     RETURN_CASE(CallingConvention, Generic, "generic");
     RETURN_CASE(CallingConvention, Inline, "inline");
     RETURN_CASE(CallingConvention, M32RCall, "m32rcall");
+    RETURN_CASE(CallingConvention, MaxisCall, "maxiscall");
     RETURN_CASE(CallingConvention, MipsCall, "mipscall");
     RETURN_CASE(CallingConvention, NearC, "cdecl");
     RETURN_CASE(CallingConvention, NearFast, "fastcall");

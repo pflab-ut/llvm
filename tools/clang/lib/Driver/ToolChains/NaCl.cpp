@@ -93,6 +93,8 @@ void nacltools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("armelf_nacl");
   else if (Arch == llvm::Triple::x86_64)
     CmdArgs.push_back("elf_x86_64_nacl");
+  else if (Arch == llvm::Triple::maxisel)
+    CmdArgs.push_back("maxiselelf_nacl");
   else if (Arch == llvm::Triple::mipsel)
     CmdArgs.push_back("mipselelf_nacl");
   else
@@ -154,11 +156,12 @@ void nacltools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       // in the group for C++.
       if (Args.hasArg(options::OPT_pthread) ||
           Args.hasArg(options::OPT_pthreads) || D.CCCIsCXX()) {
-        // Gold, used by Mips, handles nested groups differently than ld, and
+        // Gold, used by Maxis/Mips, handles nested groups differently than ld, and
         // without '-lnacl' it prefers symbols from libpthread.a over libnacl.a,
         // which is not a desired behaviour here.
         // See https://sourceware.org/ml/binutils/2015-03/msg00034.html
-        if (getToolChain().getArch() == llvm::Triple::mipsel)
+        if (getToolChain().getArch() == llvm::Triple::maxisel
+            || getToolChain().getArch() == llvm::Triple::mipsel)
           CmdArgs.push_back("-lnacl");
 
         CmdArgs.push_back("-lpthread");
@@ -172,10 +175,11 @@ void nacltools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         CmdArgs.push_back("-lgcc_s");
       CmdArgs.push_back("--no-as-needed");
 
-      // Mips needs to create and use pnacl_legacy library that contains
+      // Maxis/Mips needs to create and use pnacl_legacy library that contains
       // definitions from bitcode/pnaclmm.c and definitions for
       // __nacl_tp_tls_offset() and __nacl_tp_tdb_offset().
-      if (getToolChain().getArch() == llvm::Triple::mipsel)
+      if (getToolChain().getArch() == llvm::Triple::maxisel
+          || getToolChain().getArch() == llvm::Triple::mipsel)
         CmdArgs.push_back("-lpnacl_legacy");
 
       CmdArgs.push_back("--end-group");
@@ -239,6 +243,12 @@ NaClToolChain::NaClToolChain(const Driver &D, const llvm::Triple &Triple,
     prog_paths.push_back(ProgPath + "arm-nacl/bin");
     file_paths.push_back(ToolPath + "arm-nacl");
     break;
+  case llvm::Triple::maxisel:
+    file_paths.push_back(FilePath + "maxisel-nacl/lib");
+    file_paths.push_back(FilePath + "maxisel-nacl/usr/lib");
+    prog_paths.push_back(ProgPath + "bin");
+    file_paths.push_back(ToolPath + "maxisel-nacl");
+    break;
   case llvm::Triple::mipsel:
     file_paths.push_back(FilePath + "mipsel-nacl/lib");
     file_paths.push_back(FilePath + "mipsel-nacl/usr/lib");
@@ -287,6 +297,9 @@ void NaClToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   case llvm::Triple::x86_64:
     llvm::sys::path::append(P, "x86_64-nacl/usr/include");
     break;
+  case llvm::Triple::maxisel:
+    llvm::sys::path::append(P, "maxisel-nacl/usr/include");
+    break;
   case llvm::Triple::mipsel:
     llvm::sys::path::append(P, "mipsel-nacl/usr/include");
     break;
@@ -322,6 +335,9 @@ std::string NaClToolChain::findLibCxxIncludePath() const {
     return P.str();
   case llvm::Triple::x86_64:
     llvm::sys::path::append(P, "x86_64-nacl/include/c++/v1");
+    return P.str();
+  case llvm::Triple::maxisel:
+    llvm::sys::path::append(P, "maxisel-nacl/include/c++/v1");
     return P.str();
   case llvm::Triple::mipsel:
     llvm::sys::path::append(P, "mipsel-nacl/include/c++/v1");

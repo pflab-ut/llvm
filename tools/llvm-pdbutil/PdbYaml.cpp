@@ -42,6 +42,9 @@ template <> struct ScalarEnumerationTraits<llvm::pdb::PDB_Machine> {
     io.enumCase(Value, "x86", PDB_Machine::x86);
     io.enumCase(Value, "Ia64", PDB_Machine::Ia64);
     io.enumCase(Value, "M32R", PDB_Machine::M32R);
+    io.enumCase(Value, "Maxis16", PDB_Machine::Maxis16);
+    io.enumCase(Value, "MaxisFpu", PDB_Machine::MaxisFpu);
+    io.enumCase(Value, "MaxisFpu16", PDB_Machine::MaxisFpu16);
     io.enumCase(Value, "Mips16", PDB_Machine::Mips16);
     io.enumCase(Value, "MipsFpu", PDB_Machine::MipsFpu);
     io.enumCase(Value, "MipsFpu16", PDB_Machine::MipsFpu16);
@@ -50,6 +53,7 @@ template <> struct ScalarEnumerationTraits<llvm::pdb::PDB_Machine> {
     io.enumCase(Value, "SH3", PDB_Machine::SH3);
     io.enumCase(Value, "SH3DSP", PDB_Machine::SH3DSP);
     io.enumCase(Value, "Thumb", PDB_Machine::Thumb);
+    io.enumCase(Value, "WceMaxisV2", PDB_Machine::WceMaxisV2);
     io.enumCase(Value, "WceMipsV2", PDB_Machine::WceMipsV2);
   }
 };

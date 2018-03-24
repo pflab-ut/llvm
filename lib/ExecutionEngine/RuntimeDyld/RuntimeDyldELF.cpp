@@ -13,6 +13,7 @@
 
 #include "RuntimeDyldELF.h"
 #include "RuntimeDyldCheckerImpl.h"
+#include "Targets/RuntimeDyldELFMaxis.h"
 #include "Targets/RuntimeDyldELFMips.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
@@ -240,6 +241,11 @@ llvm::RuntimeDyldELF::create(Triple::ArchType Arch,
   switch (Arch) {
   default:
     return make_unique<RuntimeDyldELF>(MemMgr, Resolver);
+  case Triple::maxis:
+  case Triple::maxisel:
+  case Triple::maxis64:
+  case Triple::maxis64el:
+    return make_unique<RuntimeDyldELFMaxis>(MemMgr, Resolver);
   case Triple::mips:
   case Triple::mipsel:
   case Triple::mips64:
@@ -516,6 +522,21 @@ void RuntimeDyldELF::resolveARMRelocation(const SectionEntry &Section,
         (support::ulittle32_t::ref{TargetPtr} & 0xFF000000) | RelValue;
     break;
   }
+}
+
+void RuntimeDyldELF::setMaxisABI(const ObjectFile &Obj) {
+  if (Arch == Triple::UnknownArch ||
+      !StringRef(Triple::getArchTypePrefix(Arch)).equals("maxis")) {
+    IsMaxisO32ABI = false;
+    IsMaxisN32ABI = false;
+    IsMaxisN64ABI = false;
+    return;
+  }
+  unsigned AbiVariant;
+  Obj.getPlatformFlags(AbiVariant);
+  IsMaxisO32ABI = AbiVariant & ELF::EF_MAXIS_ABI_O32;
+  IsMaxisN32ABI = AbiVariant & ELF::EF_MAXIS_ABI2;
+  IsMaxisN64ABI = Obj.getFileFormatName().equals("ELF64-maxis");
 }
 
 void RuntimeDyldELF::setMipsABI(const ObjectFile &Obj) {
@@ -951,6 +972,29 @@ void RuntimeDyldELF::processSimpleRelocation(unsigned SectionID, uint64_t Offset
     addRelocationForSection(RE, Value.SectionID);
 }
 
+uint32_t RuntimeDyldELF::getMaxisMatchingLoRelocation(uint32_t RelType,
+                                                      bool IsLocal) const {
+  switch (RelType) {
+  case ELF::R_MICROMAXIS_GOT16:
+    if (IsLocal)
+      return ELF::R_MICROMAXIS_LO16;
+    break;
+  case ELF::R_MICROMAXIS_HI16:
+    return ELF::R_MICROMAXIS_LO16;
+  case ELF::R_MAXIS_GOT16:
+    if (IsLocal)
+      return ELF::R_MAXIS_LO16;
+    break;
+  case ELF::R_MAXIS_HI16:
+    return ELF::R_MAXIS_LO16;
+  case ELF::R_MAXIS_PCHI16:
+    return ELF::R_MAXIS_PCLO16;
+  default:
+    break;
+  }
+  return ELF::R_MAXIS_NONE;
+}
+
 uint32_t RuntimeDyldELF::getMatchingLoRelocation(uint32_t RelType,
                                                  bool IsLocal) const {
   switch (RelType) {
@@ -1231,6 +1275,184 @@ RuntimeDyldELF::processRelocationRef(
       }
       processSimpleRelocation(SectionID, Offset, RelType, Value);
     }
+  } else if (IsMaxisO32ABI) {
+    uint8_t *Placeholder = reinterpret_cast<uint8_t *>(
+        computePlaceholderAddress(SectionID, Offset));
+    uint32_t Opcode = readBytesUnaligned(Placeholder, 4);
+    if (RelType == ELF::R_MAXIS_26) {
+      // This is an Maxis branch relocation, need to use a stub function.
+      DEBUG(dbgs() << "\t\tThis is a Maxis branch relocation.");
+      SectionEntry &Section = Sections[SectionID];
+
+      // Extract the addend from the instruction.
+      // We shift up by two since the Value will be down shifted again
+      // when applying the relocation.
+      uint32_t Addend = (Opcode & 0x03ffffff) << 2;
+
+      Value.Addend += Addend;
+
+      //  Look up for existing stub.
+      StubMap::const_iterator i = Stubs.find(Value);
+      if (i != Stubs.end()) {
+        RelocationEntry RE(SectionID, Offset, RelType, i->second);
+        addRelocationForSection(RE, SectionID);
+        DEBUG(dbgs() << " Stub function found\n");
+      } else {
+        // Create a new stub function.
+        DEBUG(dbgs() << " Create a new stub function\n");
+        Stubs[Value] = Section.getStubOffset();
+
+        unsigned AbiVariant;
+        O.getPlatformFlags(AbiVariant);
+
+        uint8_t *StubTargetAddr = createStubFunction(
+            Section.getAddressWithOffset(Section.getStubOffset()), AbiVariant);
+
+        // Creating Hi and Lo relocations for the filled stub instructions.
+        RelocationEntry REHi(SectionID, StubTargetAddr - Section.getAddress(),
+                             ELF::R_MAXIS_HI16, Value.Addend);
+        RelocationEntry RELo(SectionID,
+                             StubTargetAddr - Section.getAddress() + 4,
+                             ELF::R_MAXIS_LO16, Value.Addend);
+
+        if (Value.SymbolName) {
+          addRelocationForSymbol(REHi, Value.SymbolName);
+          addRelocationForSymbol(RELo, Value.SymbolName);
+        } else {
+          addRelocationForSection(REHi, Value.SectionID);
+          addRelocationForSection(RELo, Value.SectionID);
+        }
+
+        RelocationEntry RE(SectionID, Offset, RelType, Section.getStubOffset());
+        addRelocationForSection(RE, SectionID);
+        Section.advanceStubOffset(getMaxStubSize());
+      }
+    } else if (RelType == ELF::R_MAXIS_HI16 || RelType == ELF::R_MAXIS_PCHI16) {
+      int64_t Addend = (Opcode & 0x0000ffff) << 16;
+      RelocationEntry RE(SectionID, Offset, RelType, Addend);
+      PendingRelocs.push_back(std::make_pair(Value, RE));
+    } else if (RelType == ELF::R_MAXIS_LO16 || RelType == ELF::R_MAXIS_PCLO16) {
+      int64_t Addend = Value.Addend + SignExtend32<16>(Opcode & 0x0000ffff);
+      for (auto I = PendingRelocs.begin(); I != PendingRelocs.end();) {
+        const RelocationValueRef &MatchingValue = I->first;
+        RelocationEntry &Reloc = I->second;
+        if (MatchingValue == Value &&
+            RelType == getMatchingLoRelocation(Reloc.RelType) &&
+            SectionID == Reloc.SectionID) {
+          Reloc.Addend += Addend;
+          if (Value.SymbolName)
+            addRelocationForSymbol(Reloc, Value.SymbolName);
+          else
+            addRelocationForSection(Reloc, Value.SectionID);
+          I = PendingRelocs.erase(I);
+        } else
+          ++I;
+      }
+      RelocationEntry RE(SectionID, Offset, RelType, Addend);
+      if (Value.SymbolName)
+        addRelocationForSymbol(RE, Value.SymbolName);
+      else
+        addRelocationForSection(RE, Value.SectionID);
+    } else {
+      if (RelType == ELF::R_MAXIS_32)
+        Value.Addend += Opcode;
+      else if (RelType == ELF::R_MAXIS_PC16)
+        Value.Addend += SignExtend32<18>((Opcode & 0x0000ffff) << 2);
+      else if (RelType == ELF::R_MAXIS_PC19_S2)
+        Value.Addend += SignExtend32<21>((Opcode & 0x0007ffff) << 2);
+      else if (RelType == ELF::R_MAXIS_PC21_S2)
+        Value.Addend += SignExtend32<23>((Opcode & 0x001fffff) << 2);
+      else if (RelType == ELF::R_MAXIS_PC26_S2)
+        Value.Addend += SignExtend32<28>((Opcode & 0x03ffffff) << 2);
+      processSimpleRelocation(SectionID, Offset, RelType, Value);
+    }
+  } else if (IsMaxisN32ABI || IsMaxisN64ABI) {
+    uint32_t r_type = RelType & 0xff;
+    RelocationEntry RE(SectionID, Offset, RelType, Value.Addend);
+    if (r_type == ELF::R_MAXIS_CALL16 || r_type == ELF::R_MAXIS_GOT_PAGE
+        || r_type == ELF::R_MAXIS_GOT_DISP) {
+      StringMap<uint64_t>::iterator i = GOTSymbolOffsets.find(TargetName);
+      if (i != GOTSymbolOffsets.end())
+        RE.SymOffset = i->second;
+      else {
+        RE.SymOffset = allocateGOTEntries(1);
+        GOTSymbolOffsets[TargetName] = RE.SymOffset;
+      }
+      if (Value.SymbolName)
+        addRelocationForSymbol(RE, Value.SymbolName);
+      else
+        addRelocationForSection(RE, Value.SectionID);
+    } else if (RelType == ELF::R_MAXIS_26) {
+      // This is an Maxis branch relocation, need to use a stub function.
+      DEBUG(dbgs() << "\t\tThis is a Maxis branch relocation.");
+      SectionEntry &Section = Sections[SectionID];
+
+      //  Look up for existing stub.
+      StubMap::const_iterator i = Stubs.find(Value);
+      if (i != Stubs.end()) {
+        RelocationEntry RE(SectionID, Offset, RelType, i->second);
+        addRelocationForSection(RE, SectionID);
+        DEBUG(dbgs() << " Stub function found\n");
+      } else {
+        // Create a new stub function.
+        DEBUG(dbgs() << " Create a new stub function\n");
+        Stubs[Value] = Section.getStubOffset();
+
+        unsigned AbiVariant;
+        O.getPlatformFlags(AbiVariant);
+
+        uint8_t *StubTargetAddr = createStubFunction(
+            Section.getAddressWithOffset(Section.getStubOffset()), AbiVariant);
+
+        if (IsMaxisN32ABI) {
+          // Creating Hi and Lo relocations for the filled stub instructions.
+          RelocationEntry REHi(SectionID, StubTargetAddr - Section.getAddress(),
+                               ELF::R_MAXIS_HI16, Value.Addend);
+          RelocationEntry RELo(SectionID,
+                               StubTargetAddr - Section.getAddress() + 4,
+                               ELF::R_MAXIS_LO16, Value.Addend);
+          if (Value.SymbolName) {
+            addRelocationForSymbol(REHi, Value.SymbolName);
+            addRelocationForSymbol(RELo, Value.SymbolName);
+          } else {
+            addRelocationForSection(REHi, Value.SectionID);
+            addRelocationForSection(RELo, Value.SectionID);
+          }
+        } else {
+          // Creating Highest, Higher, Hi and Lo relocations for the filled stub
+          // instructions.
+          RelocationEntry REHighest(SectionID,
+                                    StubTargetAddr - Section.getAddress(),
+                                    ELF::R_MAXIS_HIGHEST, Value.Addend);
+          RelocationEntry REHigher(SectionID,
+                                   StubTargetAddr - Section.getAddress() + 4,
+                                   ELF::R_MAXIS_HIGHER, Value.Addend);
+          RelocationEntry REHi(SectionID,
+                               StubTargetAddr - Section.getAddress() + 12,
+                               ELF::R_MAXIS_HI16, Value.Addend);
+          RelocationEntry RELo(SectionID,
+                               StubTargetAddr - Section.getAddress() + 20,
+                               ELF::R_MAXIS_LO16, Value.Addend);
+          if (Value.SymbolName) {
+            addRelocationForSymbol(REHighest, Value.SymbolName);
+            addRelocationForSymbol(REHigher, Value.SymbolName);
+            addRelocationForSymbol(REHi, Value.SymbolName);
+            addRelocationForSymbol(RELo, Value.SymbolName);
+          } else {
+            addRelocationForSection(REHighest, Value.SectionID);
+            addRelocationForSection(REHigher, Value.SectionID);
+            addRelocationForSection(REHi, Value.SectionID);
+            addRelocationForSection(RELo, Value.SectionID);
+          }
+        }
+        RelocationEntry RE(SectionID, Offset, RelType, Section.getStubOffset());
+        addRelocationForSection(RE, SectionID);
+        Section.advanceStubOffset(getMaxStubSize());
+      }
+    } else {
+      processSimpleRelocation(SectionID, Offset, RelType, Value);
+    }
+  
   } else if (IsMipsO32ABI) {
     uint8_t *Placeholder = reinterpret_cast<uint8_t *>(
         computePlaceholderAddress(SectionID, Offset));
@@ -1727,6 +1949,17 @@ size_t RuntimeDyldELF::getGOTEntrySize() {
   case Triple::thumb:
     Result = sizeof(uint32_t);
     break;
+  case Triple::maxis:
+  case Triple::maxisel:
+  case Triple::maxis64:
+  case Triple::maxis64el:
+    if (IsMaxisO32ABI || IsMaxisN32ABI)
+      Result = sizeof(uint32_t);
+    else if (IsMaxisN64ABI)
+      Result = sizeof(uint64_t);
+    else
+      llvm_unreachable("Maxis ABI not handled");
+    break;
   case Triple::mips:
   case Triple::mipsel:
   case Triple::mips64:
@@ -1793,6 +2026,9 @@ RelocationEntry RuntimeDyldELF::computeGOTOffsetRE(uint64_t GOTOffset,
 
 Error RuntimeDyldELF::finalizeLoad(const ObjectFile &Obj,
                                   ObjSectionToIDMap &SectionMap) {
+  if (IsMaxisO32ABI)
+    if (!PendingRelocs.empty())
+      return make_error<RuntimeDyldError>("Can't find matching LO16 reloc");
   if (IsMipsO32ABI)
     if (!PendingRelocs.empty())
       return make_error<RuntimeDyldError>("Can't find matching LO16 reloc");
@@ -1815,7 +2051,20 @@ Error RuntimeDyldELF::finalizeLoad(const ObjectFile &Obj,
     // For now, initialize all GOT entries to zero.  We'll fill them in as
     // needed when GOT-based relocations are applied.
     memset(Addr, 0, TotalSize);
-    if (IsMipsN32ABI || IsMipsN64ABI) {
+    if (IsMaxisN32ABI || IsMaxisN64ABI) {
+      // To correctly resolve Maxis GOT relocations, we need a mapping from
+      // object's sections to GOTs.
+      for (section_iterator SI = Obj.section_begin(), SE = Obj.section_end();
+           SI != SE; ++SI) {
+        if (SI->relocation_begin() != SI->relocation_end()) {
+          section_iterator RelocatedSection = SI->getRelocatedSection();
+          ObjSectionToIDMap::iterator i = SectionMap.find(*RelocatedSection);
+          assert (i != SectionMap.end());
+          SectionToGOTMap[i->second] = GOTSectionID;
+        }
+      }
+      GOTSymbolOffsets.clear();
+    } else if (IsMipsN32ABI || IsMipsN64ABI) {
       // To correctly resolve Mips GOT relocations, we need a mapping from
       // object's sections to GOTs.
       for (section_iterator SI = Obj.section_begin(), SE = Obj.section_end();

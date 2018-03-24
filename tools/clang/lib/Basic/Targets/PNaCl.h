@@ -14,6 +14,7 @@
 #ifndef LLVM_CLANG_LIB_BASIC_TARGETS_PNACL_H
 #define LLVM_CLANG_LIB_BASIC_TARGETS_PNACL_H
 
+#include "Maxis.h"
 #include "Mips.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/TargetOptions.h"
@@ -69,6 +70,17 @@ public:
   }
 
   const char *getClobbers() const override { return ""; }
+};
+
+// We attempt to use PNaCl (le32) frontend and Maxis32EL backend.
+class LLVM_LIBRARY_VISIBILITY NaClMaxis32TargetInfo : public MaxisTargetInfo {
+public:
+  NaClMaxis32TargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
+      : MaxisTargetInfo(Triple, Opts) {}
+
+  BuiltinVaListKind getBuiltinVaListKind() const override {
+    return TargetInfo::PNaClABIBuiltinVaList;
+  }
 };
 
 // We attempt to use PNaCl (le32) frontend and Mips32EL backend.

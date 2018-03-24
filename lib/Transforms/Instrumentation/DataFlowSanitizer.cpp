@@ -463,6 +463,8 @@ FunctionType *DataFlowSanitizer::getCustomFunctionType(FunctionType *T) {
 bool DataFlowSanitizer::doInitialization(Module &M) {
   Triple TargetTriple(M.getTargetTriple());
   bool IsX86_64 = TargetTriple.getArch() == Triple::x86_64;
+  bool IsMAXIS64 = TargetTriple.getArch() == Triple::maxis64 ||
+                  TargetTriple.getArch() == Triple::maxis64el;
   bool IsMIPS64 = TargetTriple.getArch() == Triple::mips64 ||
                   TargetTriple.getArch() == Triple::mips64el;
   bool IsAArch64 = TargetTriple.getArch() == Triple::aarch64 ||
@@ -479,6 +481,8 @@ bool DataFlowSanitizer::doInitialization(Module &M) {
   ShadowPtrMul = ConstantInt::getSigned(IntptrTy, ShadowWidth / 8);
   if (IsX86_64)
     ShadowPtrMask = ConstantInt::getSigned(IntptrTy, ~0x700000000000LL);
+  else if (IsMAXIS64)
+    ShadowPtrMask = ConstantInt::getSigned(IntptrTy, ~0xF000000000LL);
   else if (IsMIPS64)
     ShadowPtrMask = ConstantInt::getSigned(IntptrTy, ~0xF000000000LL);
   // AArch64 supports multiple VMAs and the shadow mask is set at runtime.

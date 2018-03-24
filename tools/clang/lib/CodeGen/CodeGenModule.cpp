@@ -74,6 +74,7 @@ static CGCXXABI *createCXXABI(CodeGenModule &CGM) {
   case TargetCXXABI::iOS:
   case TargetCXXABI::iOS64:
   case TargetCXXABI::WatchOS:
+  case TargetCXXABI::GenericMAXIS:
   case TargetCXXABI::GenericMIPS:
   case TargetCXXABI::GenericItanium:
   case TargetCXXABI::WebAssembly:

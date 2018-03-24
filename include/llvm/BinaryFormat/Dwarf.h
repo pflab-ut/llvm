@@ -54,7 +54,8 @@ enum LLVMConstants : uint32_t {
   DWARF_VENDOR_GNU = 3,
   DWARF_VENDOR_GOOGLE = 4,
   DWARF_VENDOR_LLVM = 5,
-  DWARF_VENDOR_MIPS = 6
+  DWARF_VENDOR_MIPS = 6,
+  DWARF_VENDOR_MAXIS = 7
 };
 
 /// Special ID values that distinguish a CIE from a FDE in DWARF CFI.

@@ -179,6 +179,23 @@ namespace opts {
   cl::alias ARMAttributesShort("a", cl::desc("Alias for --arm-attributes"),
                                cl::aliasopt(ARMAttributes));
 
+  // -maxis-plt-got
+  cl::opt<bool>
+  MaxisPLTGOT("maxis-plt-got",
+             cl::desc("Display the MAXIS GOT and PLT GOT sections"));
+
+  // -maxis-abi-flags
+  cl::opt<bool> MaxisABIFlags("maxis-abi-flags",
+                             cl::desc("Display the MAXIS.abiflags section"));
+
+  // -maxis-reginfo
+  cl::opt<bool> MaxisReginfo("maxis-reginfo",
+                            cl::desc("Display the MAXIS .reginfo section"));
+
+  // -maxis-options
+  cl::opt<bool> MaxisOptions("maxis-options",
+                            cl::desc("Display the MAXIS .MAXIS.options section"));
+
   // -mips-plt-got
   cl::opt<bool>
   MipsPLTGOT("mips-plt-got",
@@ -332,6 +349,18 @@ static void reportError(StringRef Input, Error Err) {
   reportError(ErrMsg);
 }
 
+static bool isMaxisArch(unsigned Arch) {
+  switch (Arch) {
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
+    return true;
+  default:
+    return false;
+  }
+}
+
 static bool isMipsArch(unsigned Arch) {
   switch (Arch) {
   case llvm::Triple::mips:
@@ -343,6 +372,7 @@ static bool isMipsArch(unsigned Arch) {
     return false;
   }
 }
+
 namespace {
 struct ReadObjTypeTableBuilder {
   ReadObjTypeTableBuilder()
@@ -421,6 +451,16 @@ static void dumpObject(const ObjectFile *Obj) {
     if (Obj->getArch() == llvm::Triple::arm)
       if (opts::ARMAttributes)
         Dumper->printAttributes();
+    if (isMaxisArch(Obj->getArch())) {
+      if (opts::MaxisPLTGOT)
+        Dumper->printMaxisPLTGOT();
+      if (opts::MaxisABIFlags)
+        Dumper->printMaxisABIFlags();
+      if (opts::MaxisReginfo)
+        Dumper->printMaxisReginfo();
+      if (opts::MaxisOptions)
+        Dumper->printMaxisOptions();
+    }
     if (isMipsArch(Obj->getArch())) {
       if (opts::MipsPLTGOT)
         Dumper->printMipsPLTGOT();

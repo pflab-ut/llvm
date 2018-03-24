@@ -10,6 +10,7 @@
 #include "Clang.h"
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
+#include "Arch/Maxis.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "Arch/Sparc.h"
@@ -308,6 +309,13 @@ static void getTargetFeatures(const ToolChain &TC, const llvm::Triple &Triple,
   switch (Triple.getArch()) {
   default:
     break;
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
+    maxis::getMAXISTargetFeatures(D, Triple, Args, Features);
+    break;
+
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
   case llvm::Triple::mips64:
@@ -531,6 +539,10 @@ static bool useFramePointerForTargetByDefault(const ArgList &Args,
   if (Triple.isOSLinux() || Triple.getOS() == llvm::Triple::CloudABI) {
     switch (Triple.getArch()) {
     // Don't use a frame pointer on linux if optimizing for certain targets.
+    case llvm::Triple::maxis64:
+    case llvm::Triple::maxis64el:
+    case llvm::Triple::maxis:
+    case llvm::Triple::maxisel:
     case llvm::Triple::mips64:
     case llvm::Triple::mips64el:
     case llvm::Triple::mips:
@@ -1378,6 +1390,13 @@ void Clang::RenderTargetOptions(const llvm::Triple &EffectiveTriple,
     CmdArgs.push_back("-fallow-half-arguments-and-returns");
     break;
 
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
+    AddMAXISTargetArgs(Args, CmdArgs);
+    break;
+
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
   case llvm::Triple::mips64:
@@ -1466,6 +1485,148 @@ void Clang::AddAArch64TargetArgs(const ArgList &Args,
       CmdArgs.push_back("-aarch64-enable-global-merge=false");
     else
       CmdArgs.push_back("-aarch64-enable-global-merge=true");
+  }
+}
+
+void Clang::AddMAXISTargetArgs(const ArgList &Args,
+                              ArgStringList &CmdArgs) const {
+  const Driver &D = getToolChain().getDriver();
+  StringRef CPUName;
+  StringRef ABIName;
+  const llvm::Triple &Triple = getToolChain().getTriple();
+  maxis::getMaxisCPUAndABI(Args, Triple, CPUName, ABIName);
+
+  CmdArgs.push_back("-target-abi");
+  CmdArgs.push_back(ABIName.data());
+
+  maxis::FloatABI ABI = maxis::getMaxisFloatABI(D, Args);
+  if (ABI == maxis::FloatABI::Soft) {
+    // Floating point operations and argument passing are soft.
+    CmdArgs.push_back("-msoft-float");
+    CmdArgs.push_back("-mfloat-abi");
+    CmdArgs.push_back("soft");
+  } else {
+    // Floating point operations and argument passing are hard.
+    assert(ABI == maxis::FloatABI::Hard && "Invalid float abi!");
+    CmdArgs.push_back("-mfloat-abi");
+    CmdArgs.push_back("hard");
+  }
+
+  if (Arg *A = Args.getLastArg(options::OPT_mxgot, options::OPT_mno_xgot)) {
+    if (A->getOption().matches(options::OPT_mxgot)) {
+      CmdArgs.push_back("-mllvm");
+      CmdArgs.push_back("-mxgot");
+    }
+  }
+
+  if (Arg *A = Args.getLastArg(options::OPT_mldc1_sdc1,
+                               options::OPT_mno_ldc1_sdc1)) {
+    if (A->getOption().matches(options::OPT_mno_ldc1_sdc1)) {
+      CmdArgs.push_back("-mllvm");
+      CmdArgs.push_back("-mno-ldc1-sdc1");
+    }
+  }
+
+  if (Arg *A = Args.getLastArg(options::OPT_mcheck_zero_division,
+                               options::OPT_mno_check_zero_division)) {
+    if (A->getOption().matches(options::OPT_mno_check_zero_division)) {
+      CmdArgs.push_back("-mllvm");
+      CmdArgs.push_back("-mno-check-zero-division");
+    }
+  }
+
+  if (Arg *A = Args.getLastArg(options::OPT_G)) {
+    StringRef v = A->getValue();
+    CmdArgs.push_back("-mllvm");
+    CmdArgs.push_back(Args.MakeArgString("-maxis-ssection-threshold=" + v));
+    A->claim();
+  }
+
+  Arg *GPOpt = Args.getLastArg(options::OPT_mgpopt, options::OPT_mno_gpopt);
+  Arg *ABICalls =
+      Args.getLastArg(options::OPT_mabicalls, options::OPT_mno_abicalls);
+
+  // -mabicalls is the default for many MAXIS environments, even with -fno-pic.
+  // -mgpopt is the default for static, -fno-pic environments but these two
+  // options conflict. We want to be certain that -mno-abicalls -mgpopt is
+  // the only case where -mllvm -mgpopt is passed.
+  // NOTE: We need a warning here or in the backend to warn when -mgpopt is
+  //       passed explicitly when compiling something with -mabicalls
+  //       (implictly) in affect. Currently the warning is in the backend.
+  //
+  // When the ABI in use is  N64, we also need to determine the PIC mode that
+  // is in use, as -fno-pic for N64 implies -mno-abicalls.
+  bool NoABICalls =
+      ABICalls && ABICalls->getOption().matches(options::OPT_mno_abicalls);
+
+  llvm::Reloc::Model RelocationModel;
+  unsigned PICLevel;
+  bool IsPIE;
+  std::tie(RelocationModel, PICLevel, IsPIE) =
+      ParsePICArgs(getToolChain(), Args);
+
+  NoABICalls = NoABICalls ||
+               (RelocationModel == llvm::Reloc::Static && ABIName == "n64");
+
+  bool WantGPOpt = GPOpt && GPOpt->getOption().matches(options::OPT_mgpopt);
+  // We quietly ignore -mno-gpopt as the backend defaults to -mno-gpopt.
+  if (NoABICalls && (!GPOpt || WantGPOpt)) {
+    CmdArgs.push_back("-mllvm");
+    CmdArgs.push_back("-mgpopt");
+
+    Arg *LocalSData = Args.getLastArg(options::OPT_mlocal_sdata,
+                                      options::OPT_mno_local_sdata);
+    Arg *ExternSData = Args.getLastArg(options::OPT_mextern_sdata,
+                                       options::OPT_mno_extern_sdata);
+    Arg *EmbeddedData = Args.getLastArg(options::OPT_membedded_data,
+                                        options::OPT_mno_embedded_data);
+    if (LocalSData) {
+      CmdArgs.push_back("-mllvm");
+      if (LocalSData->getOption().matches(options::OPT_mlocal_sdata)) {
+        CmdArgs.push_back("-mlocal-sdata=1");
+      } else {
+        CmdArgs.push_back("-mlocal-sdata=0");
+      }
+      LocalSData->claim();
+    }
+
+    if (ExternSData) {
+      CmdArgs.push_back("-mllvm");
+      if (ExternSData->getOption().matches(options::OPT_mextern_sdata)) {
+        CmdArgs.push_back("-mextern-sdata=1");
+      } else {
+        CmdArgs.push_back("-mextern-sdata=0");
+      }
+      ExternSData->claim();
+    }
+
+    if (EmbeddedData) {
+      CmdArgs.push_back("-mllvm");
+      if (EmbeddedData->getOption().matches(options::OPT_membedded_data)) {
+        CmdArgs.push_back("-membedded-data=1");
+      } else {
+        CmdArgs.push_back("-membedded-data=0");
+      }
+      EmbeddedData->claim();
+    }
+
+  } else if ((!ABICalls || (!NoABICalls && ABICalls)) && WantGPOpt)
+    D.Diag(diag::warn_drv_unsupported_gpopt) << (ABICalls ? 0 : 1);
+
+  if (GPOpt)
+    GPOpt->claim();
+
+  if (Arg *A = Args.getLastArg(options::OPT_mcompact_branches_EQ)) {
+    StringRef Val = StringRef(A->getValue());
+    if (maxis::hasCompactBranches(CPUName)) {
+      if (Val == "never" || Val == "always" || Val == "optimal") {
+        CmdArgs.push_back("-mllvm");
+        CmdArgs.push_back(Args.MakeArgString("-maxis-compact-branches=" + Val));
+      } else
+        D.Diag(diag::err_drv_unsupported_option_argument)
+            << A->getOption().getName() << Val;
+    } else
+      D.Diag(diag::warn_target_unsupported_compact_branches) << CPUName;
   }
 }
 
@@ -1890,6 +2051,7 @@ static void CollectArgsForIntegratedAssembler(Compilation &C,
   bool TakeNextArg = false;
 
   bool UseRelaxRelocations = C.getDefaultToolChain().useRelaxRelocations();
+  const char *MaxisTargetFeature = nullptr;
   const char *MipsTargetFeature = nullptr;
   for (const Arg *A :
        Args.filtered(options::OPT_Wa_COMMA, options::OPT_Xassembler)) {
@@ -1916,6 +2078,51 @@ static void CollectArgsForIntegratedAssembler(Compilation &C,
         if (Value == "-mthumb")
           // -mthumb has already been processed in ComputeLLVMTriple()
           // recognize but skip over here.
+          continue;
+        break;
+      case llvm::Triple::maxis:
+      case llvm::Triple::maxisel:
+      case llvm::Triple::maxis64:
+      case llvm::Triple::maxis64el:
+        if (Value == "--trap") {
+          CmdArgs.push_back("-target-feature");
+          CmdArgs.push_back("+use-tcc-in-div");
+          continue;
+        }
+        if (Value == "--break") {
+          CmdArgs.push_back("-target-feature");
+          CmdArgs.push_back("-use-tcc-in-div");
+          continue;
+        }
+        if (Value.startswith("-msoft-float")) {
+          CmdArgs.push_back("-target-feature");
+          CmdArgs.push_back("+soft-float");
+          continue;
+        }
+        if (Value.startswith("-mhard-float")) {
+          CmdArgs.push_back("-target-feature");
+          CmdArgs.push_back("-soft-float");
+          continue;
+        }
+
+        MaxisTargetFeature = llvm::StringSwitch<const char *>(Value)
+                                .Case("-maxis1", "+maxis1")
+                                .Case("-maxis2", "+maxis2")
+                                .Case("-maxis3", "+maxis3")
+                                .Case("-maxis4", "+maxis4")
+                                .Case("-maxis5", "+maxis5")
+                                .Case("-maxis32", "+maxis32")
+                                .Case("-maxis32r2", "+maxis32r2")
+                                .Case("-maxis32r3", "+maxis32r3")
+                                .Case("-maxis32r5", "+maxis32r5")
+                                .Case("-maxis32r6", "+maxis32r6")
+                                .Case("-maxis64", "+maxis64")
+                                .Case("-maxis64r2", "+maxis64r2")
+                                .Case("-maxis64r3", "+maxis64r3")
+                                .Case("-maxis64r5", "+maxis64r5")
+                                .Case("-maxis64r6", "+maxis64r6")
+                                .Default(nullptr);
+        if (MaxisTargetFeature)
           continue;
         break;
       case llvm::Triple::mips:
@@ -2031,7 +2238,10 @@ static void CollectArgsForIntegratedAssembler(Compilation &C,
   }
   if (UseRelaxRelocations)
     CmdArgs.push_back("--mrelax-relocations");
-  if (MipsTargetFeature != nullptr) {
+  if (MaxisTargetFeature != nullptr) {
+    CmdArgs.push_back("-target-feature");
+    CmdArgs.push_back(MaxisTargetFeature);
+  } else if (MipsTargetFeature != nullptr) {
     CmdArgs.push_back("-target-feature");
     CmdArgs.push_back(MipsTargetFeature);
   }
@@ -4080,8 +4290,10 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
               RawTriple.getOS() != llvm::Triple::Solaris &&
               getToolChain().getArch() != llvm::Triple::hexagon &&
               getToolChain().getArch() != llvm::Triple::xcore &&
+              ((RawTriple.getVendor() != llvm::Triple::MaxisTechnologies) ||
+               RawTriple.hasEnvironment()) ||
               ((RawTriple.getVendor() != llvm::Triple::MipsTechnologies) ||
-               RawTriple.hasEnvironment())) ||
+               RawTriple.hasEnvironment())) 
       KernelOrKext)
     CmdArgs.push_back("-fno-use-cxa-atexit");
 
@@ -5141,6 +5353,17 @@ const char *Clang::getDependencyFileName(const ArgList &Args,
 
 // Begin ClangAs
 
+void ClangAs::AddMAXISTargetArgs(const ArgList &Args,
+                                ArgStringList &CmdArgs) const {
+  StringRef CPUName;
+  StringRef ABIName;
+  const llvm::Triple &Triple = getToolChain().getTriple();
+  maxis::getMaxisCPUAndABI(Args, Triple, CPUName, ABIName);
+
+  CmdArgs.push_back("-target-abi");
+  CmdArgs.push_back(ABIName.data());
+}
+
 void ClangAs::AddMIPSTargetArgs(const ArgList &Args,
                                 ArgStringList &CmdArgs) const {
   StringRef CPUName;
@@ -5307,6 +5530,13 @@ void ClangAs::ConstructJob(Compilation &C, const JobAction &JA,
   // Add target specific flags.
   switch (getToolChain().getArch()) {
   default:
+    break;
+
+  case llvm::Triple::maxis:
+  case llvm::Triple::maxisel:
+  case llvm::Triple::maxis64:
+  case llvm::Triple::maxis64el:
+    AddMAXISTargetArgs(Args, CmdArgs);
     break;
 
   case llvm::Triple::mips:

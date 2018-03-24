@@ -23,6 +23,7 @@ add_clang_library(clangDriver
   ToolChain.cpp
   ToolChains/Arch/AArch64.cpp
   ToolChains/Arch/ARM.cpp
+  ToolChains/Arch/Maxis.cpp
   ToolChains/Arch/Mips.cpp
   ToolChains/Arch/PPC.cpp
   ToolChains/Arch/Sparc.cpp
@@ -46,6 +47,7 @@ add_clang_library(clangDriver
   ToolChains/Haiku.cpp
   ToolChains/Hexagon.cpp
   ToolChains/Linux.cpp
+  ToolChains/MaxisLinux.cpp
   ToolChains/MipsLinux.cpp
   ToolChains/MinGW.cpp
   ToolChains/Minix.cpp

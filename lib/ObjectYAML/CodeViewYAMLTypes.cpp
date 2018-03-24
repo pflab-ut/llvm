@@ -242,6 +242,7 @@ void ScalarEnumerationTraits<CallingConvention>::enumeration(
   IO.enumCase(Value, "NearSysCall", CallingConvention::NearSysCall);
   IO.enumCase(Value, "FarSysCall", CallingConvention::FarSysCall);
   IO.enumCase(Value, "ThisCall", CallingConvention::ThisCall);
+  IO.enumCase(Value, "MaxisCall", CallingConvention::MaxisCall);
   IO.enumCase(Value, "MipsCall", CallingConvention::MipsCall);
   IO.enumCase(Value, "Generic", CallingConvention::Generic);
   IO.enumCase(Value, "AlphaCall", CallingConvention::AlphaCall);

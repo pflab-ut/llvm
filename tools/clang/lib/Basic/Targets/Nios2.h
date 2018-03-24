@@ -114,7 +114,7 @@ public:
       return false;
 
     case 'r': // CPU registers.
-    case 'd': // Equivalent to "r" unless generating MIPS16 code.
+    case 'd': // Equivalent to "r" unless generating MAXIS/MIPS16 code.
     case 'y': // Equivalent to "r", backwards compatibility only.
     case 'f': // floating-point registers.
     case 'c': // $25 for indirect jumps

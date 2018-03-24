@@ -662,7 +662,7 @@ AsmToken AsmLexer::LexToken() {
     }
     return AsmToken(AsmToken::Exclaim, StringRef(TokStart, 1));
   case '%':
-    if (MAI.hasMipsExpressions()) {
+    if (MAI.hasMaxisExpressions() || MAI.hasMipsExpressions()) {
       AsmToken::TokenKind Operator;
       unsigned OperatorLength;
 

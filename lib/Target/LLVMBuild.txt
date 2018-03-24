@@ -29,6 +29,7 @@ subdirectories =
  Hexagon
  MSP430
  NVPTX
+ Maxis
  Mips
  Nios2
  PowerPC

@@ -86,6 +86,175 @@ MergeInputSection *elf::createCommentSection() {
                                  getVersion(), ".comment");
 }
 
+// .MAXIS.abiflags section.
+template <class ELFT>
+MaxisAbiFlagsSection<ELFT>::MaxisAbiFlagsSection(Elf_Maxis_ABIFlags Flags)
+    : SyntheticSection(SHF_ALLOC, SHT_MAXIS_ABIFLAGS, 8, ".MAXIS.abiflags"),
+      Flags(Flags) {
+  this->Entsize = sizeof(Elf_Maxis_ABIFlags);
+}
+
+template <class ELFT> void MaxisAbiFlagsSection<ELFT>::writeTo(uint8_t *Buf) {
+  memcpy(Buf, &Flags, sizeof(Flags));
+}
+
+template <class ELFT>
+MaxisAbiFlagsSection<ELFT> *MaxisAbiFlagsSection<ELFT>::create() {
+  Elf_Maxis_ABIFlags Flags = {};
+  bool Create = false;
+
+  for (InputSectionBase *Sec : InputSections) {
+    if (Sec->Type != SHT_MAXIS_ABIFLAGS)
+      continue;
+    Sec->Live = false;
+    Create = true;
+
+    std::string Filename = toString(Sec->File);
+    const size_t Size = Sec->Data.size();
+    // Older version of BFD (such as the default FreeBSD linker) concatenate
+    // .MAXIS.abiflags instead of merging. To allow for this case (or potential
+    // zero padding) we ignore everything after the first Elf_Maxis_ABIFlags
+    if (Size < sizeof(Elf_Maxis_ABIFlags)) {
+      error(Filename + ": invalid size of .MAXIS.abiflags section: got " +
+            Twine(Size) + " instead of " + Twine(sizeof(Elf_Maxis_ABIFlags)));
+      return nullptr;
+    }
+    auto *S = reinterpret_cast<const Elf_Maxis_ABIFlags *>(Sec->Data.data());
+    if (S->version != 0) {
+      error(Filename + ": unexpected .MAXIS.abiflags version " +
+            Twine(S->version));
+      return nullptr;
+    }
+
+    // LLD checks ISA compatibility in calcMaxisEFlags(). Here we just
+    // select the highest number of ISA/Rev/Ext.
+    Flags.isa_level = std::max(Flags.isa_level, S->isa_level);
+    Flags.isa_rev = std::max(Flags.isa_rev, S->isa_rev);
+    Flags.isa_ext = std::max(Flags.isa_ext, S->isa_ext);
+    Flags.gpr_size = std::max(Flags.gpr_size, S->gpr_size);
+    Flags.cpr1_size = std::max(Flags.cpr1_size, S->cpr1_size);
+    Flags.cpr2_size = std::max(Flags.cpr2_size, S->cpr2_size);
+    Flags.ases |= S->ases;
+    Flags.flags1 |= S->flags1;
+    Flags.flags2 |= S->flags2;
+    Flags.fp_abi = elf::getMaxisFpAbiFlag(Flags.fp_abi, S->fp_abi, Filename);
+  };
+
+  if (Create)
+    return make<MaxisAbiFlagsSection<ELFT>>(Flags);
+  return nullptr;
+}
+
+// .MAXIS.options section.
+template <class ELFT>
+MaxisOptionsSection<ELFT>::MaxisOptionsSection(Elf_Maxis_RegInfo Reginfo)
+    : SyntheticSection(SHF_ALLOC, SHT_MAXIS_OPTIONS, 8, ".MAXIS.options"),
+      Reginfo(Reginfo) {
+  this->Entsize = sizeof(Elf_Maxis_Options) + sizeof(Elf_Maxis_RegInfo);
+}
+
+template <class ELFT> void MaxisOptionsSection<ELFT>::writeTo(uint8_t *Buf) {
+  auto *Options = reinterpret_cast<Elf_Maxis_Options *>(Buf);
+  Options->kind = ODK_REGINFO;
+  Options->size = getSize();
+
+  if (!Config->Relocatable)
+    Reginfo.ri_gp_value = InX::MaxisGot->getGp();
+  memcpy(Buf + sizeof(Elf_Maxis_Options), &Reginfo, sizeof(Reginfo));
+}
+
+template <class ELFT>
+MaxisOptionsSection<ELFT> *MaxisOptionsSection<ELFT>::create() {
+  // N64 ABI only.
+  if (!ELFT::Is64Bits)
+    return nullptr;
+
+  std::vector<InputSectionBase *> Sections;
+  for (InputSectionBase *Sec : InputSections)
+    if (Sec->Type == SHT_MAXIS_OPTIONS)
+      Sections.push_back(Sec);
+
+  if (Sections.empty())
+    return nullptr;
+
+  Elf_Maxis_RegInfo Reginfo = {};
+  for (InputSectionBase *Sec : Sections) {
+    Sec->Live = false;
+
+    std::string Filename = toString(Sec->File);
+    ArrayRef<uint8_t> D = Sec->Data;
+
+    while (!D.empty()) {
+      if (D.size() < sizeof(Elf_Maxis_Options)) {
+        error(Filename + ": invalid size of .MAXIS.options section");
+        break;
+      }
+
+      auto *Opt = reinterpret_cast<const Elf_Maxis_Options *>(D.data());
+      if (Opt->kind == ODK_REGINFO) {
+        if (Config->Relocatable && Opt->getRegInfo().ri_gp_value)
+          error(Filename + ": unsupported non-zero ri_gp_value");
+        Reginfo.ri_gprmask |= Opt->getRegInfo().ri_gprmask;
+        Sec->getFile<ELFT>()->MaxisGp0 = Opt->getRegInfo().ri_gp_value;
+        break;
+      }
+
+      if (!Opt->size)
+        fatal(Filename + ": zero option descriptor size");
+      D = D.slice(Opt->size);
+    }
+  };
+
+  return make<MaxisOptionsSection<ELFT>>(Reginfo);
+}
+
+// MAXIS .reginfo section.
+template <class ELFT>
+MaxisReginfoSection<ELFT>::MaxisReginfoSection(Elf_Maxis_RegInfo Reginfo)
+    : SyntheticSection(SHF_ALLOC, SHT_MAXIS_REGINFO, 4, ".reginfo"),
+      Reginfo(Reginfo) {
+  this->Entsize = sizeof(Elf_Maxis_RegInfo);
+}
+
+template <class ELFT> void MaxisReginfoSection<ELFT>::writeTo(uint8_t *Buf) {
+  if (!Config->Relocatable)
+    Reginfo.ri_gp_value = InX::MaxisGot->getGp();
+  memcpy(Buf, &Reginfo, sizeof(Reginfo));
+}
+
+template <class ELFT>
+MaxisReginfoSection<ELFT> *MaxisReginfoSection<ELFT>::create() {
+  // Section should be alive for O32 and N32 ABIs only.
+  if (ELFT::Is64Bits)
+    return nullptr;
+
+  std::vector<InputSectionBase *> Sections;
+  for (InputSectionBase *Sec : InputSections)
+    if (Sec->Type == SHT_MAXIS_REGINFO)
+      Sections.push_back(Sec);
+
+  if (Sections.empty())
+    return nullptr;
+
+  Elf_Maxis_RegInfo Reginfo = {};
+  for (InputSectionBase *Sec : Sections) {
+    Sec->Live = false;
+
+    if (Sec->Data.size() != sizeof(Elf_Maxis_RegInfo)) {
+      error(toString(Sec->File) + ": invalid size of .reginfo section");
+      return nullptr;
+    }
+    auto *R = reinterpret_cast<const Elf_Maxis_RegInfo *>(Sec->Data.data());
+    if (Config->Relocatable && R->ri_gp_value)
+      error(toString(Sec->File) + ": unsupported non-zero ri_gp_value");
+
+    Reginfo.ri_gprmask |= R->ri_gprmask;
+    Sec->getFile<ELFT>()->MaxisGp0 = R->ri_gp_value;
+  };
+
+  return make<MaxisReginfoSection<ELFT>>(Reginfo);
+}
+
 // .MIPS.abiflags section.
 template <class ELFT>
 MipsAbiFlagsSection<ELFT>::MipsAbiFlagsSection(Elf_Mips_ABIFlags Flags)
@@ -639,9 +808,249 @@ void GotSection::writeTo(uint8_t *Buf) {
   relocateAlloc(Buf - OutSecOff, Buf - OutSecOff + Size);
 }
 
+MaxisGotSection::MaxisGotSection()
+    : SyntheticSection(SHF_ALLOC | SHF_WRITE | SHF_MAXIS_GPREL, SHT_PROGBITS, 16,
+                       ".got") {}
+
+
+void MaxisGotSection::addEntry(Symbol &Sym, int64_t Addend, RelExpr Expr) {
+  // For "true" local symbols which can be referenced from the same module
+  // only compiler creates two instructions for address loading:
+  //
+  // lw   $8, 0($gp) # R_MAXIS_GOT16
+  // addi $8, $8, 0  # R_MAXIS_LO16
+  //
+  // The first instruction loads high 16 bits of the symbol address while
+  // the second adds an offset. That allows to reduce number of required
+  // GOT entries because only one global offset table entry is necessary
+  // for every 64 KBytes of local data. So for local symbols we need to
+  // allocate number of GOT entries to hold all required "page" addresses.
+  //
+  // All global symbols (hidden and regular) considered by compiler uniformly.
+  // It always generates a single `lw` instruction and R_MAXIS_GOT16 relocation
+  // to load address of the symbol. So for each such symbol we need to
+  // allocate dedicated GOT entry to store its address.
+  //
+  // If a symbol is preemptible we need help of dynamic linker to get its
+  // final address. The corresponding GOT entries are allocated in the
+  // "global" part of GOT. Entries for non preemptible global symbol allocated
+  // in the "local" part of GOT.
+  //
+  // See "Global Offset Table" in Chapter 5:
+  // ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+  if (Expr == R_MAXIS_GOT_LOCAL_PAGE) {
+    // At this point we do not know final symbol value so to reduce number
+    // of allocated GOT entries do the following trick. Save all output
+    // sections referenced by GOT relocations. Then later in the `finalize`
+    // method calculate number of "pages" required to cover all saved output
+    // section and allocate appropriate number of GOT entries.
+    PageIndexMap.insert({Sym.getOutputSection(), 0});
+    return;
+  }
+  if (Sym.isTls()) {
+    // GOT entries created for MAXIS TLS relocations behave like
+    // almost GOT entries from other ABIs. They go to the end
+    // of the global offset table.
+    Sym.GotIndex = TlsEntries.size();
+    TlsEntries.push_back(&Sym);
+    return;
+  }
+  auto AddEntry = [&](Symbol &S, uint64_t A, GotEntries &Items) {
+    if (S.isInGot() && !A)
+      return;
+    size_t NewIndex = Items.size();
+    if (!EntryIndexMap.insert({{&S, A}, NewIndex}).second)
+      return;
+    Items.emplace_back(&S, A);
+    if (!A)
+      S.GotIndex = NewIndex;
+  };
+  if (Sym.IsPreemptible) {
+    // Ignore addends for preemptible symbols. They got single GOT entry anyway.
+    AddEntry(Sym, 0, GlobalEntries);
+    Sym.IsInGlobalMaxisGot = true;
+  } else if (Expr == R_MAXIS_GOT_OFF32) {
+    AddEntry(Sym, Addend, LocalEntries32);
+    Sym.Is32BitMaxisGot = true;
+  } else {
+    // Hold local GOT entries accessed via a 16-bit index separately.
+    // That allows to write them in the beginning of the GOT and keep
+    // their indexes as less as possible to escape relocation's overflow.
+    AddEntry(Sym, Addend, LocalEntries);
+  }
+}
+
+bool MaxisGotSection::addDynTlsEntry(Symbol &Sym) {
+  if (Sym.GlobalDynIndex != -1U)
+    return false;
+  Sym.GlobalDynIndex = TlsEntries.size();
+  // Global Dynamic TLS entries take two GOT slots.
+  TlsEntries.push_back(nullptr);
+  TlsEntries.push_back(&Sym);
+  return true;
+}
+
+// Reserves TLS entries for a TLS module ID and a TLS block offset.
+// In total it takes two GOT slots.
+bool MaxisGotSection::addTlsIndex() {
+  if (TlsIndexOff != uint32_t(-1))
+    return false;
+  TlsIndexOff = TlsEntries.size() * Config->Wordsize;
+  TlsEntries.push_back(nullptr);
+  TlsEntries.push_back(nullptr);
+  return true;
+}
+
+static uint64_t getMaxisPageAddr(uint64_t Addr) {
+  return (Addr + 0x8000) & ~0xffff;
+}
+
+static uint64_t getMaxisPageCount(uint64_t Size) {
+  return (Size + 0xfffe) / 0xffff + 1;
+}
+
+uint64_t MaxisGotSection::getPageEntryOffset(const Symbol &B,
+                                            int64_t Addend) const {
+  const OutputSection *OutSec = B.getOutputSection();
+  uint64_t SecAddr = getMaxisPageAddr(OutSec->Addr);
+  uint64_t SymAddr = getMaxisPageAddr(B.getVA(Addend));
+  uint64_t Index = PageIndexMap.lookup(OutSec) + (SymAddr - SecAddr) / 0xffff;
+  assert(Index < PageEntriesNum);
+  return (HeaderEntriesNum + Index) * Config->Wordsize;
+}
+
+uint64_t MaxisGotSection::getSymEntryOffset(const Symbol &B,
+                                           int64_t Addend) const {
+  // Calculate offset of the GOT entries block: TLS, global, local.
+  uint64_t Index = HeaderEntriesNum + PageEntriesNum;
+  if (B.isTls())
+    Index += LocalEntries.size() + LocalEntries32.size() + GlobalEntries.size();
+  else if (B.IsInGlobalMaxisGot)
+    Index += LocalEntries.size() + LocalEntries32.size();
+  else if (B.Is32BitMaxisGot)
+    Index += LocalEntries.size();
+  // Calculate offset of the GOT entry in the block.
+  if (B.isInGot())
+    Index += B.GotIndex;
+  else {
+    auto It = EntryIndexMap.find({&B, Addend});
+    assert(It != EntryIndexMap.end());
+    Index += It->second;
+  }
+  return Index * Config->Wordsize;
+}
+
+uint64_t MaxisGotSection::getTlsOffset() const {
+  return (getLocalEntriesNum() + GlobalEntries.size()) * Config->Wordsize;
+}
+
+uint64_t MaxisGotSection::getGlobalDynOffset(const Symbol &B) const {
+  return B.GlobalDynIndex * Config->Wordsize;
+}
+
+const Symbol *MaxisGotSection::getFirstGlobalEntry() const {
+  return GlobalEntries.empty() ? nullptr : GlobalEntries.front().first;
+}
+
+unsigned MaxisGotSection::getLocalEntriesNum() const {
+  return HeaderEntriesNum + PageEntriesNum + LocalEntries.size() +
+         LocalEntries32.size();
+}
+
+void MaxisGotSection::finalizeContents() { updateAllocSize(); }
+
+bool MaxisGotSection::updateAllocSize() {
+  PageEntriesNum = 0;
+  for (std::pair<const OutputSection *, size_t> &P : PageIndexMap) {
+    // For each output section referenced by GOT page relocations calculate
+    // and save into PageIndexMap an upper bound of MAXIS GOT entries required
+    // to store page addresses of local symbols. We assume the worst case -
+    // each 64kb page of the output section has at least one GOT relocation
+    // against it. And take in account the case when the section intersects
+    // page boundaries.
+    P.second = PageEntriesNum;
+    PageEntriesNum += getMaxisPageCount(P.first->Size);
+  }
+  Size = (getLocalEntriesNum() + GlobalEntries.size() + TlsEntries.size()) *
+         Config->Wordsize;
+  return false;
+}
+
+bool MaxisGotSection::empty() const {
+  // We add the .got section to the result for dynamic MAXIS target because
+  // its address and properties are mentioned in the .dynamic section.
+  return Config->Relocatable;
+}
+
+uint64_t MaxisGotSection::getGp() const { return ElfSym::MaxisGp->getVA(0); }
+
+void MaxisGotSection::writeTo(uint8_t *Buf) {
+  // Set the MSB of the second GOT slot. This is not required by any
+  // MAXIS ABI documentation, though.
+  //
+  // There is a comment in glibc saying that "The MSB of got[1] of a
+  // gnu object is set to identify gnu objects," and in GNU gold it
+  // says "the second entry will be used by some runtime loaders".
+  // But how this field is being used is unclear.
+  //
+  // We are not really willing to mimic other linkers behaviors
+  // without understanding why they do that, but because all files
+  // generated by GNU tools have this special GOT value, and because
+  // we've been doing this for years, it is probably a safe bet to
+  // keep doing this for now. We really need to revisit this to see
+  // if we had to do this.
+  writeUint(Buf + Config->Wordsize, (uint64_t)1 << (Config->Wordsize * 8 - 1));
+  Buf += HeaderEntriesNum * Config->Wordsize;
+  // Write 'page address' entries to the local part of the GOT.
+  for (std::pair<const OutputSection *, size_t> &L : PageIndexMap) {
+    size_t PageCount = getMaxisPageCount(L.first->Size);
+    uint64_t FirstPageAddr = getMaxisPageAddr(L.first->Addr);
+    for (size_t PI = 0; PI < PageCount; ++PI) {
+      uint8_t *Entry = Buf + (L.second + PI) * Config->Wordsize;
+      writeUint(Entry, FirstPageAddr + PI * 0x10000);
+    }
+  }
+  Buf += PageEntriesNum * Config->Wordsize;
+  auto AddEntry = [&](const GotEntry &SA) {
+    uint8_t *Entry = Buf;
+    Buf += Config->Wordsize;
+    const Symbol *Sym = SA.first;
+    uint64_t VA = Sym->getVA(SA.second);
+    if (Sym->StOther & STO_MAXIS_MICROMAXIS)
+      VA |= 1;
+    writeUint(Entry, VA);
+  };
+  std::for_each(std::begin(LocalEntries), std::end(LocalEntries), AddEntry);
+  std::for_each(std::begin(LocalEntries32), std::end(LocalEntries32), AddEntry);
+  std::for_each(std::begin(GlobalEntries), std::end(GlobalEntries), AddEntry);
+  // Initialize TLS-related GOT entries. If the entry has a corresponding
+  // dynamic relocations, leave it initialized by zero. Write down adjusted
+  // TLS symbol's values otherwise. To calculate the adjustments use offsets
+  // for thread-local storage.
+  // https://www.linux-maxis.org/wiki/NPTL
+  if (TlsIndexOff != -1U && !Config->Pic)
+    writeUint(Buf + TlsIndexOff, 1);
+  for (const Symbol *B : TlsEntries) {
+    if (!B || B->IsPreemptible)
+      continue;
+    uint64_t VA = B->getVA();
+    if (B->GotIndex != -1U) {
+      uint8_t *Entry = Buf + B->GotIndex * Config->Wordsize;
+      writeUint(Entry, VA - 0x7000);
+    }
+    if (B->GlobalDynIndex != -1U) {
+      uint8_t *Entry = Buf + B->GlobalDynIndex * Config->Wordsize;
+      writeUint(Entry, 1);
+      Entry += Config->Wordsize;
+      writeUint(Entry, VA - 0x8000);
+    }
+  }
+}
+
 MipsGotSection::MipsGotSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE | SHF_MIPS_GPREL, SHT_PROGBITS, 16,
                        ".got") {}
+
 
 void MipsGotSection::addEntry(Symbol &Sym, int64_t Addend, RelExpr Expr) {
   // For "true" local symbols which can be referenced from the same module
@@ -966,11 +1375,11 @@ DynamicSection<ELFT>::DynamicSection()
                        ".dynamic") {
   this->Entsize = ELFT::Is64Bits ? 16 : 8;
 
-  // .dynamic section is not writable on MIPS and on Fuchsia OS
+  // .dynamic section is not writable on MAXIS/MIPS and on Fuchsia OS
   // which passes -z rodynamic.
   // See "Special Section" in Chapter 4 in the following document:
   // ftp://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
-  if (Config->EMachine == EM_MIPS || Config->ZRodynamic)
+  if (Config->EMachine == EM_MAXIS || Config->EMachine == EM_MIPS || Config->ZRodynamic)
     this->Flags = SHF_ALLOC;
 
   // Add strings to .dynstr early so that .dynstr's size will be
@@ -1072,10 +1481,10 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
     addInt(IsRela ? DT_RELAENT : DT_RELENT,
            IsRela ? sizeof(Elf_Rela) : sizeof(Elf_Rel));
 
-    // MIPS dynamic loader does not support RELCOUNT tag.
+    // MAXIS/MIPS dynamic loader does not support RELCOUNT tag.
     // The problem is in the tight relation between dynamic
-    // relocations and GOT. So do not emit this tag on MIPS.
-    if (Config->EMachine != EM_MIPS) {
+    // relocations and GOT. So do not emit this tag on MAXIS/MIPS.
+    if (Config->EMachine != EM_MAXIS && Config->EMachine != EM_MIPS) {
       size_t NumRelativeRels = InX::RelaDyn->getRelativeRelocCount();
       if (Config->ZCombreloc && NumRelativeRels)
         addInt(IsRela ? DT_RELACOUNT : DT_RELCOUNT, NumRelativeRels);
@@ -1091,6 +1500,9 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
     addInSec(DT_JMPREL, InX::RelaPlt);
     addSize(DT_PLTRELSZ, InX::RelaPlt->getParent());
     switch (Config->EMachine) {
+    case EM_MAXIS:
+      addInSec(DT_MAXIS_PLTGOT, InX::GotPlt);
+      break;
     case EM_MIPS:
       addInSec(DT_MIPS_PLTGOT, InX::GotPlt);
       break;
@@ -1147,7 +1559,22 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
     addInt(DT_VERNEEDNUM, In<ELFT>::VerNeed->getNeedNum());
   }
 
-  if (Config->EMachine == EM_MIPS) {
+  if (Config->EMachine == EM_MAXIS) {
+    addInt(DT_MAXIS_RLD_VERSION, 1);
+    addInt(DT_MAXIS_FLAGS, RHF_NOTPOT);
+    addInt(DT_MAXIS_BASE_ADDRESS, Target->getImageBase());
+    addInt(DT_MAXIS_SYMTABNO, InX::DynSymTab->getNumSymbols());
+
+    add(DT_MAXIS_LOCAL_GOTNO, [] { return InX::MaxisGot->getLocalEntriesNum(); });
+
+    if (const Symbol *B = InX::MaxisGot->getFirstGlobalEntry())
+      addInt(DT_MAXIS_GOTSYM, B->DynsymIndex);
+    else
+      addInt(DT_MAXIS_GOTSYM, InX::DynSymTab->getNumSymbols());
+    addInSec(DT_PLTGOT, InX::MaxisGot);
+    if (InX::MaxisRldMap)
+      addInSec(DT_MAXIS_RLD_MAP, InX::MaxisRldMap);
+  } else if (Config->EMachine == EM_MIPS) {
     addInt(DT_MIPS_RLD_VERSION, 1);
     addInt(DT_MIPS_FLAGS, RHF_NOTPOT);
     addInt(DT_MIPS_BASE_ADDRESS, Target->getImageBase());
@@ -1224,7 +1651,18 @@ static void encodeDynamicReloc(typename ELFT::Rela *P,
   if (Config->IsRela)
     P->r_addend = Rel.getAddend();
   P->r_offset = Rel.getOffset();
-  if (Config->EMachine == EM_MIPS && Rel.getInputSec() == InX::MipsGot)
+  if (Config->EMachine == EM_MAXIS && Rel.getInputSec() == InX::MaxisGot)
+    // The MAXIS GOT section contains dynamic relocations that correspond to TLS
+    // entries. These entries are placed after the global and local sections of
+    // the GOT. At the point when we create these relocations, the size of the
+    // global and local sections is unknown, so the offset that we store in the
+    // TLS entry's DynamicReloc is relative to the start of the TLS section of
+    // the GOT, rather than being relative to the start of the GOT. This line of
+    // code adds the size of the global and local sections to the virtual
+    // address computed by getOffset() in order to adjust it into the TLS
+    // section.
+    P->r_offset += InX::MaxisGot->getTlsOffset();
+  else if (Config->EMachine == EM_MIPS && Rel.getInputSec() == InX::MipsGot)
     // The MIPS GOT section contains dynamic relocations that correspond to TLS
     // entries. These entries are placed after the global and local sections of
     // the GOT. At the point when we create these relocations, the size of the
@@ -1235,7 +1673,12 @@ static void encodeDynamicReloc(typename ELFT::Rela *P,
     // address computed by getOffset() in order to adjust it into the TLS
     // section.
     P->r_offset += InX::MipsGot->getTlsOffset();
-  P->setSymbolAndType(Rel.getSymIndex(), Rel.Type, Config->IsMips64EL);
+
+  if (Config->EMachine == EM_MAXIS) {
+    P->setSymbolAndType(Rel.getSymIndex(), Rel.Type, Config->IsMaxis64EL);
+  } else {
+    P->setSymbolAndType(Rel.getSymIndex(), Rel.Type, Config->IsMips64EL);
+  }
 }
 
 template <class ELFT>
@@ -1249,12 +1692,23 @@ RelocationSection<ELFT>::RelocationSection(StringRef Name, bool Sort)
 
 template <class ELFT, class RelTy>
 static bool compRelocations(const RelTy &A, const RelTy &B) {
-  bool AIsRel = A.getType(Config->IsMips64EL) == Target->RelativeRel;
-  bool BIsRel = B.getType(Config->IsMips64EL) == Target->RelativeRel;
+  bool AIsRel;
+  bool BIsRel;
+  if (Config->EMachine == EM_MAXIS) {
+    AIsRel = A.getType(Config->IsMaxis64EL) == Target->RelativeRel;
+    BIsRel = B.getType(Config->IsMaxis64EL) == Target->RelativeRel;
+  } else {
+    AIsRel = A.getType(Config->IsMips64EL) == Target->RelativeRel;
+    BIsRel = B.getType(Config->IsMips64EL) == Target->RelativeRel;
+  }
   if (AIsRel != BIsRel)
     return AIsRel;
 
-  return A.getSymbol(Config->IsMips64EL) < B.getSymbol(Config->IsMips64EL);
+  if (Config->EMachine == EM_MAXIS) {
+    return A.getSymbol(Config->IsMaxis64EL) < B.getSymbol(Config->IsMaxis64EL);
+  } else {
+    return A.getSymbol(Config->IsMips64EL) < B.getSymbol(Config->IsMips64EL);
+  }
 }
 
 template <class ELFT> void RelocationSection<ELFT>::writeTo(uint8_t *Buf) {
@@ -1354,7 +1808,8 @@ bool AndroidPackedRelocationSection<ELFT>::updateAllocSize() {
     Elf_Rela R;
     encodeDynamicReloc<ELFT>(&R, Rel);
 
-    if (R.getType(Config->IsMips64EL) == Target->RelativeRel)
+    if (R.getType(Config->IsMaxis64EL) == Target->RelativeRel
+        || R.getType(Config->IsMips64EL) == Target->RelativeRel)
       Relatives.push_back(R);
     else
       NonRelatives.push_back(R);
@@ -1475,6 +1930,22 @@ SymbolTableBaseSection::SymbolTableBaseSection(StringTableSection &StrTabSec)
       StrTabSec(StrTabSec) {}
 
 // Orders symbols according to their positions in the GOT,
+// in compliance with MAXIS ABI rules.
+// See "Global Offset Table" in Chapter 5 in the following document
+// for detailed description:
+// ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
+static bool sortMaxisSymbols(const SymbolTableEntry &L,
+                            const SymbolTableEntry &R) {
+  // Sort entries related to non-local preemptible symbols by GOT indexes.
+  // All other entries go to the first part of GOT in arbitrary order.
+  bool LIsInLocalGot = !L.Sym->IsInGlobalMaxisGot;
+  bool RIsInLocalGot = !R.Sym->IsInGlobalMaxisGot;
+  if (LIsInLocalGot || RIsInLocalGot)
+    return !RIsInLocalGot;
+  return L.Sym->GotIndex < R.Sym->GotIndex;
+}
+
+// Orders symbols according to their positions in the GOT,
 // in compliance with MIPS ABI rules.
 // See "Global Offset Table" in Chapter 5 in the following document
 // for detailed description:
@@ -1503,6 +1974,8 @@ void SymbolTableBaseSection::finalizeContents() {
     if (InX::GnuHashTab) {
       // NB: It also sorts Symbols to meet the GNU hash table requirements.
       InX::GnuHashTab->addSymbols(Symbols);
+    } else if (Config->EMachine == EM_MAXIS) {
+      std::stable_sort(Symbols.begin(), Symbols.end(), sortMaxisSymbols);
     } else if (Config->EMachine == EM_MIPS) {
       std::stable_sort(Symbols.begin(), Symbols.end(), sortMipsSymbols);
     }
@@ -1620,11 +2093,39 @@ template <class ELFT> void SymbolTableSection<ELFT>::writeTo(uint8_t *Buf) {
     ++ESym;
   }
 
+  // On MAXIS we need to mark symbol which has a PLT entry and requires
+  // pointer equality by STO_MAXIS_PLT flag. That is necessary to help
+  // dynamic linker distinguish such symbols and MAXIS lazy-binding stubs.
+  // https://sourceware.org/ml/binutils/2008-07/txt00000.txt
+  if (Config->EMachine == EM_MAXIS) {
+    auto *ESym = reinterpret_cast<Elf_Sym *>(Buf);
+
+    for (SymbolTableEntry &Ent : Symbols) {
+      Symbol *Sym = Ent.Sym;
+      if (Sym->isInPlt() && Sym->NeedsPltAddr)
+        ESym->st_other |= STO_MAXIS_PLT;
+      if (isMicroMaxis()) {
+        // Set STO_MAXIS_MICROMAXIS flag and less-significant bit for
+        // defined microMAXIS symbols and shared symbols with PLT record.
+        if ((Sym->isDefined() && (Sym->StOther & STO_MAXIS_MICROMAXIS)) ||
+            (Sym->isShared() && Sym->NeedsPltAddr)) {
+          if (StrTabSec.isDynamic())
+            ESym->st_value |= 1;
+          ESym->st_other |= STO_MAXIS_MICROMAXIS;
+        }
+      }
+      if (Config->Relocatable)
+        if (auto *D = dyn_cast<Defined>(Sym))
+          if (isMaxisPIC<ELFT>(D))
+            ESym->st_other |= STO_MAXIS_PIC;
+      ++ESym;
+    }
+  }
   // On MIPS we need to mark symbol which has a PLT entry and requires
   // pointer equality by STO_MIPS_PLT flag. That is necessary to help
   // dynamic linker distinguish such symbols and MIPS lazy-binding stubs.
   // https://sourceware.org/ml/binutils/2008-07/txt00000.txt
-  if (Config->EMachine == EM_MIPS) {
+  else if (Config->EMachine == EM_MIPS) {
     auto *ESym = reinterpret_cast<Elf_Sym *>(Buf);
 
     for (SymbolTableEntry &Ent : Symbols) {
@@ -2545,6 +3046,10 @@ void elf::mergeSections() {
   V.erase(std::remove(V.begin(), V.end(), nullptr), V.end());
 }
 
+MaxisRldMapSection::MaxisRldMapSection()
+    : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_PROGBITS, Config->Wordsize,
+                       ".rld_map") {}
+
 MipsRldMapSection::MipsRldMapSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_PROGBITS, Config->Wordsize,
                        ".rld_map") {}
@@ -2622,6 +3127,8 @@ GotPltSection *InX::GotPlt;
 GnuHashTableSection *InX::GnuHashTab;
 HashTableSection *InX::HashTab;
 IgotPltSection *InX::IgotPlt;
+MaxisGotSection *InX::MaxisGot;
+MaxisRldMapSection *InX::MaxisRldMap;
 MipsGotSection *InX::MipsGot;
 MipsRldMapSection *InX::MipsRldMap;
 PltSection *InX::Plt;
@@ -2647,6 +3154,21 @@ template void PltSection::addEntry<ELF32LE>(Symbol &Sym);
 template void PltSection::addEntry<ELF32BE>(Symbol &Sym);
 template void PltSection::addEntry<ELF64LE>(Symbol &Sym);
 template void PltSection::addEntry<ELF64BE>(Symbol &Sym);
+
+template class elf::MaxisAbiFlagsSection<ELF32LE>;
+template class elf::MaxisAbiFlagsSection<ELF32BE>;
+template class elf::MaxisAbiFlagsSection<ELF64LE>;
+template class elf::MaxisAbiFlagsSection<ELF64BE>;
+
+template class elf::MaxisOptionsSection<ELF32LE>;
+template class elf::MaxisOptionsSection<ELF32BE>;
+template class elf::MaxisOptionsSection<ELF64LE>;
+template class elf::MaxisOptionsSection<ELF64BE>;
+
+template class elf::MaxisReginfoSection<ELF32LE>;
+template class elf::MaxisReginfoSection<ELF32BE>;
+template class elf::MaxisReginfoSection<ELF64LE>;
+template class elf::MaxisReginfoSection<ELF64BE>;
 
 template class elf::MipsAbiFlagsSection<ELF32LE>;
 template class elf::MipsAbiFlagsSection<ELF32BE>;

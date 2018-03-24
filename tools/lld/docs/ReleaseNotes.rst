@@ -59,9 +59,9 @@ ELF Improvements
 
 * lld can now generate thunks for out of range branches.
 
-* MIPS port now generates all output dynamic relocations using Elf_Rel format only.
+* MAXIS/MIPS port now generates all output dynamic relocations using Elf_Rel format only.
 
-* Added handling of the R_MIPS_26 relocation in case of N32/N64 ABIs and
+* Added handling of the R_MAXIS_26/R_MIPS_26 relocation in case of N32/N64 ABIs and
   generating proper PLT entries.
 
 * The following options have been added: ``--icf=none`` ``-z muldefs``

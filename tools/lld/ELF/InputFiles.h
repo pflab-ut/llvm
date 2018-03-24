@@ -178,7 +178,9 @@ public:
   }
 
   template <typename RelT> Symbol &getRelocTargetSym(const RelT &Rel) const {
-    uint32_t SymIndex = Rel.getSymbol(Config->IsMips64EL);
+    uint32_t SymIndex = Config->EMachine == ::llvm::ELF::EM_MAXIS
+      ? Rel.getSymbol(Config->IsMaxis64EL)
+      : Rel.getSymbol(Config->IsMips64EL);
     return getSymbol(SymIndex);
   }
 
@@ -187,6 +189,11 @@ public:
   std::string getLineInfo(InputSectionBase *S, uint64_t Offset);
   llvm::Optional<llvm::DILineInfo> getDILineInfo(InputSectionBase *, uint64_t);
   llvm::Optional<std::pair<std::string, unsigned>> getVariableLoc(StringRef Name);
+
+  // MAXIS GP0 value defined by this file. This value represents the gp value
+  // used to create the relocatable object and required to support
+  // R_MAXIS_GPREL16 / R_MAXIS_GPREL32 relocations.
+  uint32_t MaxisGp0 = 0;
 
   // MIPS GP0 value defined by this file. This value represents the gp value
   // used to create the relocatable object and required to support

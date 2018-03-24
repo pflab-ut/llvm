@@ -66,7 +66,9 @@ LLDDwarfObj<ELFT>::findAux(const InputSectionBase &Sec, uint64_t Pos,
   const RelTy &Rel = *It;
 
   const ObjFile<ELFT> *File = Sec.getFile<ELFT>();
-  uint32_t SymIndex = Rel.getSymbol(Config->IsMips64EL);
+  uint32_t SymIndex = Config->EMachine == llvm::ELF::EM_MAXIS
+    ? Rel.getSymbol(Config->IsMaxis64EL)
+    : Rel.getSymbol(Config->IsMips64EL);
   const typename ELFT::Sym &Sym = File->getELFSyms()[SymIndex];
   uint32_t SecIndex = File->getSectionIndex(Sym);
 
