@@ -2067,16 +2067,14 @@ def BLTZL   : MMRel, CBranchZeroLikely<"bltzl", brtarget, GPR32Opnd>,
 def B       : UncondBranch<BEQ, brtarget>,
               AdditionalRequires<[NotInMicroMaxis]>;
 
-def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<0x4>;
+def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<3>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def JALR : JumpLinkReg<"jalr", GPR32Opnd>, JALR_FM;
   def JALRPseudo : JumpLinkRegPseudo<GPR32Opnd, JALR, RA>;
 }
 
-/*
 def JALX : MMRel, JumpLink<"jalx", calltarget>, FJ<0x1D>,
            ISA_MAXIS32_NOT_32R6_64R6;
-*/           
 def BGEZAL : MMRel, BGEZAL_FT<"bgezal", brtarget, GPR32Opnd>, BGEZAL_FM<0x11>,
              ISA_MAXIS1_NOT_32R6_64R6;
 def BGEZALL : MMRel, BGEZAL_FT<"bgezall", brtarget, GPR32Opnd>,
