@@ -90,8 +90,8 @@ unsigned MaxisABIInfo::GetPtrAdduOp() const {
   return ArePtrs64bit() ? Maxis::DADDu : Maxis::ADDu;
 }
 
-unsigned MaxisABIInfo::GetPtrAddiuOp() const {
-  return ArePtrs64bit() ? Maxis::DADDiu : Maxis::ADDiu;
+unsigned MaxisABIInfo::GetPtrAddiOp() const {
+  return ArePtrs64bit() ? Maxis::DADDiu : Maxis::ADDi;
 }
 
 unsigned MaxisABIInfo::GetPtrSubuOp() const {

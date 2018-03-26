@@ -287,7 +287,7 @@ static void assureFPCallStub(Function &F, Module *M,
     AsmText += "jal " + Name + "\n";
   } else {
     AsmText += "lui  $$25, %hi(" + Name + ")\n";
-    AsmText += "addiu  $$25, $$25, %lo(" + Name + ")\n";
+    AsmText += "addi  $$25, $$25, %lo(" + Name + ")\n";
   }
 
   switch (RV) {

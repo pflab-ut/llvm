@@ -125,7 +125,7 @@ def MaxisDivRemU16 : SDNode<"MaxisISD::DivRemU16", SDT_MaxisDivRem16,
 // Target constant nodes that are not part of any isel patterns and remain
 // unchanged can cause instructions with illegal operands to be emitted.
 // Wrapper node patterns give the instruction selector a chance to replace
-// target constant nodes that would otherwise remain unchanged with ADDiu
+// target constant nodes that would otherwise remain unchanged with ADDi
 // nodes. Without these wrapper node patterns, the following conditional move
 // instruction is emitted when function cmov2 in test/CodeGen/Maxis/cmov.ll is
 // compiled:
@@ -1166,7 +1166,7 @@ def immZExt7 : PatLeaf<(imm), [{ return isUInt<7>(N->getZExtValue()); }]>;
 // Node immediate fits as 16-bit zero extended on target immediate.
 // The LO16 param means that only the lower 16 bits of the node
 // immediate are caught.
-// e.g. addiu, sltiu
+// e.g. addi, sltiu
 def immZExt16  : PatLeaf<(imm), [{
   if (N->getValueType(0) == MVT::i32)
     return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
@@ -1677,7 +1677,7 @@ class MoveToLOHI<string opstr, RegisterOperand RO, list<Register> DefRegs>:
 
 class EffectiveAddress<string opstr, RegisterOperand RO> :
   InstSE<(outs RO:$rt), (ins mem_ea:$addr), !strconcat(opstr, "\t$rt, $addr"),
-         [(set RO:$rt, addr:$addr)], II_ADDIU, FrmI,
+         [(set RO:$rt, addr:$addr)], II_ADDI, FrmI,
          !strconcat(opstr, "_lea")> {
   let isCodeGenOnly = 1;
   let hasNoSchedulingInfo = 1;
@@ -1841,8 +1841,8 @@ let isPseudo = 1, isCodeGenOnly = 1, hasNoSchedulingInfo = 1 in {
 def LONG_BRANCH_LUi : PseudoSE<(outs GPR32Opnd:$dst),
   (ins brtarget:$tgt, brtarget:$baltgt), []>;
 
-// Expands to: addiu $dst, $src, %lo($tgt - $baltgt)
-def LONG_BRANCH_ADDiu : PseudoSE<(outs GPR32Opnd:$dst),
+// Expands to: addi $dst, $src, %lo($tgt - $baltgt)
+def LONG_BRANCH_ADDi : PseudoSE<(outs GPR32Opnd:$dst),
   (ins GPR32Opnd:$src, brtarget:$tgt, brtarget:$baltgt), []>;
 
 //===----------------------------------------------------------------------===//
@@ -1854,10 +1854,6 @@ def LONG_BRANCH_ADDiu : PseudoSE<(outs GPR32Opnd:$dst),
 
 /// Arithmetic Instructions (ALU Immediate)
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def ADDiu : MMRel, StdMMR6Rel, ArithLogicI<"addiu", simm16_relaxed, GPR32Opnd,
-                                             II_ADDIU, immSExt16, add>,
-              ADDI_FM<0x9>, IsAsCheapAsAMove;
-
   def ANDi : MMRel, StdMMR6Rel,
              ArithLogicI<"andi", uimm16, GPR32Opnd, II_ANDI, immZExt16, and>,
              ADDI_FM<0x1c>;
@@ -2196,7 +2192,7 @@ def NOP : PseudoSE<(outs), (ins), []>, PseudoInstExpansion<(SLL ZERO, ZERO, 0)>;
 // instructions. The same not happens for stack address copies, so an
 // add op with mem ComplexPattern is used and the stack address copy
 // can be matched. It's similar to Sparc LEA_ADDRi
-def LEA_ADDiu : MMRel, EffectiveAddress<"addiu", GPR32Opnd>, LW_FM<9>;
+def LEA_ADDi : MMRel, EffectiveAddress<"addi", GPR32Opnd>, LW_FM<9>;
 
 // MADD*/MSUB*
 def MADD  : MMRel, MArithR<"madd", II_MADD, 1>, MULT_FM<0x1c, 0>,
@@ -2467,7 +2463,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"add", ADDi>, ISA_MAXIS1_NOT_32R6_64R6;
 
-  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDiu>;
+  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDi>;
 
   defm : OneOrTwoOperandMacroImmediateAlias<"and", ANDi>, GPR_32;
 
@@ -2525,9 +2521,9 @@ def : MaxisInstAlias<"sub $rs, $imm",
                     (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs, InvertedImOperand:$imm),
                     0>, ISA_MAXIS1_NOT_32R6_64R6;
 def : MaxisInstAlias<"subu, $rd, $rs, $imm",
-                    (ADDiu GPR32Opnd:$rd, GPR32Opnd:$rs,
+                    (ADDi GPR32Opnd:$rd, GPR32Opnd:$rs,
                            InvertedImOperand:$imm), 0>;
-def : MaxisInstAlias<"subu $rs, $imm", (ADDiu GPR32Opnd:$rs, GPR32Opnd:$rs,
+def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
                                              InvertedImOperand:$imm), 0>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"sll $rd, $rt, $rs",
@@ -2729,7 +2725,7 @@ class StoreRegImmPat<Instruction StoreInst, ValueType ValTy> :
 
 // Materialize constants.
 multiclass MaterializeImms<ValueType VT, Register ZEROReg,
-                           Instruction ADDiuOp, Instruction LUiOp,
+                           Instruction ADDiOp, Instruction LUiOp,
                            Instruction ORiOp> {
 
 // Constant synthesis previously relied on the ordering of the patterns below.
@@ -2745,11 +2741,11 @@ def : MaxisPat<(VT LUiPred:$imm), (LUiOp (HI16 imm:$imm))>;
 
 // Small immediates
 def : MaxisPat<(VT ORiPred:$imm), (ORiOp ZEROReg, imm:$imm)>;
-def : MaxisPat<(VT immSExt16:$imm), (ADDiuOp ZEROReg, imm:$imm)>;
+def : MaxisPat<(VT immSExt16:$imm), (ADDiOp ZEROReg, imm:$imm)>;
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in
-  defm : MaterializeImms<i32, ZERO, ADDiu, LUi, ORi>;
+  defm : MaterializeImms<i32, ZERO, ADDi, LUi, ORi>;
 
 // Carry MaxisPatterns
 let AdditionalPredicates = [NotInMicroMaxis] in {
@@ -2759,7 +2755,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 def : MaxisPat<(addc GPR32:$lhs, GPR32:$rhs),
               (ADDu GPR32:$lhs, GPR32:$rhs)>, ASE_NOT_DSP;
 def : MaxisPat<(addc  GPR32:$src, immSExt16:$imm),
-              (ADDiu GPR32:$src, imm:$imm)>, ASE_NOT_DSP;
+              (ADDi GPR32:$src, imm:$imm)>, ASE_NOT_DSP;
 
 // Support multiplication for pre-Maxis32 targets that don't have
 // the MUL instruction.
@@ -2785,7 +2781,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                 (TAILCALL texternalsym:$dst)>;
 }
 // hi/lo relocs
-multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addiu,
+multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addi,
                           Register ZeroReg, RegisterOperand GPROpnd> {
   def : MaxisPat<(MaxisHi tglobaladdr:$in), (Lui tglobaladdr:$in)>;
   def : MaxisPat<(MaxisHi tblockaddress:$in), (Lui tblockaddress:$in)>;
@@ -2794,49 +2790,49 @@ multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addiu,
   def : MaxisPat<(MaxisHi tglobaltlsaddr:$in), (Lui tglobaltlsaddr:$in)>;
   def : MaxisPat<(MaxisHi texternalsym:$in), (Lui texternalsym:$in)>;
 
-  def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addiu ZeroReg, tglobaladdr:$in)>;
+  def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addi ZeroReg, tglobaladdr:$in)>;
   def : MaxisPat<(MaxisLo tblockaddress:$in),
-                (Addiu ZeroReg, tblockaddress:$in)>;
-  def : MaxisPat<(MaxisLo tjumptable:$in), (Addiu ZeroReg, tjumptable:$in)>;
-  def : MaxisPat<(MaxisLo tconstpool:$in), (Addiu ZeroReg, tconstpool:$in)>;
+                (Addi ZeroReg, tblockaddress:$in)>;
+  def : MaxisPat<(MaxisLo tjumptable:$in), (Addi ZeroReg, tjumptable:$in)>;
+  def : MaxisPat<(MaxisLo tconstpool:$in), (Addi ZeroReg, tconstpool:$in)>;
   def : MaxisPat<(MaxisLo tglobaltlsaddr:$in),
-                (Addiu ZeroReg, tglobaltlsaddr:$in)>;
-  def : MaxisPat<(MaxisLo texternalsym:$in), (Addiu ZeroReg, texternalsym:$in)>;
+                (Addi ZeroReg, tglobaltlsaddr:$in)>;
+  def : MaxisPat<(MaxisLo texternalsym:$in), (Addi ZeroReg, texternalsym:$in)>;
 
   def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tglobaladdr:$lo)),
-              (Addiu GPROpnd:$hi, tglobaladdr:$lo)>;
+              (Addi GPROpnd:$hi, tglobaladdr:$lo)>;
   def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tblockaddress:$lo)),
-              (Addiu GPROpnd:$hi, tblockaddress:$lo)>;
+              (Addi GPROpnd:$hi, tblockaddress:$lo)>;
   def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tjumptable:$lo)),
-              (Addiu GPROpnd:$hi, tjumptable:$lo)>;
+              (Addi GPROpnd:$hi, tjumptable:$lo)>;
   def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tconstpool:$lo)),
-              (Addiu GPROpnd:$hi, tconstpool:$lo)>;
+              (Addi GPROpnd:$hi, tconstpool:$lo)>;
   def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tglobaltlsaddr:$lo)),
-              (Addiu GPROpnd:$hi, tglobaltlsaddr:$lo)>;
+              (Addi GPROpnd:$hi, tglobaltlsaddr:$lo)>;
 }
 
-defm : MaxisHiLoRelocs<LUi, ADDiu, ZERO, GPR32Opnd>;
+defm : MaxisHiLoRelocs<LUi, ADDi, ZERO, GPR32Opnd>;
 
 def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
 def : MaxisPat<(MaxisGotHi texternalsym:$in), (LUi texternalsym:$in)>;
 
 // gp_rel relocs
 def : MaxisPat<(add GPR32:$gp, (MaxisGPRel tglobaladdr:$in)),
-              (ADDiu GPR32:$gp, tglobaladdr:$in)>, ABI_NOT_N64;
+              (ADDi GPR32:$gp, tglobaladdr:$in)>, ABI_NOT_N64;
 def : MaxisPat<(add GPR32:$gp, (MaxisGPRel tconstpool:$in)),
-              (ADDiu GPR32:$gp, tconstpool:$in)>, ABI_NOT_N64;
+              (ADDi GPR32:$gp, tconstpool:$in)>, ABI_NOT_N64;
 
 // wrapper_pic
-class WrapperPat<SDNode node, Instruction ADDiuOp, RegisterClass RC>:
+class WrapperPat<SDNode node, Instruction ADDiOp, RegisterClass RC>:
       MaxisPat<(MaxisWrapper RC:$gp, node:$in),
-              (ADDiuOp RC:$gp, node:$in)>;
+              (ADDiOp RC:$gp, node:$in)>;
 
-def : WrapperPat<tglobaladdr, ADDiu, GPR32>;
-def : WrapperPat<tconstpool, ADDiu, GPR32>;
-def : WrapperPat<texternalsym, ADDiu, GPR32>;
-def : WrapperPat<tblockaddress, ADDiu, GPR32>;
-def : WrapperPat<tjumptable, ADDiu, GPR32>;
-def : WrapperPat<tglobaltlsaddr, ADDiu, GPR32>;
+def : WrapperPat<tglobaladdr, ADDi, GPR32>;
+def : WrapperPat<tconstpool, ADDi, GPR32>;
+def : WrapperPat<texternalsym, ADDi, GPR32>;
+def : WrapperPat<tblockaddress, ADDi, GPR32>;
+def : WrapperPat<tjumptable, ADDi, GPR32>;
+def : WrapperPat<tglobaltlsaddr, ADDi, GPR32>;
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
 // Maxis does not have "not", so we expand our way

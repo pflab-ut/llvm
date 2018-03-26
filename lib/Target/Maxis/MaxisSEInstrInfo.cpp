@@ -468,14 +468,14 @@ void MaxisSEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
                                      MachineBasicBlock::iterator I) const {
   MaxisABIInfo ABI = Subtarget.getABI();
   DebugLoc DL;
-  unsigned ADDiu = ABI.GetPtrAddiuOp();
+  unsigned ADDi = ABI.GetPtrAddiOp();
 
   if (Amount == 0)
     return;
 
   if (isInt<16>(Amount)) {
     // addi sp, sp, amount
-    BuildMI(MBB, I, DL, get(ADDiu), SP).addReg(SP).addImm(Amount);
+    BuildMI(MBB, I, DL, get(ADDi), SP).addReg(SP).addImm(Amount);
   } else {
     // For numbers which are not 16bit integers we synthesize Amount inline
     // then add or subtract it from sp.
@@ -503,16 +503,16 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
   unsigned ZEROReg = STI.isABI_N64() ? Maxis::ZERO_64 : Maxis::ZERO;
   const TargetRegisterClass *RC = STI.isABI_N64() ?
     &Maxis::GPR64RegClass : &Maxis::GPR32RegClass;
-  bool LastInstrIsADDiu = NewImm;
+  bool LastInstrIsADDi = NewImm;
 
   const MaxisAnalyzeImmediate::InstSeq &Seq =
-    AnalyzeImm.Analyze(Imm, Size, LastInstrIsADDiu);
+    AnalyzeImm.Analyze(Imm, Size, LastInstrIsADDi);
   MaxisAnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
 
-  assert(Seq.size() && (!LastInstrIsADDiu || (Seq.size() > 1)));
+  assert(Seq.size() && (!LastInstrIsADDi || (Seq.size() > 1)));
 
   // The first instruction can be a LUi, which is different from other
-  // instructions (ADDiu, ORI and SLL) in that it does not have a register
+  // instructions (ADDi, ORI and SLL) in that it does not have a register
   // operand.
   unsigned Reg = RegInfo.createVirtualRegister(RC);
 
@@ -523,11 +523,11 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   // Build the remaining instructions in Seq.
-  for (++Inst; Inst != Seq.end() - LastInstrIsADDiu; ++Inst)
+  for (++Inst; Inst != Seq.end() - LastInstrIsADDi; ++Inst)
     BuildMI(MBB, II, DL, get(Inst->Opc), Reg).addReg(Reg, RegState::Kill)
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
-  if (LastInstrIsADDiu)
+  if (LastInstrIsADDi)
     *NewImm = Inst->ImmOpnd;
 
   return Reg;

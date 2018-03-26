@@ -410,7 +410,7 @@ void MaxisSEFrameLowering::emitPrologue(MachineFunction &MF,
   unsigned FP = ABI.GetFramePtr();
   unsigned ZERO = ABI.GetNullPtr();
   unsigned MOVE = ABI.GetGPRMoveOp();
-  unsigned ADDiu = ABI.GetPtrAddiuOp();
+  unsigned ADDi = ABI.GetPtrAddiOp();
   unsigned AND = ABI.IsN64() ? Maxis::AND64 : Maxis::AND;
 
   const TargetRegisterClass *RC = ABI.ArePtrs64bit() ?
@@ -531,14 +531,14 @@ void MaxisSEFrameLowering::emitPrologue(MachineFunction &MF,
         .addCFIIndex(CFIIndex);
 
     if (RegInfo.needsStackRealignment(MF)) {
-      // addiu $Reg, $zero, -MaxAlignment
+      // addi $Reg, $zero, -MaxAlignment
       // andi $sp, $sp, $Reg
       unsigned VR = MF.getRegInfo().createVirtualRegister(RC);
       assert(isInt<16>(MFI.getMaxAlignment()) &&
              "Function's alignment size requirement is not supported.");
       int MaxAlign = -(int)MFI.getMaxAlignment();
 
-      BuildMI(MBB, MBBI, dl, TII.get(ADDiu), VR).addReg(ZERO) .addImm(MaxAlign);
+      BuildMI(MBB, MBBI, dl, TII.get(ADDi), VR).addReg(ZERO) .addImm(MaxAlign);
       BuildMI(MBB, MBBI, dl, TII.get(AND), SP).addReg(SP).addReg(VR);
 
       if (hasBP(MF)) {

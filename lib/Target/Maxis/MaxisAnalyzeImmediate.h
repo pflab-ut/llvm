@@ -25,9 +25,9 @@ namespace llvm {
     using InstSeq = SmallVector<Inst, 7>;
 
     /// Analyze - Get an instruction sequence to load immediate Imm. The last
-    /// instruction in the sequence must be an ADDiu if LastInstrIsADDiu is
+    /// instruction in the sequence must be an ADDi if LastInstrIsADDi is
     /// true;
-    const InstSeq &Analyze(uint64_t Imm, unsigned Size, bool LastInstrIsADDiu);
+    const InstSeq &Analyze(uint64_t Imm, unsigned Size, bool LastInstrIsADDi);
 
   private:
     using InstSeqLs = SmallVector<InstSeq, 5>;
@@ -35,9 +35,9 @@ namespace llvm {
     /// AddInstr - Add I to all instruction sequences in SeqLs.
     void AddInstr(InstSeqLs &SeqLs, const Inst &I);
 
-    /// GetInstSeqLsADDiu - Get instruction sequences which end with an ADDiu to
+    /// GetInstSeqLsADDi - Get instruction sequences which end with an ADDi to
     /// load immediate Imm
-    void GetInstSeqLsADDiu(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
+    void GetInstSeqLsADDi(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
     /// GetInstSeqLsORi - Get instrutcion sequences which end with an ORi to
     /// load immediate Imm
@@ -50,15 +50,15 @@ namespace llvm {
     /// GetInstSeqLs - Get instruction sequences to load immediate Imm.
     void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
-    /// ReplaceADDiuSLLWithLUi - Replace an ADDiu & SLL pair with a LUi.
-    void ReplaceADDiuSLLWithLUi(InstSeq &Seq);
+    /// ReplaceADDiSLLWithLUi - Replace an ADDi & SLL pair with a LUi.
+    void ReplaceADDiSLLWithLUi(InstSeq &Seq);
 
     /// GetShortestSeq - Find the shortest instruction sequence in SeqLs and
     /// return it in Insts.
     void GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts);
 
     unsigned Size;
-    unsigned ADDiu, ORi, SLL, LUi;
+    unsigned ADDi, ORi, SLL, LUi;
     InstSeq Insts;
   };
 

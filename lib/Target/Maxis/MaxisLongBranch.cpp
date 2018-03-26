@@ -290,41 +290,41 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
     if (!ABI.IsN64()) {
       // Pre R6:
       // $longbr:
-      //  addiu $sp, $sp, -8
+      //  addi $sp, $sp, -8
       //  sw $ra, 0($sp)
       //  lui $at, %hi($tgt - $baltgt)
       //  bal $baltgt
-      //  addiu $at, $at, %lo($tgt - $baltgt)
+      //  addi $at, $at, %lo($tgt - $baltgt)
       // $baltgt:
       //  addu $at, $ra, $at
       //  lw $ra, 0($sp)
       //  jr $at
-      //  addiu $sp, $sp, 8
+      //  addi $sp, $sp, 8
       // $fallthrough:
       //
 
       // R6:
       // $longbr:
-      //  addiu $sp, $sp, -8
+      //  addi $sp, $sp, -8
       //  sw $ra, 0($sp)
       //  lui $at, %hi($tgt - $baltgt)
-      //  addiu $at, $at, %lo($tgt - $baltgt)
+      //  addi $at, $at, %lo($tgt - $baltgt)
       //  balc $baltgt
       // $baltgt:
       //  addu $at, $ra, $at
       //  lw $ra, 0($sp)
-      //  addiu $sp, $sp, 8
+      //  addi $sp, $sp, 8
       //  jic $at, 0
       // $fallthrough:
 
       Pos = LongBrMBB->begin();
 
-      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::ADDiu), Maxis::SP)
+      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::ADDi), Maxis::SP)
         .addReg(Maxis::SP).addImm(-8);
       BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::SW)).addReg(Maxis::RA)
         .addReg(Maxis::SP).addImm(0);
 
-      // LUi and ADDiu instructions create 32-bit offset of the target basic
+      // LUi and ADDi instructions create 32-bit offset of the target basic
       // block from the target of BAL(C) instruction.  We cannot use immediate
       // value for this offset because it cannot be determined accurately when
       // the program has inline assembly statements.  We therefore use the
@@ -333,10 +333,10 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //
       // Since we cannot create %hi($tgt-$baltgt) and %lo($tgt-$baltgt)
       // expressions at this point (it is possible only at the MC layer),
-      // we replace LUi and ADDiu with pseudo instructions
-      // LONG_BRANCH_LUi and LONG_BRANCH_ADDiu, and add both basic
+      // we replace LUi and ADDi with pseudo instructions
+      // LONG_BRANCH_LUi and LONG_BRANCH_ADDi, and add both basic
       // blocks as operands to these instructions.  When lowering these pseudo
-      // instructions to LUi and ADDiu in the MC layer, we will create
+      // instructions to LUi and ADDi in the MC layer, we will create
       // %hi($tgt-$baltgt) and %lo($tgt-$baltgt) expressions and add them as
       // operands to lowered instructions.
 
@@ -345,17 +345,17 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
 
       MachineInstrBuilder BalInstr =
           BuildMI(*MF, DL, TII->get(BalOp)).addMBB(BalTgtMBB);
-      MachineInstrBuilder ADDiuInstr =
-          BuildMI(*MF, DL, TII->get(Maxis::LONG_BRANCH_ADDiu), Maxis::AT)
+      MachineInstrBuilder ADDiInstr =
+          BuildMI(*MF, DL, TII->get(Maxis::LONG_BRANCH_ADDi), Maxis::AT)
               .addReg(Maxis::AT)
               .addMBB(TgtMBB)
               .addMBB(BalTgtMBB);
       if (Subtarget.hasMaxis32r6()) {
-        LongBrMBB->insert(Pos, ADDiuInstr);
+        LongBrMBB->insert(Pos, ADDiInstr);
         LongBrMBB->insert(Pos, BalInstr);
       } else {
         LongBrMBB->insert(Pos, BalInstr);
-        LongBrMBB->insert(Pos, ADDiuInstr);
+        LongBrMBB->insert(Pos, ADDiInstr);
         LongBrMBB->rbegin()->bundleWithPred();
       }
 
@@ -372,7 +372,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       // In NaCl, modifying the sp is not allowed in branch delay slot.
       // For MAXIS32R6, we can skip using a delay slot branch.
       if (Subtarget.isTargetNaCl() || Subtarget.hasMaxis32r6())
-        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADDiu), Maxis::SP)
+        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADDi), Maxis::SP)
           .addReg(Maxis::SP).addImm(8);
 
       if (Subtarget.hasMaxis32r6()) {
@@ -388,7 +388,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
         if (Subtarget.isTargetNaCl()) {
           BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::NOP));
         } else
-          BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADDiu), Maxis::SP)
+          BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADDi), Maxis::SP)
               .addReg(Maxis::SP)
               .addImm(8);
 
@@ -529,7 +529,7 @@ static void emitGPDisp(MachineFunction &F, const MaxisInstrInfo *TII) {
   DebugLoc DL = MBB.findDebugLoc(MBB.begin());
   BuildMI(MBB, I, DL, TII->get(Maxis::LUi), Maxis::V0)
     .addExternalSymbol("_gp_disp", MaxisII::MO_ABS_HI);
-  BuildMI(MBB, I, DL, TII->get(Maxis::ADDiu), Maxis::V0)
+  BuildMI(MBB, I, DL, TII->get(Maxis::ADDi), Maxis::V0)
     .addReg(Maxis::V0).addExternalSymbol("_gp_disp", MaxisII::MO_ABS_LO);
   MBB.removeLiveIn(Maxis::V0);
 }

@@ -225,7 +225,7 @@ lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const {
                              MaxisMCExpr::MEK_HI));
 }
 
-void MaxisMCInstLower::lowerLongBranchADDiu(
+void MaxisMCInstLower::lowerLongBranchADDi(
     const MachineInstr *MI, MCInst &OutMI, int Opcode,
     MaxisMCExpr::MaxisExprKind Kind) const {
   OutMI.setOpcode(Opcode);
@@ -249,15 +249,15 @@ bool MaxisMCInstLower::lowerLongBranch(const MachineInstr *MI,
   case Maxis::LONG_BRANCH_LUi:
     lowerLongBranchLUi(MI, OutMI);
     return true;
-  case Maxis::LONG_BRANCH_ADDiu:
-    lowerLongBranchADDiu(MI, OutMI, Maxis::ADDiu, MaxisMCExpr::MEK_LO);
+  case Maxis::LONG_BRANCH_ADDi:
+    lowerLongBranchADDi(MI, OutMI, Maxis::ADDi, MaxisMCExpr::MEK_LO);
     return true;
   case Maxis::LONG_BRANCH_DADDiu:
     unsigned TargetFlags = MI->getOperand(2).getTargetFlags();
     if (TargetFlags == MaxisII::MO_ABS_HI)
-      lowerLongBranchADDiu(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_HI);
+      lowerLongBranchADDi(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_HI);
     else if (TargetFlags == MaxisII::MO_ABS_LO)
-      lowerLongBranchADDiu(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_LO);
+      lowerLongBranchADDi(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_LO);
     else
       report_fatal_error("Unexpected flags for LONG_BRANCH_DADDiu");
     return true;

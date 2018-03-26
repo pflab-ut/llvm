@@ -218,7 +218,7 @@ void MaxisSERegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
         (!isIntN(OffsetBitSize, Offset) ||
          OffsetToAlignment(Offset, OffsetAlign) != 0)) {
       // If we have an offset that needs to fit into a signed n-bit immediate
-      // (where n < 16) and doesn't, but does fit into 16-bits then use an ADDiu
+      // (where n < 16) and doesn't, but does fit into 16-bits then use an ADDi
       MachineBasicBlock &MBB = *MI.getParent();
       DebugLoc DL = II->getDebugLoc();
       const TargetRegisterClass *PtrRC =
@@ -228,7 +228,7 @@ void MaxisSERegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
       const MaxisSEInstrInfo &TII =
           *static_cast<const MaxisSEInstrInfo *>(
               MBB.getParent()->getSubtarget().getInstrInfo());
-      BuildMI(MBB, II, DL, TII.get(ABI.GetPtrAddiuOp()), Reg)
+      BuildMI(MBB, II, DL, TII.get(ABI.GetPtrAddiOp()), Reg)
           .addReg(FrameReg)
           .addImm(Offset);
 

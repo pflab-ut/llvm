@@ -2039,7 +2039,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
         // If it's a local symbol and the O32 ABI is being used, we expand to:
         //  lw $25, 0($gp)
         //    R_(MICRO)MAXIS_GOT16  label
-        //  addiu $25, $25, 0
+        //  addi $25, $25, 0
         //    R_(MICRO)MAXIS_LO16   label
         //  jalr  $25
         const MCExpr *Got16RelocExpr =
@@ -2049,7 +2049,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
 
         TOut.emitRRX(Maxis::LW, Maxis::T9, Maxis::GP,
                      MCOperand::createExpr(Got16RelocExpr), IDLoc, STI);
-        TOut.emitRRX(Maxis::ADDiu, Maxis::T9, Maxis::T9,
+        TOut.emitRRX(Maxis::ADDi, Maxis::T9, Maxis::T9,
                      MCOperand::createExpr(Lo16RelocExpr), IDLoc, STI);
       } else if (isABI_N32() || isABI_N64()) {
         // If it's a local symbol and the N32/N64 ABIs are being used,
@@ -2461,7 +2461,7 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     }
     return expandAliasImmediate(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
   case Maxis::ADDi:   case Maxis::ADDi_MM:
-  case Maxis::ADDiu:  case Maxis::ADDiu_MM:
+  case Maxis::ADDiu_MM:
   case Maxis::SLTi:   case Maxis::SLTi_MM:
   case Maxis::SLTiu:  case Maxis::SLTiu_MM:
     if ((Inst.getNumOperands() == 3) && Inst.getOperand(0).isReg() &&
@@ -2642,14 +2642,14 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       SrcReg = ZeroReg;
 
     // This doesn't quite follow the usual ABI expectations for N32 but matches
-    // traditional assembler behaviour. N32 would normally use addiu for both
+    // traditional assembler behaviour. N32 would normally use addi for both
     // integers and addresses.
     if (IsAddress && !Is32BitImm) {
       TOut.emitRRI(Maxis::DADDiu, DstReg, SrcReg, ImmValue, IDLoc, STI);
       return false;
     }
 
-    TOut.emitRRI(Maxis::ADDiu, DstReg, SrcReg, ImmValue, IDLoc, STI);
+    TOut.emitRRI(Maxis::ADDi, DstReg, SrcReg, ImmValue, IDLoc, STI);
     return false;
   }
 
@@ -2849,12 +2849,12 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
 
     // The remaining cases are:
     //   External GOT: lw $tmp, %got(symbol+offset)($gp)
-    //                >addiu $tmp, $tmp, %lo(offset)
-    //                >addiu $rd, $tmp, $rs
+    //                >addi $tmp, $tmp, %lo(offset)
+    //                >addi $rd, $tmp, $rs
     //   Local GOT:    lw $tmp, %got(symbol+offset)($gp)
-    //                 addiu $tmp, $tmp, %lo(symbol+offset)($gp)
-    //                >addiu $rd, $tmp, $rs
-    // The addiu's marked with a '>' may be omitted if they are redundant. If
+    //                 addi $tmp, $tmp, %lo(symbol+offset)($gp)
+    //                >addi $rd, $tmp, $rs
+    // The addi's marked with a '>' may be omitted if they are redundant. If
     // this happens then the last instruction must use $rd as the result
     // register.
     const MaxisMCExpr *GotExpr =
@@ -2886,7 +2886,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
                  MCOperand::createExpr(GotExpr), IDLoc, STI);
 
     if (LoExpr)
-      TOut.emitRRX(Maxis::ADDiu, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
+      TOut.emitRRX(Maxis::ADDi, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
 
     if (UseSrcReg)
@@ -3102,7 +3102,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
   }
 
   TOut.emitRX(Maxis::LUi, TmpReg, MCOperand::createExpr(HiExpr), IDLoc, STI);
-  TOut.emitRRX(Maxis::ADDiu, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
+  TOut.emitRRX(Maxis::ADDi, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
                IDLoc, STI);
 
   if (UseSrcReg)
@@ -3354,7 +3354,7 @@ bool MaxisAsmParser::expandLoadImmReal(MCInst &Inst, bool IsSingle, bool IsGPR,
       TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg,
                    MCOperand::createExpr(LoExpr), IDLoc, STI);
     else
-      TOut.emitRRX(Maxis::ADDiu, ATReg, ATReg,
+      TOut.emitRRX(Maxis::ADDi, ATReg, ATReg,
                    MCOperand::createExpr(LoExpr), IDLoc, STI);
 
     if(isABI_N32() || isABI_N64())
@@ -4031,7 +4031,7 @@ bool MaxisAsmParser::expandDiv(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   if (!UseTraps)
     TOut.getStreamer().EmitLabel(BrTarget);
 
-  TOut.emitRRI(Maxis::ADDiu, ATReg, ZeroReg, -1, IDLoc, STI);
+  TOut.emitRRI(Maxis::ADDi, ATReg, ZeroReg, -1, IDLoc, STI);
 
   // Temporary label for the second branch target.
   MCSymbol *BrTargetEnd = Context.createTempSymbol();
@@ -4042,7 +4042,7 @@ bool MaxisAsmParser::expandDiv(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   TOut.emitRRX(Maxis::BNE, RtReg, ATReg, LabelOpEnd, IDLoc, STI);
 
   if (IsMaxis64) {
-    TOut.emitRRI(Maxis::ADDiu, ATReg, ZeroReg, 1, IDLoc, STI);
+    TOut.emitRRI(Maxis::ADDi, ATReg, ZeroReg, 1, IDLoc, STI);
     TOut.emitRRI(Maxis::DSLL32, ATReg, ATReg, 0x1f, IDLoc, STI);
   } else {
     TOut.emitRI(Maxis::LUi, ATReg, (uint16_t)0x8000, IDLoc, STI);
@@ -4293,9 +4293,6 @@ bool MaxisAsmParser::expandAliasImmediate(MCInst &Inst, SMLoc IDLoc,
       llvm_unreachable("unimplemented expansion");
     case Maxis::ADDi:
       FinalOpcode = Maxis::ADD;
-      break;
-    case Maxis::ADDiu:
-      FinalOpcode = Maxis::ADDu;
       break;
     case Maxis::ANDi:
       FinalOpcode = Maxis::AND;
@@ -4873,7 +4870,7 @@ bool MaxisAsmParser::expandSeqI(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
     if (Imm > -0x8000 && Imm < 0) {
       Imm = -Imm;
-      Opc = isGP64bit() ? Maxis::DADDiu : Maxis::ADDiu;
+      Opc = isGP64bit() ? Maxis::DADDiu : Maxis::ADDi;
     } else {
       Opc = Maxis::XORi;
     }

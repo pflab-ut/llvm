@@ -2995,13 +2995,13 @@ MaxisSETargetLowering::emitBPOSGE32(MachineInstr &MI,
 
   // Fill $FBB.
   unsigned VR2 = RegInfo.createVirtualRegister(RC);
-  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDiu), VR2)
+  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDi), VR2)
     .addReg(Maxis::ZERO).addImm(0);
   BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::B)).addMBB(Sink);
 
   // Fill $TBB.
   unsigned VR1 = RegInfo.createVirtualRegister(RC);
-  BuildMI(*TBB, TBB->end(), DL, TII->get(Maxis::ADDiu), VR1)
+  BuildMI(*TBB, TBB->end(), DL, TII->get(Maxis::ADDi), VR1)
     .addReg(Maxis::ZERO).addImm(1);
 
   // Insert phi function to $Sink.
@@ -3064,13 +3064,13 @@ MachineBasicBlock *MaxisSETargetLowering::emitMSACBranchPseudo(
 
   // Fill $FBB.
   unsigned RD1 = RegInfo.createVirtualRegister(RC);
-  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDiu), RD1)
+  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDi), RD1)
     .addReg(Maxis::ZERO).addImm(0);
   BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::B)).addMBB(Sink);
 
   // Fill $TBB.
   unsigned RD2 = RegInfo.createVirtualRegister(RC);
-  BuildMI(*TBB, TBB->end(), DL, TII->get(Maxis::ADDiu), RD2)
+  BuildMI(*TBB, TBB->end(), DL, TII->get(Maxis::ADDi), RD2)
     .addReg(Maxis::ZERO).addImm(1);
 
   // Insert phi function to $Sink.

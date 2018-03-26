@@ -94,8 +94,8 @@ bool MaxisSEDAGToDAGISel::replaceUsesWithZeroReg(MachineRegisterInfo *MRI,
                                                 const MachineInstr& MI) {
   unsigned DstReg = 0, ZeroReg = 0;
 
-  // Check if MI is "addiu $dst, $zero, 0" or "daddiu $dst, $zero, 0".
-  if ((MI.getOpcode() == Maxis::ADDiu) &&
+  // Check if MI is "addi $dst, $zero, 0" or "daddiu $dst, $zero, 0".
+  if ((MI.getOpcode() == Maxis::ADDi) &&
       (MI.getOperand(1).getReg() == Maxis::ZERO) &&
       (MI.getOperand(2).isImm()) &&
       (MI.getOperand(2).getImm() == 0)) {
@@ -175,10 +175,10 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     // Set global register to __gnu_local_gp.
     //
     // lui   $v0, %hi(__gnu_local_gp)
-    // addiu $globalbasereg, $v0, %lo(__gnu_local_gp)
+    // addi $globalbasereg, $v0, %lo(__gnu_local_gp)
     BuildMI(MBB, I, DL, TII.get(Maxis::LUi), V0)
       .addExternalSymbol("__gnu_local_gp", MaxisII::MO_ABS_HI);
-    BuildMI(MBB, I, DL, TII.get(Maxis::ADDiu), GlobalBaseReg).addReg(V0)
+    BuildMI(MBB, I, DL, TII.get(Maxis::ADDi), GlobalBaseReg).addReg(V0)
       .addExternalSymbol("__gnu_local_gp", MaxisII::MO_ABS_LO);
     return;
   }
@@ -189,12 +189,12 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   if (ABI.IsN32()) {
     // lui $v0, %hi(%neg(%gp_rel(fname)))
     // addu $v1, $v0, $t9
-    // addiu $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
+    // addi $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
     const GlobalValue *FName = &MF.getFunction();
     BuildMI(MBB, I, DL, TII.get(Maxis::LUi), V0)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_HI);
     BuildMI(MBB, I, DL, TII.get(Maxis::ADDu), V1).addReg(V0).addReg(Maxis::T9);
-    BuildMI(MBB, I, DL, TII.get(Maxis::ADDiu), GlobalBaseReg).addReg(V1)
+    BuildMI(MBB, I, DL, TII.get(Maxis::ADDi), GlobalBaseReg).addReg(V1)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_LO);
     return;
   }
@@ -205,7 +205,7 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   // the global base register:
   //
   //  0. lui   $2, %hi(_gp_disp)
-  //  1. addiu $2, $2, %lo(_gp_disp)
+  //  1. addi $2, $2, %lo(_gp_disp)
   //  2. addu  $globalbasereg, $2, $t9
   //
   // We emit only the last instruction here.
@@ -216,7 +216,7 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   // avoid any reordering.
   //
   // Register $2 (Maxis::V0) is added to the list of live-in registers to ensure
-  // the value instruction 1 (addiu) defines is valid when instruction 2 (addu)
+  // the value instruction 1 (addi) defines is valid when instruction 2 (addu)
   // reads it.
   MF.getRegInfo().addLiveIn(Maxis::V0);
   MBB.addLiveIn(Maxis::V0);
@@ -377,7 +377,7 @@ bool MaxisSEDAGToDAGISel::selectAddrRegImm(SDValue Addr, SDValue &Base,
     // When loading from constant pools, load the lower address part in
     // the instruction itself. Example, instead of:
     //  lui $2, %hi($CPI1_0)
-    //  addiu $2, $2, %lo($CPI1_0)
+    //  addi $2, $2, %lo($CPI1_0)
     //  lwc1 $f0, 0($2)
     // Generate:
     //  lui $2, %hi($CPI1_0)
@@ -832,7 +832,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
                                                 DL, MVT::i64);
 
     // The first instruction can be a LUi which is different from other
-    // instructions (ADDiu, ORI and SLL) in that it does not have a register
+    // instructions (ADDi, ORI and SLL) in that it does not have a register
     // operand.
     if (Inst->Opc == Maxis::LUi64)
       RegOpnd = CurDAG->getMachineNode(Inst->Opc, DL, MVT::i64, ImmOpnd);
@@ -1059,7 +1059,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       // 64bit values.
 
       bool Is32BitSplat = ABI.IsO32() || SplatBitSize < 64;
-      const unsigned ADDiuOp = Is32BitSplat ? Maxis::ADDiu : Maxis::DADDiu;
+      const unsigned ADDiOp = Is32BitSplat ? Maxis::ADDi : Maxis::DADDiu;
       const MVT SplatMVT = Is32BitSplat ? MVT::i32 : MVT::i64;
       SDValue ZeroVal = CurDAG->getRegister(
           Is32BitSplat ? Maxis::ZERO : Maxis::ZERO_64, SplatMVT);
@@ -1077,7 +1077,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       const unsigned Lo = SplatValue.getLoBits(16).getZExtValue();
       SDValue LoVal = CurDAG->getTargetConstant(Lo, DL, SplatMVT);
 
-      Res = CurDAG->getMachineNode(ADDiuOp, DL, SplatMVT, ZeroVal, LoVal);
+      Res = CurDAG->getMachineNode(ADDiOp, DL, SplatMVT, ZeroVal, LoVal);
       Res = CurDAG->getMachineNode(FILLOp, DL, ViaVecTy, SDValue(Res, 0));
 
     } else if (SplatValue.isSignedIntN(32) && SplatBitSize == 32) {

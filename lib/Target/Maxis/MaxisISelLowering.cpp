@@ -746,14 +746,14 @@ static SDValue performSELECTCombine(SDNode *N, SelectionDAG &DAG,
 
   // 1)  (a < x) ? y : y-1
   //  slti $reg1, a, x
-  //  addiu $reg2, $reg1, y-1
+  //  addi $reg2, $reg1, y-1
   if (Diff == 1)
     return DAG.getNode(ISD::ADD, DL, SetCC.getValueType(), SetCC, False);
 
   // 2)  (a < x) ? y-1 : y
   //  slti $reg1, a, x
   //  xor $reg1, $reg1, 1
-  //  addiu $reg2, $reg1, y-1
+  //  addi $reg2, $reg1, y-1
   if (Diff == -1) {
     ISD::CondCode CC = cast<CondCodeSDNode>(SetCC.getOperand(2))->get();
     SetCC = DAG.getSetCC(DL, SetCC.getValueType(), SetCC.getOperand(0),
@@ -1613,7 +1613,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   sinkMBB->addSuccessor(exitMBB);
 
   //  thisMBB:
-  //    addiu   masklsb2,$0,-4                # 0xfffffffc
+  //    addi   masklsb2,$0,-4                # 0xfffffffc
   //    and     alignedaddr,ptr,masklsb2
   //    andi    ptrlsb2,ptr,3
   //    sll     shiftamt,ptrlsb2,3
@@ -1623,7 +1623,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   //    sll     incr2,incr,shiftamt
 
   int64_t MaskImm = (Size == 1) ? 255 : 65535;
-  BuildMI(BB, DL, TII->get(ABI.GetPtrAddiuOp()), MaskLSB2)
+  BuildMI(BB, DL, TII->get(ABI.GetPtrAddiOp()), MaskLSB2)
     .addReg(ABI.GetNullPtr()).addImm(-4);
   BuildMI(BB, DL, TII->get(ABI.GetPtrAndOp()), AlignedAddr)
     .addReg(Ptr).addReg(MaskLSB2);
@@ -1873,7 +1873,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
 
   // FIXME: computation of newval2 can be moved to loop2MBB.
   //  thisMBB:
-  //    addiu   masklsb2,$0,-4                # 0xfffffffc
+  //    addi   masklsb2,$0,-4                # 0xfffffffc
   //    and     alignedaddr,ptr,masklsb2
   //    andi    ptrlsb2,ptr,3
   //    xori    ptrlsb2,ptrlsb2,3              # Only for BE
@@ -1886,7 +1886,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   //    andi    maskednewval,newval,255
   //    sll     shiftednewval,maskednewval,shiftamt
   int64_t MaskImm = (Size == 1) ? 255 : 65535;
-  BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::DADDiu : Maxis::ADDiu), MaskLSB2)
+  BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::DADDiu : Maxis::ADDi), MaskLSB2)
     .addReg(ABI.GetNullPtr()).addImm(-4);
   BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::AND64 : Maxis::AND), AlignedAddr)
     .addReg(Ptr).addReg(MaskLSB2);

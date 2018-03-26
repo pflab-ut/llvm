@@ -340,7 +340,7 @@ unsigned MaxisFastISel::fastMaterializeAlloca(const AllocaInst *AI) {
 
   if (SI != FuncInfo.StaticAllocaMap.end()) {
     unsigned ResultReg = createResultReg(&Maxis::GPR32RegClass);
-    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(Maxis::LEA_ADDiu),
+    BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(Maxis::LEA_ADDi),
             ResultReg)
         .addFrameIndex(SI->second)
         .addImm(0);
@@ -363,7 +363,7 @@ unsigned MaxisFastISel::materialize32BitInt(int64_t Imm,
   unsigned ResultReg = createResultReg(RC);
 
   if (isInt<16>(Imm)) {
-    unsigned Opc = Maxis::ADDiu;
+    unsigned Opc = Maxis::ADDi;
     emitInst(Opc, ResultReg).addReg(Maxis::ZERO).addImm(Imm);
     return ResultReg;
   } else if (isUInt<16>(Imm)) {
@@ -422,7 +422,7 @@ unsigned MaxisFastISel::materializeGV(const GlobalValue *GV, MVT VT) {
   if ((GV->hasInternalLinkage() ||
        (GV->hasLocalLinkage() && !isa<Function>(GV)))) {
     unsigned TempReg = createResultReg(RC);
-    emitInst(Maxis::ADDiu, TempReg)
+    emitInst(Maxis::ADDi, TempReg)
         .addReg(DestReg)
         .addGlobalAddress(GV, 0, MaxisII::MO_ABS_LO);
     DestReg = TempReg;
@@ -737,8 +737,8 @@ bool MaxisFastISel::emitCmp(unsigned ResultReg, const CmpInst *CI) {
     }
     unsigned RegWithZero = createResultReg(&Maxis::GPR32RegClass);
     unsigned RegWithOne = createResultReg(&Maxis::GPR32RegClass);
-    emitInst(Maxis::ADDiu, RegWithZero).addReg(Maxis::ZERO).addImm(0);
-    emitInst(Maxis::ADDiu, RegWithOne).addReg(Maxis::ZERO).addImm(1);
+    emitInst(Maxis::ADDi, RegWithZero).addReg(Maxis::ZERO).addImm(0);
+    emitInst(Maxis::ADDi, RegWithOne).addReg(Maxis::ZERO).addImm(1);
     emitInst(Opc).addReg(Maxis::FCC0, RegState::Define).addReg(LeftReg)
                  .addReg(RightReg);
     emitInst(CondMovOpc, ResultReg)

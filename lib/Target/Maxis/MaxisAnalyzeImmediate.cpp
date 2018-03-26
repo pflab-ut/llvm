@@ -30,10 +30,10 @@ void MaxisAnalyzeImmediate::AddInstr(InstSeqLs &SeqLs, const Inst &I) {
     Iter->push_back(I);
 }
 
-void MaxisAnalyzeImmediate::GetInstSeqLsADDiu(uint64_t Imm, unsigned RemSize,
+void MaxisAnalyzeImmediate::GetInstSeqLsADDi(uint64_t Imm, unsigned RemSize,
                                              InstSeqLs &SeqLs) {
   GetInstSeqLs((Imm + 0x8000ULL) & 0xffffffffffff0000ULL, RemSize, SeqLs);
-  AddInstr(SeqLs, Inst(ADDiu, Imm & 0xffffULL));
+  AddInstr(SeqLs, Inst(ADDi, Imm & 0xffffULL));
 }
 
 void MaxisAnalyzeImmediate::GetInstSeqLsORi(uint64_t Imm, unsigned RemSize,
@@ -57,9 +57,9 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   if (!MaskedImm)
     return;
 
-  // A single ADDiu will do if RemSize <= 16.
+  // A single ADDi will do if RemSize <= 16.
   if (RemSize <= 16) {
-    AddInstr(SeqLs, Inst(ADDiu, MaskedImm));
+    AddInstr(SeqLs, Inst(ADDi, MaskedImm));
     return;
   }
 
@@ -69,10 +69,10 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
     return;
   }
 
-  GetInstSeqLsADDiu(Imm, RemSize, SeqLs);
+  GetInstSeqLsADDi(Imm, RemSize, SeqLs);
 
   // If bit 15 is cleared, it doesn't make a difference whether the last
-  // instruction is an ADDiu or ORi. In that case, do not call GetInstSeqLsORi.
+  // instruction is an ADDi or ORi. In that case, do not call GetInstSeqLsORi.
   if (Imm & 0x8000) {
     InstSeqLs SeqLsORi;
     GetInstSeqLsORi(Imm, RemSize, SeqLsORi);
@@ -81,20 +81,20 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
-// Replace a ADDiu & SLL pair with a LUi.
+// Replace a ADDi & SLL pair with a LUi.
 // e.g. the following two instructions
-//  ADDiu 0x0111
+//  ADDi 0x0111
 //  SLL 18
 // are replaced with
 //  LUi 0x444
-void MaxisAnalyzeImmediate::ReplaceADDiuSLLWithLUi(InstSeq &Seq) {
-  // Check if the first two instructions are ADDiu and SLL and the shift amount
+void MaxisAnalyzeImmediate::ReplaceADDiSLLWithLUi(InstSeq &Seq) {
+  // Check if the first two instructions are ADDi and SLL and the shift amount
   // is at least 16.
-  if ((Seq.size() < 2) || (Seq[0].Opc != ADDiu) ||
+  if ((Seq.size() < 2) || (Seq[0].Opc != ADDi) ||
       (Seq[1].Opc != SLL) || (Seq[1].ImmOpnd < 16))
     return;
 
-  // Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.
+  // Sign-extend and shift operand of ADDi and see if it still fits in 16-bit.
   int64_t Imm = SignExtend64<16>(Seq[0].ImmOpnd);
   int64_t ShiftedImm = (uint64_t)Imm << (Seq[1].ImmOpnd - 16);
 
@@ -113,7 +113,7 @@ void MaxisAnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
   unsigned ShortestLength = 8;
 
   for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
-    ReplaceADDiuSLLWithLUi(*S);
+    ReplaceADDiSLLWithLUi(*S);
     assert(S->size() <= 7);
 
     if (S->size() < ShortestLength) {
@@ -128,16 +128,16 @@ void MaxisAnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
 
 const MaxisAnalyzeImmediate::InstSeq
 &MaxisAnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
-                               bool LastInstrIsADDiu) {
+                               bool LastInstrIsADDi) {
   this->Size = Size;
 
   if (Size == 32) {
-    ADDiu = Maxis::ADDiu;
+    ADDi = Maxis::ADDi;
     ORi = Maxis::ORi;
     SLL = Maxis::SLL;
     LUi = Maxis::LUi;
   } else {
-    ADDiu = Maxis::DADDiu;
+    ADDi = Maxis::DADDiu;
     ORi = Maxis::ORi64;
     SLL = Maxis::DSLL;
     LUi = Maxis::LUi64;
@@ -146,8 +146,8 @@ const MaxisAnalyzeImmediate::InstSeq
   InstSeqLs SeqLs;
 
   // Get the list of instruction sequences.
-  if (LastInstrIsADDiu | !Imm)
-    GetInstSeqLsADDiu(Imm, Size, SeqLs);
+  if (LastInstrIsADDi | !Imm)
+    GetInstSeqLsADDi(Imm, Size, SeqLs);
   else
     GetInstSeqLs(Imm, Size, SeqLs);
 

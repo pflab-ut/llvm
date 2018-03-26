@@ -68,7 +68,7 @@ public:
   unsigned GetNullPtr() const;
   unsigned GetZeroReg() const;
   unsigned GetPtrAdduOp() const;
-  unsigned GetPtrAddiuOp() const;
+  unsigned GetPtrAddiOp() const;
   unsigned GetPtrSubuOp() const;
   unsigned GetPtrAndOp() const;
   unsigned GetGPRMoveOp() const;

@@ -1054,7 +1054,7 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
   // This is currently not supported. When supported -mno-shared makes
   // .cpload expand to:
   //   lui     $gp, %hi(__gnu_local_gp)
-  //   addiu   $gp, $gp, %lo(__gnu_local_gp)
+  //   addi   $gp, $gp, %lo(__gnu_local_gp)
 
   StringRef SymName("_gp_disp");
   MCAssembler &MCA = getStreamer().getAssembler();
@@ -1074,7 +1074,7 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
 
   TmpInst.clear();
 
-  TmpInst.setOpcode(Maxis::ADDiu);
+  TmpInst.setOpcode(Maxis::ADDi);
   TmpInst.addOperand(MCOperand::createReg(Maxis::GP));
   TmpInst.addOperand(MCOperand::createReg(Maxis::GP));
   const MCExpr *LoSym = MaxisMCExpr::create(
@@ -1151,8 +1151,8 @@ void MaxisTargetELFStreamer::emitDirectiveCpsetup(unsigned RegNo,
     // lui $gp, %hi(__gnu_local_gp)
     emitRX(Maxis::LUi, Maxis::GP, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
 
-    // addiu  $gp, $gp, %lo(__gnu_local_gp)
-    emitRRX(Maxis::ADDiu, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),
+    // addi  $gp, $gp, %lo(__gnu_local_gp)
+    emitRRX(Maxis::ADDi, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),
             SMLoc(), &STI);
 
     return;
@@ -1168,8 +1168,8 @@ void MaxisTargetELFStreamer::emitDirectiveCpsetup(unsigned RegNo,
   // lui $gp, %hi(%neg(%gp_rel(funcSym)))
   emitRX(Maxis::LUi, Maxis::GP, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
 
-  // addiu  $gp, $gp, %lo(%neg(%gp_rel(funcSym)))
-  emitRRX(Maxis::ADDiu, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),
+  // addi  $gp, $gp, %lo(%neg(%gp_rel(funcSym)))
+  emitRRX(Maxis::ADDi, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),
           SMLoc(), &STI);
 
   // daddu  $gp, $gp, $funcreg

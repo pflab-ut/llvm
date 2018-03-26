@@ -259,7 +259,7 @@ void MaxisAsmPrinter::EmitInstruction(const MachineInstr *MI) {
 //
 //    .frame  $fp,48,$ra
 //    .mask   0xc0000000,-8
-//       addiu $sp, $sp, -48
+//       addi $sp, $sp, -48
 //       sw $ra, 40($sp)
 //       sw $fp, 36($sp)
 //
@@ -1075,14 +1075,14 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   ALIGN
   //   B .tmpN
   //   11 NOP instructions (44 bytes)
-  //   ADDIU T9, T9, 52 
+  //   ADDI T9, T9, 52 
   // .tmpN
   //
   // We need the 44 bytes (11 instructions) because at runtime, we'd
   // be patching over the full 48 bytes (12 instructions) with the following
   // pattern:
   //
-  //   ADDIU    SP, SP, -8
+  //   ADDI    SP, SP, -8
   //   NOP
   //   SW       RA, 4(SP)
   //   SW       T9, 0(SP)
@@ -1093,7 +1093,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   ORI      T0, T0, %lo(function_id)
   //   LW       T9, 0(SP)
   //   LW       RA, 4(SP)
-  //   ADDIU    SP, SP, 8
+  //   ADDI    SP, SP, 8
   //
   // We add 52 bytes to t9 because we want to adjust the function pointer to
   // the actual start of function i.e. the address just after the noop sled.
@@ -1127,7 +1127,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   ORI      T9, T9, %lo(__xray_FunctionEntry/Exit)
   //   LUI      T0, %hi(function_id)
   //   JALR     T9
-  //   ADDIU    T0, T0, %lo(function_id)
+  //   ADDI     T0, T0, %lo(function_id)
   //   LD       T9, 0(SP)
   //   LD       RA, 8(SP)
   //   DADDIU   SP, SP, 16
@@ -1156,7 +1156,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
 
   if (!Subtarget->isGP64bit()) {
     EmitToStreamer(*OutStreamer,
-                   MCInstBuilder(Maxis::ADDiu)
+                   MCInstBuilder(Maxis::ADDi)
                        .addReg(Maxis::T9)
                        .addReg(Maxis::T9)
                        .addImm(0x34));
@@ -1221,7 +1221,7 @@ void MaxisAsmPrinter::NaClAlignIndirectJumpTargets(MachineFunction &MF) {
 
 bool MaxisAsmPrinter::isLongBranchPseudo(int Opcode) const {
   return (Opcode == Maxis::LONG_BRANCH_LUi
-          || Opcode == Maxis::LONG_BRANCH_ADDiu
+          || Opcode == Maxis::LONG_BRANCH_ADDi
           || Opcode == Maxis::LONG_BRANCH_DADDiu);
 }
 

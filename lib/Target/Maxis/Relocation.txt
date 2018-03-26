@@ -52,17 +52,17 @@ Here the instantiation of MaxisHiLoRelocs in MaxisInstrInfo.td is used
 to MAXIS32 to compute addresses for the static relocation model.
 
   // lib/Target/Maxis/MaxisInstrInfo.td
-  multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addiu,
+  multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addi,
                             Register ZeroReg, RegisterOperand GPROpnd> {
     def : MaxisPat<(MaxisHi tglobaladdr:$in), (Lui tglobaladdr:$in)>;
     ...
-    def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addiu ZeroReg, tglobaladdr:$in)>;
+    def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addi ZeroReg, tglobaladdr:$in)>;
     ...
     def : MaxisPat<(add GPROpnd:$hi, (MaxisLo tglobaladdr:$lo)),
-                (Addiu GPROpnd:$hi, tglobaladdr:$lo)>;
+                (Addi GPROpnd:$hi, tglobaladdr:$lo)>;
     ...
   }
-  defm : MaxisHiLoRelocs<LUi, ADDiu, ZERO, GPR32Opnd>;
+  defm : MaxisHiLoRelocs<LUi, ADDi, ZERO, GPR32Opnd>;
 
   // lib/Target/Maxis/Maxis64InstrInfo.td
   defm : MaxisHiLoRelocs<LUi64, DADDiu, ZERO_64, GPR64Opnd>, SYM_32;
