@@ -250,19 +250,19 @@ class MFC2OP_FM<bits<6> op, bits<5> mfmt> : StdArch {
   let Inst{15-0}  = imm16;
 }
 
-class ADD_FM<bits<6> op, bits<6> funct> : StdArch {
+class ADD_FM<bits<6> op, bits<5> funct> : StdArch {
   bits<5> rd;
   bits<5> rs;
   bits<5> rt;
 
   bits<32> Inst;
 
-  let Inst{31-26} = op;
+  let Inst{31-26} = 0;
   let Inst{25-21} = rs;
   let Inst{20-16} = rt;
   let Inst{15-11} = rd;
-  let Inst{10-6}  = 0;
-  let Inst{5-0}   = funct;
+  let Inst{10-6}  = funct;
+  let Inst{5-0}   = op;
 }
 
 class ADDI_FM<bits<6> op> : StdArch {

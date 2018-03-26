@@ -120,23 +120,23 @@ def LUi64   : LoadUpper<"lui", GPR64Opnd, uimm16_64_relaxed>, LUI_FM;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def DADD   : ArithLogicR<"dadd", GPR64Opnd, 1, II_DADD>, ADD_FM<0, 0x2c>,
+  def DADD   : ArithLogicR<"dadd", GPR64Opnd, 1, II_DADD>, ADD_FM<0, 0x1f>,
                ISA_MAXIS3;
   def DADDu  : ArithLogicR<"daddu", GPR64Opnd, 1, II_DADDU, add>,
-               ADD_FM<0, 0x2d>, ISA_MAXIS3;
+               ADD_FM<0, 0x1f>, ISA_MAXIS3;
   def DSUBu  : ArithLogicR<"dsubu", GPR64Opnd, 0, II_DSUBU, sub>,
-               ADD_FM<0, 0x2f>, ISA_MAXIS3;
-  def DSUB   : ArithLogicR<"dsub", GPR64Opnd, 0, II_DSUB>, ADD_FM<0, 0x2e>,
+               ADD_FM<0, 0x1f>, ISA_MAXIS3;
+  def DSUB   : ArithLogicR<"dsub", GPR64Opnd, 0, II_DSUB>, ADD_FM<0, 0x1f>,
                ISA_MAXIS3;
 }
 
 let isCodeGenOnly = 1 in {
-def SLT64  : SetCC_R<"slt", setlt, GPR64Opnd>, ADD_FM<0, 0x2a>;
-def SLTu64 : SetCC_R<"sltu", setult, GPR64Opnd>, ADD_FM<0, 0x2b>;
-def AND64  : ArithLogicR<"and", GPR64Opnd, 1, II_AND, and>, ADD_FM<0, 0x24>;
-def OR64   : ArithLogicR<"or", GPR64Opnd, 1, II_OR, or>, ADD_FM<0, 0x25>;
-def XOR64  : ArithLogicR<"xor", GPR64Opnd, 1, II_XOR, xor>, ADD_FM<0, 0x26>;
-def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x27>;
+def SLT64  : SetCC_R<"slt", setlt, GPR64Opnd>, ADD_FM<0, 0x1f>;
+def SLTu64 : SetCC_R<"sltu", setult, GPR64Opnd>, ADD_FM<0, 0x1f>;
+def AND64  : ArithLogicR<"and", GPR64Opnd, 1, II_AND, and>, ADD_FM<0, 0x1f>;
+def OR64   : ArithLogicR<"or", GPR64Opnd, 1, II_OR, or>, ADD_FM<0, 0x1f>;
+def XOR64  : ArithLogicR<"xor", GPR64Opnd, 1, II_XOR, xor>, ADD_FM<0, 0x1f>;
+def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x1f>;
 }
 
 /// Shift Instructions
@@ -430,7 +430,7 @@ class MFC2OP<string asmstr, RegisterOperand RO, InstrItinClass itin> :
 
 // Unsigned Byte Add
 def BADDu  : ArithLogicR<"baddu", GPR64Opnd, 1, II_BADDU>,
-             ADD_FM<0x1c, 0x28>, ASE_CNMAXIS {
+             ADD_FM<0x1c, 0x1f>, ASE_CNMAXIS {
   let Pattern = [(set GPR64Opnd:$rd,
                       (and (add GPR64Opnd:$rs, GPR64Opnd:$rt), 255))];
 }
@@ -449,7 +449,7 @@ def BBIT132: CBranchBitNum<"bbit132", brtarget, setne, GPR64Opnd, uimm5_64,
 
 // Multiply Doubleword to GPR
 def DMUL  : ArithLogicR<"dmul", GPR64Opnd, 1, II_DMUL, mul>,
-            ADD_FM<0x1c, 0x03>, ASE_CNMAXIS {
+            ADD_FM<0x1c, 0x1f>, ASE_CNMAXIS {
   let Defs = [HI0, LO0, P0, P1, P2];
 }
 

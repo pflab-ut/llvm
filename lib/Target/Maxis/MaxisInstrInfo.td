@@ -1880,25 +1880,25 @@ def LUi   : MMRel, LoadUpper<"lui", GPR32Opnd, uimm16_relaxed>, LUI_FM;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   /// Arithmetic Instructions (3-Operand, R-Type)
   def ADDu  : MMRel, StdMMR6Rel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
-              ADD_FM<0, 0x21>;
+              ADD_FM<0, 0x1f>;
   def SUBu  : MMRel, StdMMR6Rel, ArithLogicR<"subu", GPR32Opnd, 0, II_SUBU, sub>,
-              ADD_FM<0, 0x23>;
+              ADD_FM<0, 0x1f>;
 }
 let Defs = [HI0, LO0] in
 def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
             ADD_FM<0x1c, 2>, ISA_MAXIS32_NOT_32R6_64R6;
-def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD>, ADD_FM<0, 0x20>;
-def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0, 0x22>;
+def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD>, ADD_FM<0x4, 0x8>;
+def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0x4, 0x9>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def SLT   : MMRel, SetCC_R<"slt", setlt, GPR32Opnd>, ADD_FM<0, 0x2a>;
-  def SLTu  : MMRel, SetCC_R<"sltu", setult, GPR32Opnd>, ADD_FM<0, 0x2b>;
+  def SLT   : MMRel, SetCC_R<"slt", setlt, GPR32Opnd>, ADD_FM<0x5, 0x12>;
+  def SLTu  : MMRel, SetCC_R<"sltu", setult, GPR32Opnd>, ADD_FM<0x5, 0x16>;
   def AND   : MMRel, StdMMR6Rel, ArithLogicR<"and", GPR32Opnd, 1, II_AND, and>,
-              ADD_FM<0, 0x24>;
+              ADD_FM<0x5, 0x18>;
   def OR    : MMRel, StdMMR6Rel, ArithLogicR<"or", GPR32Opnd, 1, II_OR, or>,
-              ADD_FM<0, 0x25>;
+              ADD_FM<0x5, 0x19>;
   def XOR   : MMRel, StdMMR6Rel, ArithLogicR<"xor", GPR32Opnd, 1, II_XOR, xor>,
-              ADD_FM<0, 0x26>;
-  def NOR   : MMRel, StdMMR6Rel, LogicNOR<"nor", GPR32Opnd>, ADD_FM<0, 0x27>;
+              ADD_FM<0x5, 0x1a>;
+  def NOR   : MMRel, StdMMR6Rel, LogicNOR<"nor", GPR32Opnd>, ADD_FM<0x5, 0x1d>;
 }
 
 /// Shift Instructions
