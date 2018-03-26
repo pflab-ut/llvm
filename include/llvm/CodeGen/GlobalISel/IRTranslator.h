@@ -228,6 +228,9 @@ private:
   bool translateXor(const User &U, MachineIRBuilder &MIRBuilder) {
     return translateBinaryOp(TargetOpcode::G_XOR, U, MIRBuilder);
   }
+  bool translateXnor(const User &U, MachineIRBuilder &MIRBuilder) {
+    return translateBinaryOp(TargetOpcode::G_XNOR, U, MIRBuilder);
+  }
 
   bool translateUDiv(const User &U, MachineIRBuilder &MIRBuilder) {
     return translateBinaryOp(TargetOpcode::G_UDIV, U, MIRBuilder);

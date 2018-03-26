@@ -359,8 +359,8 @@ namespace ISD {
     /// integers.
     SMIN, SMAX, UMIN, UMAX,
 
-    /// Bitwise operators - logical and, logical or, logical xor.
-    AND, OR, XOR,
+    /// Bitwise operators - logical and, logical, logical xor, or logical xnor.
+    AND, OR, XOR, XNOR,
 
     /// ABS - Determine the unsigned absolute value of a signed integer value of
     /// the same bitwidth.
@@ -781,6 +781,7 @@ namespace ISD {
     ATOMIC_LOAD_AND,
     ATOMIC_LOAD_OR,
     ATOMIC_LOAD_XOR,
+    ATOMIC_LOAD_XNOR,
     ATOMIC_LOAD_NAND,
     ATOMIC_LOAD_MIN,
     ATOMIC_LOAD_MAX,
@@ -825,7 +826,7 @@ namespace ISD {
     /// These reductions are non-strict, and have a single vector operand.
     VECREDUCE_FADD, VECREDUCE_FMUL,
     VECREDUCE_ADD, VECREDUCE_MUL,
-    VECREDUCE_AND, VECREDUCE_OR, VECREDUCE_XOR,
+    VECREDUCE_AND, VECREDUCE_OR, VECREDUCE_XOR, VECREDUCE_XNOR,
     VECREDUCE_SMAX, VECREDUCE_SMIN, VECREDUCE_UMAX, VECREDUCE_UMIN,
     /// FMIN/FMAX nodes can have flags, for NaN/NoNaN variants.
     VECREDUCE_FMAX, VECREDUCE_FMIN,

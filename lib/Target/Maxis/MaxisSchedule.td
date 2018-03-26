@@ -340,6 +340,7 @@ def II_TRUNC            : InstrItinClass;
 def II_WSBH             : InstrItinClass;
 def II_XOR              : InstrItinClass;
 def II_XORI             : InstrItinClass;
+def II_XNOR             : InstrItinClass;
 def II_CACHE            : InstrItinClass;
 def II_PREF             : InstrItinClass;
 def II_CACHEE           : InstrItinClass;
@@ -438,6 +439,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_ANDI            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ORI             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_XORI            , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_XNOR            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_LB              , [InstrStage<3,  [ALU]>]>,
   InstrItinData<II_LBE             , [InstrStage<3,  [ALU]>]>,
   InstrItinData<II_LBU             , [InstrStage<3,  [ALU]>]>,

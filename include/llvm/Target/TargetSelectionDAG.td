@@ -110,7 +110,7 @@ def SDTOther  : SDTypeProfile<1, 0, [SDTCisVT<0, OtherVT>]>; // for 'vt'.
 def SDTUNDEF  : SDTypeProfile<1, 0, []>;                     // for 'undef'.
 def SDTUnaryOp  : SDTypeProfile<1, 1, []>;                   // for bitconvert.
 
-def SDTIntBinOp : SDTypeProfile<1, 2, [     // add, and, or, xor, udiv, etc.
+def SDTIntBinOp : SDTypeProfile<1, 2, [     // add, and, or, xor, xnor, udiv, etc.
   SDTCisSameAs<0, 1>, SDTCisSameAs<0, 2>, SDTCisInt<0>
 ]>;
 def SDTIntShiftOp : SDTypeProfile<1, 2, [   // shl, sra, srl
@@ -366,6 +366,8 @@ def or         : SDNode<"ISD::OR"        , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def xor        : SDNode<"ISD::XOR"       , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
+def xnor       : SDNode<"ISD::XNOR"      , SDTIntBinOp,
+                        [SDNPCommutative, SDNPAssociative]>;
 def addc       : SDNode<"ISD::ADDC"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPOutGlue]>;
 def adde       : SDNode<"ISD::ADDE"      , SDTIntBinOp,
@@ -488,6 +490,8 @@ def atomic_load_and : SDNode<"ISD::ATOMIC_LOAD_AND" , SDTAtomic2,
 def atomic_load_or  : SDNode<"ISD::ATOMIC_LOAD_OR" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
 def atomic_load_xor : SDNode<"ISD::ATOMIC_LOAD_XOR" , SDTAtomic2,
+                    [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
+def atomic_load_xnor : SDNode<"ISD::ATOMIC_LOAD_XNOR" , SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
 def atomic_load_nand: SDNode<"ISD::ATOMIC_LOAD_NAND", SDTAtomic2,
                     [SDNPHasChain, SDNPMayStore, SDNPMayLoad, SDNPMemOperand]>;
