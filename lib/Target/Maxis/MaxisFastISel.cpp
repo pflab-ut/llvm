@@ -1580,7 +1580,7 @@ bool MaxisFastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
           if (TempReg[i] == 0)
             return false;
         }
-        emitInst(Maxis::SLL, TempReg[0]).addReg(SrcReg).addImm(8);
+        emitInst(Maxis::SLLi, TempReg[0]).addReg(SrcReg).addImm(8);
         emitInst(Maxis::SRL, TempReg[1]).addReg(SrcReg).addImm(8);
         emitInst(Maxis::OR, TempReg[2]).addReg(TempReg[0]).addReg(TempReg[1]);
         emitInst(Maxis::ANDi, DestReg).addReg(TempReg[2]).addImm(0xFFFF);
@@ -1608,9 +1608,9 @@ bool MaxisFastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
         emitInst(Maxis::OR, TempReg[3]).addReg(TempReg[1]).addReg(TempReg[2]);
 
         emitInst(Maxis::ANDi, TempReg[4]).addReg(SrcReg).addImm(0xFF00);
-        emitInst(Maxis::SLL, TempReg[5]).addReg(TempReg[4]).addImm(8);
+        emitInst(Maxis::SLLi, TempReg[5]).addReg(TempReg[4]).addImm(8);
 
-        emitInst(Maxis::SLL, TempReg[6]).addReg(SrcReg).addImm(24);
+        emitInst(Maxis::SLLi, TempReg[6]).addReg(SrcReg).addImm(24);
         emitInst(Maxis::OR, TempReg[7]).addReg(TempReg[3]).addReg(TempReg[5]);
         emitInst(Maxis::OR, DestReg).addReg(TempReg[6]).addReg(TempReg[7]);
         updateValueMap(II, DestReg);
@@ -1808,7 +1808,7 @@ bool MaxisFastISel::emitIntSExt32r1(MVT SrcVT, unsigned SrcReg, MVT DestVT,
     break;
   }
   unsigned TempReg = createResultReg(&Maxis::GPR32RegClass);
-  emitInst(Maxis::SLL, TempReg).addReg(SrcReg).addImm(ShiftAmt);
+  emitInst(Maxis::SLLi, TempReg).addReg(SrcReg).addImm(ShiftAmt);
   emitInst(Maxis::SRA, DestReg).addReg(TempReg).addImm(ShiftAmt);
   return true;
 }
@@ -1961,7 +1961,7 @@ bool MaxisFastISel::selectShift(const Instruction *I) {
     default:
       llvm_unreachable("Unexpected instruction.");
     case Instruction::Shl:
-      Opcode = Maxis::SLL;
+      Opcode = Maxis::SLLi;
       break;
     case Instruction::AShr:
       Opcode = Maxis::SRA;

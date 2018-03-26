@@ -907,7 +907,7 @@ class BARRIER_FM<bits<5> op> : StdArch {
   let Inst{20-16} = 0; // rt = 0
   let Inst{15-11} = 0; // rd = 0
   let Inst{10-6} = op; // Operation
-  let Inst{5-0} = 0;   // SLL
+  let Inst{5-0} = 0;   // SLLi
 }
 
 class SDBBP_FM : StdArch {

@@ -3237,7 +3237,7 @@ MaxisSETargetLowering::emitINSERT_FD(MachineInstr &MI,
 // For integer:
 // (INSERT_([BHWD]|F[WD])_PSEUDO $wd, $wd_in, $n, $rs)
 // =>
-// (SLL $lanetmp1, $lane, <log2size)
+// (SLLI $lanetmp1, $lane, <log2size)
 // (SLD_B $wdtmp1, $wd_in, $wd_in, $lanetmp1)
 // (INSERT_[BHWD], $wdtmp2, $wdtmp1, 0, $rs)
 // (NEG $lanetmp2, $lanetmp1)
@@ -3247,7 +3247,7 @@ MaxisSETargetLowering::emitINSERT_FD(MachineInstr &MI,
 // (INSERT_([BHWD]|F[WD])_PSEUDO $wd, $wd_in, $n, $fs)
 // =>
 // (SUBREG_TO_REG $wt, $fs, <subreg>)
-// (SLL $lanetmp1, $lane, <log2size)
+// (SLLI $lanetmp1, $lane, <log2size)
 // (SLD_B $wdtmp1, $wd_in, $wd_in, $lanetmp1)
 // (INSVE_[WD], $wdtmp2, 0, $wdtmp1, 0)
 // (NEG $lanetmp2, $lanetmp1)
@@ -3268,7 +3268,7 @@ MachineBasicBlock *MaxisSETargetLowering::emitINSERT_DF_VIDX(
   const TargetRegisterClass *GPRRC =
       Subtarget.isABI_N64() ? &Maxis::GPR64RegClass : &Maxis::GPR32RegClass;
   unsigned SubRegIdx = Subtarget.isABI_N64() ? Maxis::sub_32 : 0;
-  unsigned ShiftOp = Subtarget.isABI_N64() ? Maxis::DSLL : Maxis::SLL;
+  unsigned ShiftOp = Subtarget.isABI_N64() ? Maxis::DSLLi : Maxis::SLLi;
   unsigned EltLog2Size;
   unsigned InsertOp = 0;
   unsigned InsveOp = 0;

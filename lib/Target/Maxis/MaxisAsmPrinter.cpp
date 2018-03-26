@@ -1121,9 +1121,9 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   SD       T9, 0(SP)
   //   LUI      T9, %highest(__xray_FunctionEntry/Exit)
   //   ORI      T9, T9, %higher(__xray_FunctionEntry/Exit)
-  //   DSLL     T9, T9, 16
+  //   DSLLI     T9, T9, 16
   //   ORI      T9, T9, %hi(__xray_FunctionEntry/Exit)
-  //   DSLL     T9, T9, 16
+  //   DSLLI     T9, T9, 16
   //   ORI      T9, T9, %lo(__xray_FunctionEntry/Exit)
   //   LUI      T0, %hi(function_id)
   //   JALR     T9
@@ -1147,7 +1147,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
                                    .addExpr(TargetExpr));
 
   for (int8_t I = 0; I < NoopsInSledCount; I++)
-    EmitToStreamer(*OutStreamer, MCInstBuilder(Maxis::SLL)
+    EmitToStreamer(*OutStreamer, MCInstBuilder(Maxis::SLLi)
                                      .addReg(Maxis::ZERO)
                                      .addReg(Maxis::ZERO)
                                      .addImm(0));

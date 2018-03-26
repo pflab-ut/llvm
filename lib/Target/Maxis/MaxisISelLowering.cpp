@@ -988,7 +988,7 @@ static SDValue performMADD_MSUBCombine(SDNode *ROOTNode, SelectionDAG &CurDAG,
   // arithmetic. E.g.
   // (add (mul a b) c) =>
   //   let res = (madd (mthi (drotr c 32))x(mtlo c) a b) in
-  //   MAXIS64:   (or (dsll (mfhi res) 32) (dsrl (dsll (mflo res) 32) 32)
+  //   MAXIS64:   (or (dslli (mfhi res) 32) (dsrl (dslli (mflo res) 32) 32)
   //   or
   //   MAXIS64R2: (dins (mflo res) (mfhi res) 32 32)
   //
@@ -1538,7 +1538,7 @@ MachineBasicBlock *MaxisTargetLowering::emitSignExtendToI32InReg(
   assert(Size < 32);
   int64_t ShiftImm = 32 - (Size * 8);
 
-  BuildMI(BB, DL, TII->get(Maxis::SLL), ScrReg).addReg(SrcReg).addImm(ShiftImm);
+  BuildMI(BB, DL, TII->get(Maxis::SLLi), ScrReg).addReg(SrcReg).addImm(ShiftImm);
   BuildMI(BB, DL, TII->get(Maxis::SRA), DstReg).addReg(ScrReg).addImm(ShiftImm);
 
   return BB;
@@ -1616,11 +1616,11 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   //    addi   masklsb2,$0,-4                # 0xfffffffc
   //    and     alignedaddr,ptr,masklsb2
   //    andi    ptrlsb2,ptr,3
-  //    sll     shiftamt,ptrlsb2,3
+  //    slli     shiftamt,ptrlsb2,3
   //    ori     maskupper,$0,255               # 0xff
-  //    sll     mask,maskupper,shiftamt
+  //    slli     mask,maskupper,shiftamt
   //    nor     mask2,$0,mask
-  //    sll     incr2,incr,shiftamt
+  //    slli     incr2,incr,shiftamt
 
   int64_t MaskImm = (Size == 1) ? 255 : 65535;
   BuildMI(BB, DL, TII->get(ABI.GetPtrAddiOp()), MaskLSB2)
@@ -1630,12 +1630,12 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   BuildMI(BB, DL, TII->get(Maxis::ANDi), PtrLSB2)
       .addReg(Ptr, 0, ArePtrs64bit ? Maxis::sub_32 : 0).addImm(3);
   if (Subtarget.isLittle()) {
-    BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftAmt).addReg(PtrLSB2).addImm(3);
+    BuildMI(BB, DL, TII->get(Maxis::SLLi), ShiftAmt).addReg(PtrLSB2).addImm(3);
   } else {
     unsigned Off = RegInfo.createVirtualRegister(RC);
     BuildMI(BB, DL, TII->get(Maxis::XORi), Off)
       .addReg(PtrLSB2).addImm((Size == 1) ? 3 : 2);
-    BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftAmt).addReg(Off).addImm(3);
+    BuildMI(BB, DL, TII->get(Maxis::SLLi), ShiftAmt).addReg(Off).addImm(3);
   }
   BuildMI(BB, DL, TII->get(Maxis::ORi), MaskUpper)
     .addReg(Maxis::ZERO).addImm(MaskImm);
@@ -1877,14 +1877,14 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   //    and     alignedaddr,ptr,masklsb2
   //    andi    ptrlsb2,ptr,3
   //    xori    ptrlsb2,ptrlsb2,3              # Only for BE
-  //    sll     shiftamt,ptrlsb2,3
+  //    slli     shiftamt,ptrlsb2,3
   //    ori     maskupper,$0,255               # 0xff
-  //    sll     mask,maskupper,shiftamt
+  //    slli     mask,maskupper,shiftamt
   //    nor     mask2,$0,mask
   //    andi    maskedcmpval,cmpval,255
-  //    sll     shiftedcmpval,maskedcmpval,shiftamt
+  //    slli     shiftedcmpval,maskedcmpval,shiftamt
   //    andi    maskednewval,newval,255
-  //    sll     shiftednewval,maskednewval,shiftamt
+  //    slli     shiftednewval,maskednewval,shiftamt
   int64_t MaskImm = (Size == 1) ? 255 : 65535;
   BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::DADDi : Maxis::ADDi), MaskLSB2)
     .addReg(ABI.GetNullPtr()).addImm(-4);
@@ -1893,12 +1893,12 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   BuildMI(BB, DL, TII->get(Maxis::ANDi), PtrLSB2)
       .addReg(Ptr, 0, ArePtrs64bit ? Maxis::sub_32 : 0).addImm(3);
   if (Subtarget.isLittle()) {
-    BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftAmt).addReg(PtrLSB2).addImm(3);
+    BuildMI(BB, DL, TII->get(Maxis::SLLi), ShiftAmt).addReg(PtrLSB2).addImm(3);
   } else {
     unsigned Off = RegInfo.createVirtualRegister(RC);
     BuildMI(BB, DL, TII->get(Maxis::XORi), Off)
       .addReg(PtrLSB2).addImm((Size == 1) ? 3 : 2);
-    BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftAmt).addReg(Off).addImm(3);
+    BuildMI(BB, DL, TII->get(Maxis::SLLi), ShiftAmt).addReg(Off).addImm(3);
   }
   BuildMI(BB, DL, TII->get(Maxis::ORi), MaskUpper)
     .addReg(Maxis::ZERO).addImm(MaskImm);
@@ -2282,16 +2282,16 @@ static SDValue lowerFCOPYSIGN32(SDValue Op, SelectionDAG &DAG,
     SDValue E = DAG.getNode(MaxisISD::Ext, DL, MVT::i32, Y, Const31, Const1);
     Res = DAG.getNode(MaxisISD::Ins, DL, MVT::i32, E, Const31, Const1, X);
   } else {
-    // sll SllX, X, 1
+    // slli SllX, X, 1
     // srl SrlX, SllX, 1
     // srl SrlY, Y, 31
-    // sll SllY, SrlX, 31
-    // or  Or, SrlX, SllY
-    SDValue SllX = DAG.getNode(ISD::SHL, DL, MVT::i32, X, Const1);
-    SDValue SrlX = DAG.getNode(ISD::SRL, DL, MVT::i32, SllX, Const1);
+    // slli SllY, SrlX, 31
+    // or  Or, SrlX, SlliY
+    SDValue SlliX = DAG.getNode(ISD::SHL, DL, MVT::i32, X, Const1);
+    SDValue SrlX = DAG.getNode(ISD::SRL, DL, MVT::i32, SlliX, Const1);
     SDValue SrlY = DAG.getNode(ISD::SRL, DL, MVT::i32, Y, Const31);
-    SDValue SllY = DAG.getNode(ISD::SHL, DL, MVT::i32, SrlY, Const31);
-    Res = DAG.getNode(ISD::OR, DL, MVT::i32, SrlX, SllY);
+    SDValue SlliY = DAG.getNode(ISD::SHL, DL, MVT::i32, SrlY, Const31);
+    Res = DAG.getNode(ISD::OR, DL, MVT::i32, SrlX, SlliY);
   }
 
   if (TyX == MVT::f32)
@@ -2332,13 +2332,13 @@ static SDValue lowerFCOPYSIGN64(SDValue Op, SelectionDAG &DAG,
     return DAG.getNode(ISD::BITCAST, DL, Op.getOperand(0).getValueType(), I);
   }
 
-  // (d)sll SllX, X, 1
-  // (d)srl SrlX, SllX, 1
+  // (d)slli SlliX, X, 1
+  // (d)srl SrlX, SlliX, 1
   // (d)srl SrlY, Y, width(Y)-1
-  // (d)sll SllY, SrlX, width(Y)-1
-  // or     Or, SrlX, SllY
-  SDValue SllX = DAG.getNode(ISD::SHL, DL, TyX, X, Const1);
-  SDValue SrlX = DAG.getNode(ISD::SRL, DL, TyX, SllX, Const1);
+  // (d)slli SlliY, SrlX, width(Y)-1
+  // or     Or, SrlX, SlliY
+  SDValue SlliX = DAG.getNode(ISD::SHL, DL, TyX, X, Const1);
+  SDValue SrlX = DAG.getNode(ISD::SRL, DL, TyX, SlliX, Const1);
   SDValue SrlY = DAG.getNode(ISD::SRL, DL, TyY, Y,
                              DAG.getConstant(WidthY - 1, DL, MVT::i32));
 
@@ -2347,9 +2347,9 @@ static SDValue lowerFCOPYSIGN64(SDValue Op, SelectionDAG &DAG,
   else if (WidthY > WidthX)
     SrlY = DAG.getNode(ISD::TRUNCATE, DL, TyX, SrlY);
 
-  SDValue SllY = DAG.getNode(ISD::SHL, DL, TyX, SrlY,
+  SDValue SlliY = DAG.getNode(ISD::SHL, DL, TyX, SrlY,
                              DAG.getConstant(WidthX - 1, DL, MVT::i32));
-  SDValue Or = DAG.getNode(ISD::OR, DL, TyX, SrlX, SllY);
+  SDValue Or = DAG.getNode(ISD::OR, DL, TyX, SrlX, SlliY);
   return DAG.getNode(ISD::BITCAST, DL, Op.getOperand(0).getValueType(), Or);
 }
 
@@ -2582,8 +2582,8 @@ SDValue MaxisTargetLowering::lowerLOAD(SDValue Op, SelectionDAG &DAG) const {
   //  (set dst, (srl tmp2, 32))
   SDLoc DL(LD);
   SDValue Const32 = DAG.getConstant(32, DL, MVT::i32);
-  SDValue SLL = DAG.getNode(ISD::SHL, DL, MVT::i64, LWR, Const32);
-  SDValue SRL = DAG.getNode(ISD::SRL, DL, MVT::i64, SLL, Const32);
+  SDValue SLLi = DAG.getNode(ISD::SHL, DL, MVT::i64, LWR, Const32);
+  SDValue SRL = DAG.getNode(ISD::SRL, DL, MVT::i64, SLLi, Const32);
   SDValue Ops[] = { SRL, LWR.getValue(1) };
   return DAG.getMergeValues(Ops, DL);
 }

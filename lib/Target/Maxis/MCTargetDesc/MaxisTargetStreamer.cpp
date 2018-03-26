@@ -216,15 +216,15 @@ void MaxisTargetStreamer::emitAddu(unsigned DstReg, unsigned SrcReg,
           STI);
 }
 
-void MaxisTargetStreamer::emitDSLL(unsigned DstReg, unsigned SrcReg,
+void MaxisTargetStreamer::emitDSLLi(unsigned DstReg, unsigned SrcReg,
                                   int16_t ShiftAmount, SMLoc IDLoc,
                                   const MCSubtargetInfo *STI) {
   if (ShiftAmount >= 32) {
-    emitRRI(Maxis::DSLL32, DstReg, SrcReg, ShiftAmount - 32, IDLoc, STI);
+    emitRRI(Maxis::DSLLi32, DstReg, SrcReg, ShiftAmount - 32, IDLoc, STI);
     return;
   }
 
-  emitRRI(Maxis::DSLL, DstReg, SrcReg, ShiftAmount, IDLoc, STI);
+  emitRRI(Maxis::DSLLi, DstReg, SrcReg, ShiftAmount, IDLoc, STI);
 }
 
 void MaxisTargetStreamer::emitEmptyDelaySlot(bool hasShortDelaySlot, SMLoc IDLoc,
@@ -232,11 +232,11 @@ void MaxisTargetStreamer::emitEmptyDelaySlot(bool hasShortDelaySlot, SMLoc IDLoc
   if (hasShortDelaySlot)
     emitRR(Maxis::MOVE16_MM, Maxis::ZERO, Maxis::ZERO, IDLoc, STI);
   else
-    emitRRI(Maxis::SLL, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
+    emitRRI(Maxis::SLLi, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
 }
 
 void MaxisTargetStreamer::emitNop(SMLoc IDLoc, const MCSubtargetInfo *STI) {
-  emitRRI(Maxis::SLL, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
+  emitRRI(Maxis::SLLi, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
 }
 
 /// Emit the $gp restore operation for .cprestore.

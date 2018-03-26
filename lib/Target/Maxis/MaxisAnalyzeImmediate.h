@@ -43,22 +43,22 @@ namespace llvm {
     /// load immediate Imm
     void GetInstSeqLsORi(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
-    /// GetInstSeqLsSLL - Get instruction sequences which end with a SLL to
+    /// GetInstSeqLsSLLi - Get instruction sequences which end with a SLLi to
     /// load immediate Imm
-    void GetInstSeqLsSLL(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
+    void GetInstSeqLsSLLi(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
     /// GetInstSeqLs - Get instruction sequences to load immediate Imm.
     void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
-    /// ReplaceADDiSLLWithLUi - Replace an ADDi & SLL pair with a LUi.
-    void ReplaceADDiSLLWithLUi(InstSeq &Seq);
+    /// ReplaceADDiSLLiWithLUi - Replace an ADDi & SLLi pair with a LUi.
+    void ReplaceADDiSLLiWithLUi(InstSeq &Seq);
 
     /// GetShortestSeq - Find the shortest instruction sequence in SeqLs and
     /// return it in Insts.
     void GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts);
 
     unsigned Size;
-    unsigned ADDi, ORi, SLL, LUi;
+    unsigned ADDi, ORi, SLLi, LUi;
     InstSeq Insts;
   };
 

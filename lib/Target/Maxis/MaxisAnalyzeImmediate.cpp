@@ -42,11 +42,11 @@ void MaxisAnalyzeImmediate::GetInstSeqLsORi(uint64_t Imm, unsigned RemSize,
   AddInstr(SeqLs, Inst(ORi, Imm & 0xffffULL));
 }
 
-void MaxisAnalyzeImmediate::GetInstSeqLsSLL(uint64_t Imm, unsigned RemSize,
+void MaxisAnalyzeImmediate::GetInstSeqLsSLLi(uint64_t Imm, unsigned RemSize,
                                            InstSeqLs &SeqLs) {
   unsigned Shamt = countTrailingZeros(Imm);
   GetInstSeqLs(Imm >> Shamt, RemSize - Shamt, SeqLs);
-  AddInstr(SeqLs, Inst(SLL, Shamt));
+  AddInstr(SeqLs, Inst(SLLi, Shamt));
 }
 
 void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
@@ -65,7 +65,7 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
 
   // Shift if the lower 16-bit is cleared.
   if (!(Imm & 0xffff)) {
-    GetInstSeqLsSLL(Imm, RemSize, SeqLs);
+    GetInstSeqLsSLLi(Imm, RemSize, SeqLs);
     return;
   }
 
@@ -81,17 +81,17 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
-// Replace a ADDi & SLL pair with a LUi.
+// Replace a ADDi & SLLi pair with a LUi.
 // e.g. the following two instructions
 //  ADDi 0x0111
-//  SLL 18
+//  SLLi 18
 // are replaced with
 //  LUi 0x444
-void MaxisAnalyzeImmediate::ReplaceADDiSLLWithLUi(InstSeq &Seq) {
-  // Check if the first two instructions are ADDi and SLL and the shift amount
+void MaxisAnalyzeImmediate::ReplaceADDiSLLiWithLUi(InstSeq &Seq) {
+  // Check if the first two instructions are ADDi and SLLi and the shift amount
   // is at least 16.
   if ((Seq.size() < 2) || (Seq[0].Opc != ADDi) ||
-      (Seq[1].Opc != SLL) || (Seq[1].ImmOpnd < 16))
+      (Seq[1].Opc != SLLi) || (Seq[1].ImmOpnd < 16))
     return;
 
   // Sign-extend and shift operand of ADDi and see if it still fits in 16-bit.
@@ -113,7 +113,7 @@ void MaxisAnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
   unsigned ShortestLength = 8;
 
   for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
-    ReplaceADDiSLLWithLUi(*S);
+    ReplaceADDiSLLiWithLUi(*S);
     assert(S->size() <= 7);
 
     if (S->size() < ShortestLength) {
@@ -134,12 +134,12 @@ const MaxisAnalyzeImmediate::InstSeq
   if (Size == 32) {
     ADDi = Maxis::ADDi;
     ORi = Maxis::ORi;
-    SLL = Maxis::SLL;
+    SLLi = Maxis::SLLi;
     LUi = Maxis::LUi;
   } else {
     ADDi = Maxis::DADDi;
     ORi = Maxis::ORi64;
-    SLL = Maxis::DSLL;
+    SLLi = Maxis::DSLLi;
     LUi = Maxis::LUi64;
   }
 

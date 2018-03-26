@@ -125,7 +125,7 @@ public:
                  const MCSubtargetInfo *STI);
   void emitAddu(unsigned DstReg, unsigned SrcReg, unsigned TrgReg, bool Is64Bit,
                 const MCSubtargetInfo *STI);
-  void emitDSLL(unsigned DstReg, unsigned SrcReg, int16_t ShiftAmount,
+  void emitDSLLi(unsigned DstReg, unsigned SrcReg, int16_t ShiftAmount,
                 SMLoc IDLoc, const MCSubtargetInfo *STI);
   void emitEmptyDelaySlot(bool hasShortDelaySlot, SMLoc IDLoc,
                           const MCSubtargetInfo *STI);

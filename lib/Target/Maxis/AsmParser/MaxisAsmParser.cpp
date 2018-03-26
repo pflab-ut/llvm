@@ -2171,7 +2171,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
             Imm % 4 != 0)
           return Error(IDLoc, "immediate operand value out of range");
         break;
-      case Maxis::SLL16_MM:
+      case Maxis::SLLI16_MM:
       case Maxis::SRL16_MM:
         Opnd = Inst.getOperand(2);
         if (!Opnd.isImm())
@@ -2685,7 +2685,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       // Expand to an ORi instead of a LUi to avoid sign-extending into the
       // upper 32 bits.
       TOut.emitRRI(Maxis::ORi, TmpReg, ZeroReg, Bits31To16, IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, TmpReg, TmpReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, TmpReg, TmpReg, 16, IDLoc, STI);
       if (Bits15To0)
         TOut.emitRRI(Maxis::ORi, TmpReg, TmpReg, Bits15To0, IDLoc, STI);
       if (UseSrcReg)
@@ -2714,7 +2714,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     unsigned ShiftAmount = FirstSet - (15 - (LastSet - FirstSet));
     uint16_t Bits = (ImmValue >> ShiftAmount) & 0xffff;
     TOut.emitRRI(Maxis::ORi, TmpReg, ZeroReg, Bits, IDLoc, STI);
-    TOut.emitRRI(Maxis::DSLL, TmpReg, TmpReg, ShiftAmount, IDLoc, STI);
+    TOut.emitRRI(Maxis::DSLLi, TmpReg, TmpReg, ShiftAmount, IDLoc, STI);
 
     if (UseSrcReg)
       TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
@@ -2724,8 +2724,8 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
 
   warnIfNoMacro(IDLoc);
 
-  // The remaining case is packed with a sequence of dsll and ori with zeros
-  // being omitted and any neighbouring dsll's being coalesced.
+  // The remaining case is packed with a sequence of dslli and ori with zeros
+  // being omitted and any neighbouring dslli's being coalesced.
   // The highest 32-bit's are equivalent to a 32-bit immediate load.
 
   // Load bits 32-63 of ImmValue into bits 0-31 of the temporary register.
@@ -2740,7 +2740,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     uint16_t ImmChunk = (ImmValue >> BitNum) & 0xffff;
 
     if (ImmChunk != 0) {
-      TOut.emitDSLL(TmpReg, TmpReg, ShiftCarriedForwards, IDLoc, STI);
+      TOut.emitDSLLi(TmpReg, TmpReg, ShiftCarriedForwards, IDLoc, STI);
       TOut.emitRRI(Maxis::ORi, TmpReg, TmpReg, ImmChunk, IDLoc, STI);
       ShiftCarriedForwards = 0;
     }
@@ -2751,7 +2751,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
 
   // Finish any remaining shifts left by trailing zeros.
   if (ShiftCarriedForwards)
-    TOut.emitDSLL(TmpReg, TmpReg, ShiftCarriedForwards, IDLoc, STI);
+    TOut.emitDSLLi(TmpReg, TmpReg, ShiftCarriedForwards, IDLoc, STI);
 
   if (UseSrcReg)
     TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
@@ -3001,19 +3001,19 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       // If $rs is the same as $rd:
       // (d)la $rd, sym($rd) => lui    $at, %highest(sym)
       //                        daddi $at, $at, %higher(sym)
-      //                        dsll   $at, $at, 16
+      //                        dslli   $at, $at, 16
       //                        daddi $at, $at, %hi(sym)
-      //                        dsll   $at, $at, 16
+      //                        dslli   $at, $at, 16
       //                        daddi $at, $at, %lo(sym)
       //                        daddu  $rd, $at, $rd
       TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, ATReg, ATReg, 16, IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(HiExpr),
                    IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, ATReg, ATReg, 16, IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
       TOut.emitRRR(Maxis::DADDu, DstReg, ATReg, SrcReg, IDLoc, STI);
@@ -3028,7 +3028,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       //                            lui    $at, %hi(sym)
       //                            daddi $rd, $rd, %higher(sym)
       //                            daddi $at, $at, %lo(sym)
-      //                            dsll32 $rd, $rd, 0
+      //                            dslli32 $rd, $rd, 0
       //                            daddu  $rd, $rd, $at
       //                            (daddu  $rd, $rd, $rs)
       //
@@ -3040,7 +3040,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL32, DstReg, DstReg, 0, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi32, DstReg, DstReg, 0, IDLoc, STI);
       TOut.emitRRR(Maxis::DADDu, DstReg, DstReg, ATReg, IDLoc, STI);
       if (UseSrcReg)
         TOut.emitRRR(Maxis::DADDu, DstReg, DstReg, SrcReg, IDLoc, STI);
@@ -3051,18 +3051,18 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       // serially:
       // (d)la $rd, sym/sym($rs) => lui    $rd, %highest(sym)
       //                            daddi $rd, $rd, %higher(sym)
-      //                            dsll   $rd, $rd, 16
+      //                            dslli   $rd, $rd, 16
       //                            daddi $rd, $rd, %hi(sym)
-      //                            dsll   $rd, $rd, 16
+      //                            dslli   $rd, $rd, 16
       //                            daddi $rd, $rd, %lo(sym)
       TOut.emitRX(Maxis::LUi, DstReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, DstReg, DstReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, DstReg, DstReg, 16, IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HiExpr), IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, DstReg, DstReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, DstReg, DstReg, 16, IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(LoExpr), IDLoc, STI);
       if (UseSrcReg)
@@ -3225,10 +3225,10 @@ bool MaxisAsmParser::emitPartialAddress(MaxisTargetStreamer &TOut, SMLoc IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, ATReg, ATReg, 16, IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(HiExpr),
                    IDLoc, STI);
-      TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
+      TOut.emitRRI(Maxis::DSLLi, ATReg, ATReg, 16, IDLoc, STI);
     }
   }
   return false;
@@ -3495,7 +3495,7 @@ bool MaxisAsmParser::expandBranchImm(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     if (IsLikely) {
       TOut.emitRRX(OpCode, DstRegOp.getReg(), Maxis::ZERO,
                    MCOperand::createExpr(MemOffsetOp.getExpr()), IDLoc, STI);
-      TOut.emitRRI(Maxis::SLL, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
+      TOut.emitRRI(Maxis::SLLi, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
     } else
       TOut.emitRRX(OpCode, DstRegOp.getReg(), Maxis::ZERO, MemOffsetOp, IDLoc,
               STI);
@@ -3513,7 +3513,7 @@ bool MaxisAsmParser::expandBranchImm(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     if (IsLikely) {
       TOut.emitRRX(OpCode, DstRegOp.getReg(), ATReg,
               MCOperand::createExpr(MemOffsetOp.getExpr()), IDLoc, STI);
-      TOut.emitRRI(Maxis::SLL, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
+      TOut.emitRRI(Maxis::SLLi, Maxis::ZERO, Maxis::ZERO, 0, IDLoc, STI);
     } else
       TOut.emitRRX(OpCode, DstRegOp.getReg(), ATReg, MemOffsetOp, IDLoc, STI);
   }
@@ -4042,7 +4042,7 @@ bool MaxisAsmParser::expandDiv(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
   if (IsMaxis64) {
     TOut.emitRRI(Maxis::ADDi, ATReg, ZeroReg, 1, IDLoc, STI);
-    TOut.emitRRI(Maxis::DSLL32, ATReg, ATReg, 0x1f, IDLoc, STI);
+    TOut.emitRRI(Maxis::DSLLi32, ATReg, ATReg, 0x1f, IDLoc, STI);
   } else {
     TOut.emitRI(Maxis::LUi, ATReg, (uint16_t)0x8000, IDLoc, STI);
   }
@@ -4052,7 +4052,7 @@ bool MaxisAsmParser::expandDiv(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   else {
     // Branch to the mflo instruction.
     TOut.emitRRX(Maxis::BNE, RsReg, ATReg, LabelOpEnd, IDLoc, STI);
-    TOut.emitRRI(Maxis::SLL, ZeroReg, ZeroReg, 0, IDLoc, STI);
+    TOut.emitRRI(Maxis::SLLi, ZeroReg, ZeroReg, 0, IDLoc, STI);
     TOut.emitII(Maxis::BREAK, 0x6, 0, IDLoc, STI);
   }
 
@@ -4141,12 +4141,12 @@ bool MaxisAsmParser::expandUlh(MCInst &Inst, bool Signed, SMLoc IDLoc,
   unsigned SecondLbuDstReg = IsLargeOffset ? ATReg : DstReg;
 
   unsigned LbuSrcReg = IsLargeOffset ? ATReg : SrcReg;
-  unsigned SllReg = IsLargeOffset ? DstReg : ATReg;
+  unsigned SlliReg = IsLargeOffset ? DstReg : ATReg;
 
   TOut.emitRRI(Signed ? Maxis::LB : Maxis::LBu, FirstLbuDstReg, LbuSrcReg,
                FirstOffset, IDLoc, STI);
   TOut.emitRRI(Maxis::LBu, SecondLbuDstReg, LbuSrcReg, SecondOffset, IDLoc, STI);
-  TOut.emitRRI(Maxis::SLL, SllReg, SllReg, 8, IDLoc, STI);
+  TOut.emitRRI(Maxis::SLLi, SlliReg, SlliReg, 8, IDLoc, STI);
   TOut.emitRRR(Maxis::OR, DstReg, DstReg, ATReg, IDLoc, STI);
 
   return false;
@@ -4192,7 +4192,7 @@ bool MaxisAsmParser::expandUsh(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     TOut.emitRRI(Maxis::SRL, DstReg, DstReg, 8, IDLoc, STI);
     TOut.emitRRI(Maxis::SB, DstReg, ATReg, SecondOffset, IDLoc, STI);
     TOut.emitRRI(Maxis::LBu, ATReg, ATReg, 0, IDLoc, STI);
-    TOut.emitRRI(Maxis::SLL, DstReg, DstReg, 8, IDLoc, STI);
+    TOut.emitRRI(Maxis::SLLi, DstReg, DstReg, 8, IDLoc, STI);
     TOut.emitRRR(Maxis::OR, DstReg, DstReg, ATReg, IDLoc, STI);
   } else {
     TOut.emitRRI(Maxis::SB, DstReg, SrcReg, FirstOffset, IDLoc, STI);
@@ -4460,12 +4460,12 @@ bool MaxisAsmParser::expandRotationImm(MCInst &Inst, SMLoc IDLoc,
     default:
       llvm_unreachable("unexpected instruction opcode");
     case Maxis::ROLImm:
-      FirstShift = Maxis::SLL;
+      FirstShift = Maxis::SLLi;
       SecondShift = Maxis::SRL;
       break;
     case Maxis::RORImm:
       FirstShift = Maxis::SRL;
-      SecondShift = Maxis::SLL;
+      SecondShift = Maxis::SLLi;
       break;
     }
 
@@ -4597,30 +4597,30 @@ bool MaxisAsmParser::expandDRotationImm(MCInst &Inst, SMLoc IDLoc,
       llvm_unreachable("unexpected instruction opcode");
     case Maxis::DROLImm:
       if ((ImmValue >= 1) && (ImmValue <= 31)) {
-        FirstShift = Maxis::DSLL;
+        FirstShift = Maxis::DSLLi;
         SecondShift = Maxis::DSRL32;
       }
       if (ImmValue == 32) {
-        FirstShift = Maxis::DSLL32;
+        FirstShift = Maxis::DSLLi32;
         SecondShift = Maxis::DSRL32;
       }
       if ((ImmValue >= 33) && (ImmValue <= 63)) {
-        FirstShift = Maxis::DSLL32;
+        FirstShift = Maxis::DSLLi32;
         SecondShift = Maxis::DSRL;
       }
       break;
     case Maxis::DRORImm:
       if ((ImmValue >= 1) && (ImmValue <= 31)) {
         FirstShift = Maxis::DSRL;
-        SecondShift = Maxis::DSLL32;
+        SecondShift = Maxis::DSLLi32;
       }
       if (ImmValue == 32) {
         FirstShift = Maxis::DSRL32;
-        SecondShift = Maxis::DSLL32;
+        SecondShift = Maxis::DSLLi32;
       }
       if ((ImmValue >= 33) && (ImmValue <= 63)) {
         FirstShift = Maxis::DSRL32;
-        SecondShift = Maxis::DSLL;
+        SecondShift = Maxis::DSLLi;
       }
       break;
     }

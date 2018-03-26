@@ -1144,11 +1144,11 @@ def ShRxRyOffMemX16:
   FEXT_RRI16_mem2_ins<0b11001, "sh", mem16, II_SH>, MayStore;
 
 //
-// Format: SLL rx, ry, sa MAXIS16e
+// Format: SLLI rx, ry, sa MAXIS16e
 // Purpose: Shift Word Left Logical (Extended)
 // To execute a left-shift of a word by a fixed number of bits-0 to 31 bits.
 //
-def SllX16: FEXT_SHIFT16_ins<0b00, "sll", IIM16Alu>;
+def SlliX16: FEXT_SHIFT16_ins<0b00, "slli", IIM16Alu>;
 
 //
 // Format: SLLV ry, rx MAXIS16e
@@ -1325,7 +1325,7 @@ class ArithLogicI16_pat<SDNode OpNode, PatFrag imm_type, Instruction I> :
 
 def: ArithLogicI16_pat<add, immSExt8, AddiRxRxImm16>;
 def: ArithLogicI16_pat<add, immSExt16, AddiRxRxImmX16>;
-def: ArithLogicI16_pat<shl, immZExt5, SllX16>;
+def: ArithLogicI16_pat<shl, immZExt5, SlliX16>;
 def: ArithLogicI16_pat<srl, immZExt5, SrlX16>;
 def: ArithLogicI16_pat<sra, immZExt5, SraX16>;
 
@@ -1857,13 +1857,13 @@ def: Maxis16Pat<(add CPU16Regs:$hi, (MaxisLo tglobaladdr:$lo)),
 
 // hi/lo relocs
 def : Maxis16Pat<(MaxisHi tblockaddress:$in),
-                (SllX16 (LiRxImmX16 tblockaddress:$in), 16)>;
+                (SlliX16 (LiRxImmX16 tblockaddress:$in), 16)>;
 def : Maxis16Pat<(MaxisHi tglobaladdr:$in),
-                (SllX16 (LiRxImmX16 tglobaladdr:$in), 16)>;
+                (SlliX16 (LiRxImmX16 tglobaladdr:$in), 16)>;
 def : Maxis16Pat<(MaxisHi tjumptable:$in),
-                (SllX16 (LiRxImmX16 tjumptable:$in), 16)>;
+                (SlliX16 (LiRxImmX16 tjumptable:$in), 16)>;
 def : Maxis16Pat<(MaxisHi tglobaltlsaddr:$in),
-                (SllX16 (LiRxImmX16 tglobaltlsaddr:$in), 16)>;
+                (SlliX16 (LiRxImmX16 tglobaltlsaddr:$in), 16)>;
 
 def : Maxis16Pat<(MaxisLo tblockaddress:$in), (LiRxImmX16 tblockaddress:$in)>;
 

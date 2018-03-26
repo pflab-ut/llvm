@@ -512,7 +512,7 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
   assert(Seq.size() && (!LastInstrIsADDi || (Seq.size() > 1)));
 
   // The first instruction can be a LUi, which is different from other
-  // instructions (ADDi, ORI and SLL) in that it does not have a register
+  // instructions (ADDi, ORI and SLLi) in that it does not have a register
   // operand.
   unsigned Reg = RegInfo.createVirtualRegister(RC);
 

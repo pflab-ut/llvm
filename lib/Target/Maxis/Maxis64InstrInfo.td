@@ -136,7 +136,7 @@ def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x1f>;
 
 /// Shift Instructions
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def DSLL : shift_rotate_imm<"dsll", uimm6, GPR64Opnd, II_DSLL, shl,
+  def DSLLi : shift_rotate_imm<"dslli", uimm6, GPR64Opnd, II_DSLLI, shl,
                               immZExt6>,
              SRA_FM<0x38, 0>, ISA_MAXIS3;
   def DSRL : shift_rotate_imm<"dsrl", uimm6, GPR64Opnd, II_DSRL, srl,
@@ -151,7 +151,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                SRLV_FM<0x17, 0>, ISA_MAXIS3;
   def DSRLV  : shift_rotate_reg<"dsrlv", GPR64Opnd, II_DSRLV, srl>,
                SRLV_FM<0x16, 0>, ISA_MAXIS3;
-  def DSLL32 : shift_rotate_imm<"dsll32", uimm5, GPR64Opnd, II_DSLL32>,
+  def DSLLi32 : shift_rotate_imm<"dslli32", uimm5, GPR64Opnd, II_DSLLI32>,
                SRA_FM<0x3c, 0>, ISA_MAXIS3;
   def DSRL32 : shift_rotate_imm<"dsrl32", uimm5, GPR64Opnd, II_DSRL32>,
                SRA_FM<0x3e, 0>, ISA_MAXIS3;
@@ -351,12 +351,12 @@ let isCodeGenOnly = 1, AdditionalPredicates = [NotInMicroMaxis] in {
 }
 
 let isCodeGenOnly = 1, rs = 0, shamt = 0 in {
-  def DSLL64_32 : FR<0x00, 0x3c, (outs GPR64:$rd), (ins GPR32:$rt),
-                     "dsll\t$rd, $rt, 32", [], II_DSLL>;
-  def SLL64_32 : FR<0x0, 0x00, (outs GPR64:$rd), (ins GPR32:$rt),
-                    "sll\t$rd, $rt, 0", [], II_SLL>;
-  def SLL64_64 : FR<0x0, 0x00, (outs GPR64:$rd), (ins GPR64:$rt),
-                    "sll\t$rd, $rt, 0", [], II_SLL>;
+  def DSLLi64_32 : FR<0x00, 0x3c, (outs GPR64:$rd), (ins GPR32:$rt),
+                     "dslli\t$rd, $rt, 32", [], II_DSLLI>;
+  def SLLi64_32 : FR<0x0, 0x00, (outs GPR64:$rd), (ins GPR32:$rt),
+                    "slli\t$rd, $rt, 0", [], II_SLLI>;
+  def SLLi64_64 : FR<0x0, 0x00, (outs GPR64:$rd), (ins GPR64:$rt),
+                    "slli\t$rd, $rt, 0", [], II_SLLI>;
 }
 
 // We need the following pseudo instruction to avoid offset calculation for
@@ -539,10 +539,10 @@ def DMTC2 : MTC3OP<"dmtc2", COP2Opnd, GPR64Opnd, II_DMTC2>, MFC3OP_FM<0x12, 5>,
 defm : MaterializeImms<i64, ZERO_64, DADDi, LUi64, ORi64>;
 
 def : MaxisPat<(i64 immZExt32Low16Zero:$imm),
-              (DSLL (ORi64 ZERO_64, (HI16 imm:$imm)), 16)>;
+              (DSLLi (ORi64 ZERO_64, (HI16 imm:$imm)), 16)>;
 
 def : MaxisPat<(i64 immZExt32:$imm),
-              (ORi64 (DSLL (ORi64 ZERO_64, (HI16 imm:$imm)), 16),
+              (ORi64 (DSLLi (ORi64 ZERO_64, (HI16 imm:$imm)), 16),
                      (LO16 imm:$imm))>;
 
 // extended loads
@@ -667,7 +667,7 @@ def : MaxisPat<(trunc (assertsext GPR64:$src)),
 def : MaxisPat<(trunc (assertzext_lt_i32 GPR64:$src)),
               (EXTRACT_SUBREG GPR64:$src, sub_32)>;
 def : MaxisPat<(i32 (trunc GPR64:$src)),
-              (SLL (EXTRACT_SUBREG GPR64:$src, sub_32), 0)>;
+              (SLLi (EXTRACT_SUBREG GPR64:$src, sub_32), 0)>;
 
 // variable shift instructions patterns
 def : MaxisPat<(shl GPR64:$rt, (i32 (trunc GPR64:$rs))),
@@ -684,8 +684,8 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 // 32-to-64-bit extension
 def : MaxisPat<(i64 (anyext GPR32:$src)),
               (INSERT_SUBREG (i64 (IMPLICIT_DEF)), GPR32:$src, sub_32)>;
-def : MaxisPat<(i64 (zext GPR32:$src)), (DSRL (DSLL64_32 GPR32:$src), 32)>;
-def : MaxisPat<(i64 (sext GPR32:$src)), (SLL64_32 GPR32:$src)>;
+def : MaxisPat<(i64 (zext GPR32:$src)), (DSRL (DSLLi64_32 GPR32:$src), 32)>;
+def : MaxisPat<(i64 (sext GPR32:$src)), (SLLi64_32 GPR32:$src)>;
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(i64 (zext GPR32:$src)), (DEXT64_32 GPR32:$src, 0, 32)>,
@@ -697,7 +697,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
 // Sign extend in register
 def : MaxisPat<(i64 (sext_inreg GPR64:$src, i32)),
-              (SLL64_64 GPR64:$src)>;
+              (SLLi64_64 GPR64:$src)>;
 
 // bswap MaxisPattern
 def : MaxisPat<(bswap GPR64:$rt), (DSHD (DSBH GPR64:$rt))>;
@@ -814,7 +814,7 @@ def : MaxisInstAlias<"dsra $rd, $rt, $rs",
                     (DSRAV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                     ISA_MAXIS3;
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def : MaxisInstAlias<"dsll $rd, $rt, $rs",
+  def : MaxisInstAlias<"dslli $rd, $rt, $rs",
                       (DSLLV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dsrl $rd, $rt, $rs",
@@ -823,7 +823,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"dsrl $rd, $rt",
                       (DSRLV GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
                       ISA_MAXIS3;
-  def : MaxisInstAlias<"dsll $rd, $rt",
+  def : MaxisInstAlias<"dslli $rd, $rt",
                       (DSLLV GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dins $rt, $rs, $pos, $size",

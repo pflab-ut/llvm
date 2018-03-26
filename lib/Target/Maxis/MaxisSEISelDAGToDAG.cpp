@@ -832,7 +832,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
                                                 DL, MVT::i64);
 
     // The first instruction can be a LUi which is different from other
-    // instructions (ADDi, ORI and SLL) in that it does not have a register
+    // instructions (ADDi, ORI and SLLi) in that it does not have a register
     // operand.
     if (Inst->Opc == Maxis::LUi64)
       RegOpnd = CurDAG->getMachineNode(Inst->Opc, DL, MVT::i64, ImmOpnd);
@@ -1239,7 +1239,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
               CurDAG->getTargetConstant(Maxis::sub_32, DL, MVT::i64));
 
         // We have 3 cases:
-        //   The HiRes is nonzero but Res is $zero  => dsll32 HiRes, 0
+        //   The HiRes is nonzero but Res is $zero  => dslli32 HiRes, 0
         //   The Res is nonzero but HiRes is $zero  => dinsu Res, $zero, 32, 32
         //   Both are non zero                      => dinsu Res, HiRes, 32, 32
         //
@@ -1257,7 +1257,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
           Res = CurDAG->getMachineNode(Maxis::DINSU, DL, MVT::i64, Ops);
         } else if (HiResNonZero) {
           Res = CurDAG->getMachineNode(
-              Maxis::DSLL32, DL, MVT::i64, SDValue(HiRes, 0),
+              Maxis::DSLLi32, DL, MVT::i64, SDValue(HiRes, 0),
               CurDAG->getTargetConstant(0, DL, MVT::i32));
         } else
           llvm_unreachable(

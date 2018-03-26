@@ -74,8 +74,8 @@ static void LowerLargeShift(MCInst& Inst) {
   default:
     // Calling function is not synchronized
     llvm_unreachable("Unexpected shift instruction");
-  case Maxis::DSLL:
-    Inst.setOpcode(Maxis::DSLL32);
+  case Maxis::DSLLi:
+    Inst.setOpcode(Maxis::DSLLi32);
     return;
   case Maxis::DSRL:
     Inst.setOpcode(Maxis::DSRL32);
@@ -162,7 +162,7 @@ encodeInstruction(const MCInst &MI, raw_ostream &OS,
   MCInst TmpInst = MI;
   switch (MI.getOpcode()) {
   // If shift amount is >= 32 it the inst needs to be lowered further
-  case Maxis::DSLL:
+  case Maxis::DSLLi:
   case Maxis::DSRL:
   case Maxis::DSRA:
   case Maxis::DROTR:
@@ -184,11 +184,11 @@ encodeInstruction(const MCInst &MI, raw_ostream &OS,
   uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
 
   // Check for unimplemented opcodes.
-  // Unfortunately in MAXIS both NOP and SLL will come in with Binary == 0
+  // Unfortunately in MAXIS both NOP and SLLi will come in with Binary == 0
   // so we have to special check for them.
   unsigned Opcode = TmpInst.getOpcode();
-  if ((Opcode != Maxis::NOP) && (Opcode != Maxis::SLL) &&
-      (Opcode != Maxis::SLL_MM) && (Opcode != Maxis::SLL_MMR6) && !Binary)
+  if ((Opcode != Maxis::NOP) && (Opcode != Maxis::SLLi) &&
+      (Opcode != Maxis::SLLI_MM) && (Opcode != Maxis::SLLI_MMR6) && !Binary)
     llvm_unreachable("unimplemented opcode in encodeInstruction()");
 
   int NewOpcode = -1;

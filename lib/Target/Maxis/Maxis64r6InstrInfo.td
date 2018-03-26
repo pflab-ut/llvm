@@ -235,45 +235,45 @@ def : MaxisPat<(select (i32 (seteq i64:$cond, immz)), immz, i64:$f),
 // FIXME: Ideally, setcc would always produce an i64 on MAXIS64 targets.
 //        This would allow us to remove the sign-extensions here.
 def : MaxisPat<(select i32:$cond, i64:$t, i64:$f),
-              (OR64 (SELNEZ64 i64:$t, (SLL64_32 i32:$cond)),
-                    (SELEQZ64 i64:$f, (SLL64_32 i32:$cond)))>,
+              (OR64 (SELNEZ64 i64:$t, (SLLi64_32 i32:$cond)),
+                    (SELEQZ64 i64:$f, (SLLi64_32 i32:$cond)))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (seteq i32:$cond, immz)), i64:$t, i64:$f),
-              (OR64 (SELEQZ64 i64:$t, (SLL64_32 i32:$cond)),
-                    (SELNEZ64 i64:$f, (SLL64_32 i32:$cond)))>,
+              (OR64 (SELEQZ64 i64:$t, (SLLi64_32 i32:$cond)),
+                    (SELNEZ64 i64:$f, (SLLi64_32 i32:$cond)))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (setne i32:$cond, immz)), i64:$t, i64:$f),
-              (OR64 (SELNEZ64 i64:$t, (SLL64_32 i32:$cond)),
-                    (SELEQZ64 i64:$f, (SLL64_32 i32:$cond)))>,
+              (OR64 (SELNEZ64 i64:$t, (SLLi64_32 i32:$cond)),
+                    (SELEQZ64 i64:$f, (SLLi64_32 i32:$cond)))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (seteq i32:$cond, immZExt16:$imm)), i64:$t, i64:$f),
-              (OR64 (SELEQZ64 i64:$t, (SLL64_32 (XORi i32:$cond,
+              (OR64 (SELEQZ64 i64:$t, (SLLi64_32 (XORi i32:$cond,
                                                       immZExt16:$imm))),
-                    (SELNEZ64 i64:$f, (SLL64_32 (XORi i32:$cond,
+                    (SELNEZ64 i64:$f, (SLLi64_32 (XORi i32:$cond,
                                                       immZExt16:$imm))))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (setne i32:$cond, immZExt16:$imm)), i64:$t, i64:$f),
-              (OR64 (SELNEZ64 i64:$t, (SLL64_32 (XORi i32:$cond,
+              (OR64 (SELNEZ64 i64:$t, (SLLi64_32 (XORi i32:$cond,
                                                       immZExt16:$imm))),
-                    (SELEQZ64 i64:$f, (SLL64_32 (XORi i32:$cond,
+                    (SELEQZ64 i64:$f, (SLLi64_32 (XORi i32:$cond,
                                                       immZExt16:$imm))))>,
               ISA_MAXIS64R6;
 
 def : MaxisPat<(select i32:$cond, i64:$t, immz),
-              (SELNEZ64 i64:$t, (SLL64_32 i32:$cond))>,
+              (SELNEZ64 i64:$t, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (setne i32:$cond, immz)), i64:$t, immz),
-              (SELNEZ64 i64:$t, (SLL64_32 i32:$cond))>,
+              (SELNEZ64 i64:$t, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (seteq i32:$cond, immz)), i64:$t, immz),
-              (SELEQZ64 i64:$t, (SLL64_32 i32:$cond))>,
+              (SELEQZ64 i64:$t, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select i32:$cond, immz, i64:$f),
-              (SELEQZ64 i64:$f, (SLL64_32 i32:$cond))>,
+              (SELEQZ64 i64:$f, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (setne i32:$cond, immz)), immz, i64:$f),
-              (SELEQZ64 i64:$f, (SLL64_32 i32:$cond))>,
+              (SELEQZ64 i64:$f, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (seteq i32:$cond, immz)), immz, i64:$f),
-              (SELNEZ64 i64:$f, (SLL64_32 i32:$cond))>,
+              (SELNEZ64 i64:$f, (SLLi64_32 i32:$cond))>,
               ISA_MAXIS64R6;

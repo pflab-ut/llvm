@@ -99,8 +99,8 @@ def II_DMULTU           : InstrItinClass;
 def II_DROTR            : InstrItinClass;
 def II_DROTR32          : InstrItinClass;
 def II_DROTRV           : InstrItinClass;
-def II_DSLL             : InstrItinClass;
-def II_DSLL32           : InstrItinClass;
+def II_DSLLI             : InstrItinClass;
+def II_DSLLI32           : InstrItinClass;
 def II_DSLLV            : InstrItinClass;
 def II_DSRA             : InstrItinClass;
 def II_DSRA32           : InstrItinClass;
@@ -305,7 +305,7 @@ def II_SEQ_SNE          : InstrItinClass; // seq and sne
 def II_SEQI_SNEI        : InstrItinClass; // seqi and snei
 def II_SH               : InstrItinClass;
 def II_SHE              : InstrItinClass;
-def II_SLL              : InstrItinClass;
+def II_SLLI              : InstrItinClass;
 def II_SLLV             : InstrItinClass;
 def II_SLTI_SLTIU       : InstrItinClass; // slti and sltiu
 def II_SLT_SLTU         : InstrItinClass; // slt and sltu
@@ -369,7 +369,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_ALIGN           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_BADDU           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_BITSWAP         , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_SLL             , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_SLLI             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRA             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRL             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ROTR            , [InstrStage<1,  [ALU]>]>,
@@ -392,8 +392,8 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_DMOD            , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_DMODU           , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_DMT             , [InstrStage<2,  [ALU]>]>,
-  InstrItinData<II_DSLL            , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_DSLL32          , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_DSLLI            , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_DSLLI32          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRL            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRL32          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRA            , [InstrStage<1,  [ALU]>]>,

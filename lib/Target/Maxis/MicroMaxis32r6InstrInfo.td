@@ -143,7 +143,7 @@ class SEH_MMR6_ENC : SIGN_EXTEND_FM_MMR6<"seh", 0b0011101100>;
 class SELEQZ_MMR6_ENC : POOL32A_FM_MMR6<0b0101000000>;
 class SELNEZ_MMR6_ENC : POOL32A_FM_MMR6<0b0110000000>;
 class SH16_MMR6_ENC : LOAD_STORE_FM_MM16<0x2a>;
-class SLL_MMR6_ENC : SHIFT_MMR6_ENC<"sll", 0x00, 0b0>;
+class SLLI_MMR6_ENC : SHIFT_MMR6_ENC<"slli", 0x00, 0b0>;
 class SUB_MMR6_ENC : ARITH_FM_MMR6<"sub", 0x190>;
 class SUBU_MMR6_ENC : ARITH_FM_MMR6<"subu", 0x1d0>;
 class SW_MMR6_ENC : SW32_FM_MMR6<"sw", 0x3e>;
@@ -224,7 +224,7 @@ class AND16_MMR6_ENC : POOL16C_AND16_FM_MMR6;
 class ANDI16_MMR6_ENC : ANDI_FM_MM16<0b001011>, MicroMaxisR6Inst16;
 class NOT16_MMR6_ENC : POOL16C_NOT16_FM_MMR6;
 class OR16_MMR6_ENC : POOL16C_OR16_XOR16_FM_MMR6<0b1001>;
-class SLL16_MMR6_ENC : SHIFT_FM_MM16<0>, MicroMaxisR6Inst16;
+class SLLI16_MMR6_ENC : SHIFT_FM_MM16<0>, MicroMaxisR6Inst16;
 class SRL16_MMR6_ENC : SHIFT_FM_MM16<1>, MicroMaxisR6Inst16;
 class BREAK16_MMR6_ENC : POOL16C_BREAKPOINT_FM_MMR6<0b011011>;
 class LI16_MMR6_ENC : LI_FM_MM16;
@@ -669,7 +669,7 @@ class WAIT_MMR6_DESC : WaitMM<"wait">;
 //        Assemblers targeting specifically Release 6 should reject the SSNOP
 //        instruction with an error.
 class SSNOP_MMR6_DESC : Barrier<"ssnop", II_SSNOP>;
-class SLL_MMR6_DESC : shift_rotate_imm<"sll", uimm5, GPR32Opnd, II_SLL>;
+class SLLI_MMR6_DESC : shift_rotate_imm<"slli", uimm5, GPR32Opnd, II_SLLI>;
 
 class DIVMOD_MMR6_DESC_BASE<string opstr, RegisterOperand GPROpnd,
                             InstrItinClass Itin,
@@ -1197,8 +1197,8 @@ class OR16_MMR6_DESC : LogicRMM16<"or16", GPRMM16Opnd, II_OR, or>,
       MMR6Arch<"or16"> {
   int AddedComplexity = 1;
 }
-class SLL16_MMR6_DESC : ShiftIMM16<"sll16", uimm3_shift, GPRMM16Opnd, II_SLL>,
-      MMR6Arch<"sll16">;
+class SLLI16_MMR6_DESC : ShiftIMM16<"slli16", uimm3_shift, GPRMM16Opnd, II_SLLI>,
+      MMR6Arch<"slli16">;
 class SRL16_MMR6_DESC : ShiftIMM16<"srl16", uimm3_shift, GPRMM16Opnd, II_SRL>,
       MMR6Arch<"srl16">;
 class BREAK16_MMR6_DESC : BrkSdbbp16MM<"break16", II_BREAK>, MMR6Arch<"break16">,
@@ -1523,7 +1523,7 @@ def SELEQZ_MMR6 : R6MMR6Rel, SELEQZ_MMR6_ENC, SELEQZ_MMR6_DESC,
 def SELNEZ_MMR6 : R6MMR6Rel, SELNEZ_MMR6_ENC, SELNEZ_MMR6_DESC,
                   ISA_MICROMAXIS32R6;
 def SH16_MMR6 : StdMMR6Rel, SH16_MMR6_DESC, SH16_MMR6_ENC, ISA_MICROMAXIS32R6;
-def SLL_MMR6 : StdMMR6Rel, SLL_MMR6_DESC, SLL_MMR6_ENC, ISA_MICROMAXIS32R6;
+def SLLI_MMR6 : StdMMR6Rel, SLLI_MMR6_DESC, SLLI_MMR6_ENC, ISA_MICROMAXIS32R6;
 def SUB_MMR6 : StdMMR6Rel, SUB_MMR6_DESC, SUB_MMR6_ENC, ISA_MICROMAXIS32R6;
 def SUBU_MMR6 : StdMMR6Rel, SUBU_MMR6_DESC, SUBU_MMR6_ENC, ISA_MICROMAXIS32R6;
 def SW16_MMR6 : StdMMR6Rel, SW16_MMR6_DESC, SW16_MMR6_ENC, ISA_MICROMAXIS32R6;
@@ -1673,7 +1673,7 @@ def NOT16_MMR6 : StdMMR6Rel, NOT16_MMR6_DESC, NOT16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def OR16_MMR6 : StdMMR6Rel, OR16_MMR6_DESC, OR16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
-def SLL16_MMR6 : StdMMR6Rel, SLL16_MMR6_DESC, SLL16_MMR6_ENC,
+def SLLI16_MMR6 : StdMMR6Rel, SLLI16_MMR6_DESC, SLLI16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def SRL16_MMR6 : StdMMR6Rel, SRL16_MMR6_DESC, SRL16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
@@ -1782,7 +1782,7 @@ def BLTZALC_MMR6 : R6MMR6Rel, BLTZALC_MMR6_ENC, BLTZALC_MMR6_DESC,
 
 def : MaxisInstAlias<"ei", (EI_MMR6 ZERO), 1>, ISA_MICROMAXIS32R6;
 def : MaxisInstAlias<"di", (DI_MMR6 ZERO), 1>, ISA_MICROMAXIS32R6;
-def : MaxisInstAlias<"nop", (SLL_MMR6 ZERO, ZERO, 0), 1>, ISA_MICROMAXIS32R6;
+def : MaxisInstAlias<"nop", (SLLI_MMR6 ZERO, ZERO, 0), 1>, ISA_MICROMAXIS32R6;
 def B_MMR6_Pseudo : MaxisAsmPseudoInst<(outs), (ins brtarget_mm:$offset),
                                       !strconcat("b", "\t$offset")> {
   string DecoderNamespace = "MicroMaxisR6";

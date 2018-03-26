@@ -1901,7 +1901,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
 /// Shift Instructions
 let AdditionalPredicates = [NotInMicroMaxis] in {
-def SLL  : MMRel, shift_rotate_imm<"sll", uimm5, GPR32Opnd, II_SLL, shl,
+def SLLi  : MMRel, shift_rotate_imm<"slli", uimm5, GPR32Opnd, II_SLLI, shl,
                                    immZExt5>, SRA_FM<0, 0>;
 def SRL  : MMRel, shift_rotate_imm<"srl", uimm5, GPR32Opnd, II_SRL, srl,
                                    immZExt5>, SRA_FM<2, 0>;
@@ -2186,7 +2186,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 }
 
 /// No operation.
-def NOP : PseudoSE<(outs), (ins), []>, PseudoInstExpansion<(SLL ZERO, ZERO, 0)>;
+def NOP : PseudoSE<(outs), (ins), []>, PseudoInstExpansion<(SLLi ZERO, ZERO, 0)>;
 
 // FrameIndexes are legalized when they are operands from load/store
 // instructions. The same not happens for stack address copies, so an
@@ -2459,7 +2459,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<
           "not $rt",
           (NOR GPR32Opnd:$rt, GPR32Opnd:$rt, ZERO), 0>;
-  def : MaxisInstAlias<"nop", (SLL ZERO, ZERO, 0), 1>;
+  def : MaxisInstAlias<"nop", (SLLi ZERO, ZERO, 0), 1>;
 
   defm : OneOrTwoOperandMacroImmediateAlias<"add", ADDi>, ISA_MAXIS1_NOT_32R6_64R6;
 
@@ -2526,13 +2526,13 @@ def : MaxisInstAlias<"subu, $rd, $rs, $imm",
 def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
                                              InvertedImOperand:$imm), 0>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def : MaxisInstAlias<"sll $rd, $rt, $rs",
+  def : MaxisInstAlias<"slli $rd, $rt, $rs",
                       (SLLV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"sra $rd, $rt, $rs",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srl $rd, $rt, $rs",
                       (SRLV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
-  def : MaxisInstAlias<"sll $rd, $rt",
+  def : MaxisInstAlias<"slli $rd, $rt",
                       (SLLV GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"sra $rd, $rt",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;

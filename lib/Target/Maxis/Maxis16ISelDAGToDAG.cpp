@@ -86,7 +86,7 @@ void Maxis16DAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   BuildMI(MBB, I, DL, TII.get(Maxis::AddiRxPcImmX16), V1)
       .addExternalSymbol("_gp_disp", MaxisII::MO_ABS_LO);
 
-  BuildMI(MBB, I, DL, TII.get(Maxis::SllX16), V2).addReg(V0).addImm(16);
+  BuildMI(MBB, I, DL, TII.get(Maxis::SlliX16), V2).addReg(V0).addImm(16);
   BuildMI(MBB, I, DL, TII.get(Maxis::AdduRxRyRz16), GlobalBaseReg)
       .addReg(V1)
       .addReg(V2);

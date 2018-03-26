@@ -675,7 +675,7 @@ class TargetRegisterClass;
       return true;
     }
 
-    /// Emit a sign-extension using sll/sra, seb, or seh appropriately.
+    /// Emit a sign-extension using slli/sra, seb, or seh appropriately.
     MachineBasicBlock *emitSignExtendToI32InReg(MachineInstr &MI,
                                                 MachineBasicBlock *BB,
                                                 unsigned Size, unsigned DstReg,

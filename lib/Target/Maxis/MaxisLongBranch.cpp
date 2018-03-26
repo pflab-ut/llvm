@@ -400,7 +400,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //  daddi $sp, $sp, -16
       //  sd $ra, 0($sp)
       //  daddi $at, $zero, %hi($tgt - $baltgt)
-      //  dsll $at, $at, 16
+      //  dslli $at, $at, 16
       //  bal $baltgt
       //  daddi $at, $at, %lo($tgt - $baltgt)
       // $baltgt:
@@ -415,7 +415,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //  daddi $sp, $sp, -16
       //  sd $ra, 0($sp)
       //  daddi $at, $zero, %hi($tgt - $baltgt)
-      //  dsll $at, $at, 16
+      //  dslli $at, $at, 16
       //  daddi $at, $at, %lo($tgt - $baltgt)
       //  balc $baltgt
       // $baltgt:
@@ -449,7 +449,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::LONG_BRANCH_DADDi),
               Maxis::AT_64).addReg(Maxis::ZERO_64)
                           .addMBB(TgtMBB, MaxisII::MO_ABS_HI).addMBB(BalTgtMBB);
-      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::DSLL), Maxis::AT_64)
+      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::DSLLi), Maxis::AT_64)
         .addReg(Maxis::AT_64).addImm(16);
 
       MachineInstrBuilder BalInstr =
