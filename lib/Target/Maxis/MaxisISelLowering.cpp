@@ -1886,7 +1886,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   //    andi    maskednewval,newval,255
   //    sll     shiftednewval,maskednewval,shiftamt
   int64_t MaskImm = (Size == 1) ? 255 : 65535;
-  BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::DADDiu : Maxis::ADDi), MaskLSB2)
+  BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::DADDi : Maxis::ADDi), MaskLSB2)
     .addReg(ABI.GetNullPtr()).addImm(-4);
   BuildMI(BB, DL, TII->get(ArePtrs64bit ? Maxis::AND64 : Maxis::AND), AlignedAddr)
     .addReg(Ptr).addReg(MaskLSB2);

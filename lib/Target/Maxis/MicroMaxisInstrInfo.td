@@ -3,8 +3,8 @@ def addrimm12 : ComplexPattern<iPTR, 2, "selectIntAddr12MM", [frameindex]>;
 def addrimm16 : ComplexPattern<iPTR, 2, "selectIntAddr16MM", [frameindex]>;
 def addrimm4lsl2 : ComplexPattern<iPTR, 2, "selectIntAddrLSL2MM", [frameindex]>;
 
-def simm9_addiusp : Operand<i32> {
-  let EncoderMethod = "getSImm9AddiuspValue";
+def simm9_addisp : Operand<i32> {
+  let EncoderMethod = "getSImm9AddispValue";
   let DecoderMethod = "DecodeSimm9SP";
 }
 
@@ -15,7 +15,7 @@ def uimm3_shift : Operand<i32> {
 
 def simm3_lsa2 : Operand<i32> {
   let EncoderMethod = "getSImm3Lsa2Value";
-  let DecoderMethod = "DecodeAddiur2Simm7";
+  let DecoderMethod = "DecodeAddir2Simm7";
 }
 
 def uimm4_andi : Operand<i32> {
@@ -23,11 +23,11 @@ def uimm4_andi : Operand<i32> {
   let DecoderMethod = "DecodeANDI16Imm";
 }
 
-def immSExtAddiur2 : ImmLeaf<i32, [{return Imm == 1 || Imm == -1 ||
+def immSExtAddir2 : ImmLeaf<i32, [{return Imm == 1 || Imm == -1 ||
                                            ((Imm % 4 == 0) &&
                                             Imm < 28 && Imm > 0);}]>;
 
-def immSExtAddius5 : ImmLeaf<i32, [{return Imm >= -8 && Imm <= 7;}]>;
+def immSExtAddis5 : ImmLeaf<i32, [{return Imm >= -8 && Imm <= 7;}]>;
 
 def immZExtAndi16 : ImmLeaf<i32,
   [{return (Imm == 128 || (Imm >= 1 && Imm <= 4) || Imm == 7 || Imm == 8 ||
@@ -383,23 +383,23 @@ class LoadGPMM16<string opstr, DAGOperand RO, InstrItinClass Itin,
 class AddImmUR2<string opstr, RegisterOperand RO> :
   MicroMaxisInst16<(outs RO:$rd), (ins RO:$rs, simm3_lsa2:$imm),
                   !strconcat(opstr, "\t$rd, $rs, $imm"),
-                  [], II_ADDIU, FrmR> {
+                  [], II_ADDI, FrmR> {
   let isCommutable = 1;
 }
 
 class AddImmUS5<string opstr, RegisterOperand RO> :
   MicroMaxisInst16<(outs RO:$dst), (ins RO:$rd, simm4:$imm),
-                  !strconcat(opstr, "\t$rd, $imm"), [], II_ADDIU, FrmR> {
+                  !strconcat(opstr, "\t$rd, $imm"), [], II_ADDI, FrmR> {
   let Constraints = "$rd = $dst";
 }
 
 class AddImmUR1SP<string opstr, RegisterOperand RO> :
   MicroMaxisInst16<(outs RO:$rd), (ins uimm6_lsl2:$imm),
-                  !strconcat(opstr, "\t$rd, $imm"), [], II_ADDIU, FrmR>;
+                  !strconcat(opstr, "\t$rd, $imm"), [], II_ADDI, FrmR>;
 
 class AddImmUSP<string opstr> :
-  MicroMaxisInst16<(outs), (ins simm9_addiusp:$imm),
-                  !strconcat(opstr, "\t$imm"), [], II_ADDIU, FrmI>;
+  MicroMaxisInst16<(outs), (ins simm9_addisp:$imm),
+                  !strconcat(opstr, "\t$imm"), [], II_ADDI, FrmI>;
 
 class MoveFromHILOMM<string opstr, RegisterOperand RO, Register UseReg> :
       MicroMaxisInst16<(outs RO:$rd), (ins), !strconcat(opstr, "\t$rd"),
@@ -438,10 +438,10 @@ class JumpRegMM16<string opstr, RegisterOperand RO> :
   let isIndirectBranch = 1;
 }
 
-// Base class for JRADDIUSP instruction.
-class JumpRAddiuStackMM16 :
-  MicroMaxisInst16<(outs), (ins uimm5_lsl2:$imm), "jraddiusp\t$imm",
-                  [], II_JRADDIUSP, FrmR> {
+// Base class for JRADDISP instruction.
+class JumpRAddiStackMM16 :
+  MicroMaxisInst16<(outs), (ins uimm5_lsl2:$imm), "jraddisp\t$imm",
+                  [], II_JRADDISP, FrmR> {
   let isTerminator = 1;
   let isBarrier = 1;
   let isBranch = 1;
@@ -511,7 +511,7 @@ class PrefetchIndexed<string opstr> :
 
 class AddImmUPC<string opstr, RegisterOperand RO> :
   InstSE<(outs RO:$rs), (ins simm23_lsl2:$imm),
-         !strconcat(opstr, "\t$rs, $imm"), [], II_ADDIU, FrmR>;
+         !strconcat(opstr, "\t$rs, $imm"), [], II_ADDI, FrmR>;
 
 /// A list of registers used by load/store multiple instructions.
 def RegListAsmOperand : AsmOperandClass {
@@ -624,10 +624,10 @@ def LWSP_MM : LoadSPMM16<"lw", GPR32Opnd, II_LW, mem_mm_sp_imm5_lsl2>,
               LOAD_STORE_SP_FM_MM16<0x12>;
 def SWSP_MM : StoreSPMM16<"sw", GPR32Opnd, II_SW, mem_mm_sp_imm5_lsl2>,
               LOAD_STORE_SP_FM_MM16<0x32>;
-def ADDIUR1SP_MM : AddImmUR1SP<"addiur1sp", GPRMM16Opnd>, ADDIUR1SP_FM_MM16;
-def ADDIUR2_MM : AddImmUR2<"addiur2", GPRMM16Opnd>, ADDIUR2_FM_MM16;
-def ADDIUS5_MM : AddImmUS5<"addius5", GPR32Opnd>, ADDIUS5_FM_MM16;
-def ADDIUSP_MM : AddImmUSP<"addiusp">, ADDIUSP_FM_MM16;
+def ADDIR1SP_MM : AddImmUR1SP<"addir1sp", GPRMM16Opnd>, ADDIR1SP_FM_MM16;
+def ADDIR2_MM : AddImmUR2<"addir2", GPRMM16Opnd>, ADDIR2_FM_MM16;
+def ADDIS5_MM : AddImmUS5<"addis5", GPR32Opnd>, ADDIS5_FM_MM16;
+def ADDISP_MM : AddImmUSP<"addisp">, ADDISP_FM_MM16;
 def MFHI16_MM : MoveFromHILOMM<"mfhi", GPR32Opnd, AC0>, MFHILO_FM_MM16<0x10>;
 def MFLO16_MM : MoveFromHILOMM<"mflo", GPR32Opnd, AC0>, MFHILO_FM_MM16<0x12>;
 def MOVE16_MM : MoveMM16<"move", GPR32Opnd>, MOVE_FM_MM16<0x03>;
@@ -639,7 +639,7 @@ def JALR16_MM : JumpLinkRegMM16<"jalr", GPR32Opnd>, JALR_FM_MM16<0x0e>,
                 ISA_MICROMAXIS32_NOT_MAXIS32R6;
 def JALRS16_MM : JumpLinkRegSMM16<"jalrs16", GPR32Opnd>, JALR_FM_MM16<0x0f>;
 def JRC16_MM : JumpRegCMM16<"jrc", GPR32Opnd>, JALR_FM_MM16<0x0d>;
-def JRADDIUSP : JumpRAddiuStackMM16, JRADDIUSP_FM_MM16<0x18>;
+def JRADDISP : JumpRAddiStackMM16, JRADDISP_FM_MM16<0x18>;
 def JR16_MM : JumpRegMM16<"jr16", GPR32Opnd>, JALR_FM_MM16<0x0c>;
 def BEQZ16_MM : CBranchZeroMM<"beqz16", brtarget7_mm, GPRMM16Opnd>,
                 BEQNEZ_FM_MM16<0x23>;
@@ -681,8 +681,6 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis, NotMaxis32r6,
 }
 let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
   /// Arithmetic Instructions (ALU Immediate)
-  def ADDiu_MM : MMRel, ArithLogicI<"addiu", simm16, GPR32Opnd, II_ADDIU>,
-                 ADDI_FM_MM<0xc>;
   def ADDi_MM  : MMRel, ArithLogicI<"addi", simm16, GPR32Opnd, II_ADDI>,
                  ADDI_FM_MM<0x4>;
   def SLTi_MM  : MMRel, SetCC_I<"slti", setlt, simm16, immSExt16, GPR32Opnd>,
@@ -697,7 +695,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                                     immZExt16, xor>, ADDI_FM_MM<0x1c>;
   def LUi_MM   : MMRel, LoadUpper<"lui", GPR32Opnd, uimm16_relaxed>, LUI_FM_MM;
 
-  def LEA_ADDiu_MM : MMRel, EffectiveAddress<"addiu", GPR32Opnd>,
+  def LEA_ADDi_MM : MMRel, EffectiveAddress<"addi", GPR32Opnd>,
                      LW_FM_MM<0xc>;
 
   /// Arithmetic Instructions (3-Operand, R-Type)
@@ -731,7 +729,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                  MULT_FM_MM<0x2ec>, ISA_MAXIS1_NOT_32R6_64R6;
 
   /// Arithmetic Instructions with PC and Immediate
-  def ADDIUPC_MM : AddImmUPC<"addiupc", GPRMM16Opnd>, ADDIUPC_FM_MM;
+  def ADDIPC_MM : AddImmUPC<"addipc", GPRMM16Opnd>, ADDIPC_FM_MM;
 
   /// Shift Instructions
   def SLL_MM   : MMRel, shift_rotate_imm<"sll", uimm5, GPR32Opnd, II_SLL>,
@@ -1019,7 +1017,7 @@ let AdditionalPredicates = [InMicroMaxis] in {
   def : MaxisPat<(i32 immLi16:$imm),
                 (LI16_MM immLi16:$imm)>;
 
-  defm :  MaterializeImms<i32, ZERO, ADDiu_MM, LUi_MM, ORi_MM>;
+  defm :  MaterializeImms<i32, ZERO, ADDi_MM, LUi_MM, ORi_MM>;
 }
 
 let Predicates = [InMicroMaxis] in {
@@ -1028,12 +1026,12 @@ let Predicates = [InMicroMaxis] in {
   def : MaxisPat<(not GPR32:$in),
                 (NOR_MM GPR32Opnd:$in, ZERO)>;
 
-  def : MaxisPat<(add GPRMM16:$src, immSExtAddiur2:$imm),
-                (ADDIUR2_MM GPRMM16:$src, immSExtAddiur2:$imm)>;
-  def : MaxisPat<(add GPR32:$src, immSExtAddius5:$imm),
-                (ADDIUS5_MM GPR32:$src, immSExtAddius5:$imm)>;
+  def : MaxisPat<(add GPRMM16:$src, immSExtAddir2:$imm),
+                (ADDIR2_MM GPRMM16:$src, immSExtAddir2:$imm)>;
+  def : MaxisPat<(add GPR32:$src, immSExtAddis5:$imm),
+                (ADDIS5_MM GPR32:$src, immSExtAddis5:$imm)>;
   def : MaxisPat<(add GPR32:$src, immSExt16:$imm),
-                (ADDiu_MM GPR32:$src, immSExt16:$imm)>;
+                (ADDi_MM GPR32:$src, immSExt16:$imm)>;
 
   def : MaxisPat<(and GPRMM16:$src, immZExtAndi16:$imm),
                 (ANDI16_MM GPRMM16:$src, immZExtAndi16:$imm)>;
@@ -1164,7 +1162,7 @@ let Predicates = [InMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"add", ADDi_MM>;
 
-  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDiu_MM>;
+  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDi_MM>;
 
   defm : OneOrTwoOperandMacroImmediateAlias<"and", ANDi_MM>;
 

@@ -567,7 +567,7 @@ getUImm6Lsl2Encoding(const MCInst &MI, unsigned OpNo,
 }
 
 unsigned MaxisMCCodeEmitter::
-getSImm9AddiuspValue(const MCInst &MI, unsigned OpNo,
+getSImm9AddispValue(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,
                      const MCSubtargetInfo &STI) const {
   const MCOperand &MO = MI.getOperand(OpNo);

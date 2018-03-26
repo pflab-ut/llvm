@@ -97,7 +97,7 @@ class POP37_BNVC_FM_MMR6<string instr_asm> : MaxisR6Inst, MMR6Arch<instr_asm> {
   let Inst{15-0} = offset;
 }
 
-class POOL16C_JRCADDIUSP_FM_MM16R6<bits<5> op> {
+class POOL16C_JRCADDISP_FM_MM16R6<bits<5> op> {
   bits<5> imm;
 
   bits<16> Inst;

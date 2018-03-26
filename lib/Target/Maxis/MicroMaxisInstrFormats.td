@@ -94,7 +94,7 @@ class SHIFT_FM_MM16<bits<1> funct> {
   let Inst{0}     = funct;
 }
 
-class ADDIUR2_FM_MM16 {
+class ADDIR2_FM_MM16 {
   bits<3> rd;
   bits<3> rs;
   bits<3> imm;
@@ -142,7 +142,7 @@ class LOAD_GP_FM_MM16<bits<6> op> {
   let Inst{6-0} = offset;
 }
 
-class ADDIUS5_FM_MM16 {
+class ADDIS5_FM_MM16 {
   bits<5> rd;
   bits<4> imm;
 
@@ -154,7 +154,7 @@ class ADDIUS5_FM_MM16 {
   let Inst{0}     = 0;
 }
 
-class ADDIUSP_FM_MM16 {
+class ADDISP_FM_MM16 {
   bits<9> imm;
 
   bits<16> Inst;
@@ -206,7 +206,7 @@ class MFHILO_FM_MM16<bits<5> funct> {
   let Inst{4-0}   = rd;
 }
 
-class JRADDIUSP_FM_MM16<bits<5> op> {
+class JRADDISP_FM_MM16<bits<5> op> {
   bits<5> rs;
   bits<5> imm;
 
@@ -217,7 +217,7 @@ class JRADDIUSP_FM_MM16<bits<5> op> {
   let Inst{4-0}   = imm;
 }
 
-class ADDIUR1SP_FM_MM16 {
+class ADDIR1SP_FM_MM16 {
   bits<3> rd;
   bits<6> imm;
 
@@ -1030,7 +1030,7 @@ class BARRIER_FM_MM<bits<5> op> : MMArch {
   let Inst{5-0}   = 0x0;
 }
 
-class ADDIUPC_FM_MM {
+class ADDIPC_FM_MM {
   bits<3> rs;
   bits<23> imm;
 

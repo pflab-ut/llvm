@@ -22,8 +22,7 @@ def IIPseudo           : InstrItinClass;
 
 def II_ABS              : InstrItinClass;
 def II_ADDI             : InstrItinClass;
-def II_ADDIU            : InstrItinClass;
-def II_ADDIUPC          : InstrItinClass;
+def II_ADDIPC          : InstrItinClass;
 def II_ADD              : InstrItinClass;
 def II_ADDU             : InstrItinClass;
 def II_ADD_D            : InstrItinClass;
@@ -66,7 +65,6 @@ def II_CMP_CC_D         : InstrItinClass; // Any cmp.<cc>.d instruction
 def II_CMP_CC_S         : InstrItinClass; // Any cmp.<cc>.s instruction
 def II_CLASS_D          : InstrItinClass;
 def II_CLASS_S          : InstrItinClass;
-def II_DADDIU           : InstrItinClass;
 def II_DADDU            : InstrItinClass;
 def II_DADDI            : InstrItinClass;
 def II_DADD             : InstrItinClass;
@@ -133,7 +131,7 @@ def II_JIC              : InstrItinClass;
 def II_JIALC            : InstrItinClass;
 def II_JR               : InstrItinClass;
 def II_JR_HB            : InstrItinClass;
-def II_JRADDIUSP        : InstrItinClass;
+def II_JRADDISP        : InstrItinClass;
 def II_JRC              : InstrItinClass;
 def II_ReturnPseudo     : InstrItinClass; // Return pseudo.
 def II_ERET             : InstrItinClass;
@@ -361,8 +359,7 @@ def II_YIELD            : InstrItinClass;
 def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<IIM16Alu           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADDI            , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_ADDIU           , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_ADDIUPC         , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_ADDIPC         , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADD             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADDU            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_AUI             , [InstrStage<1,  [ALU]>]>,
@@ -382,7 +379,6 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_ROTRV           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_CLO             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_CLZ             , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_DADDIU          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DADDU           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DADDI           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DADD            , [InstrStage<1,  [ALU]>]>,
@@ -514,7 +510,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_JIALC           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JR              , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JR_HB           , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_JRADDIUSP       , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_JRADDISP       , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JRC             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ReturnPseudo    , [InstrStage<1,  [ALU]>]>,
   InstrItinData<IIPseudo           , [InstrStage<1,  [ALU]>]>,

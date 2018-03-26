@@ -137,7 +137,7 @@ const MaxisAnalyzeImmediate::InstSeq
     SLL = Maxis::SLL;
     LUi = Maxis::LUi;
   } else {
-    ADDi = Maxis::DADDiu;
+    ADDi = Maxis::DADDi;
     ORi = Maxis::ORi64;
     SLL = Maxis::DSLL;
     LUi = Maxis::LUi64;

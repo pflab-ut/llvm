@@ -1115,7 +1115,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   // be patching over the full 64 bytes (16 instructions) with the following
   // pattern:
   //
-  //   DADDIU   SP, SP, -16
+  //   DADDI   SP, SP, -16
   //   NOP
   //   SD       RA, 8(SP)
   //   SD       T9, 0(SP)
@@ -1130,7 +1130,7 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   ADDI     T0, T0, %lo(function_id)
   //   LD       T9, 0(SP)
   //   LD       RA, 8(SP)
-  //   DADDIU   SP, SP, 16
+  //   DADDI   SP, SP, 16
   //
   OutStreamer->EmitCodeAlignment(4);
   auto CurSled = OutContext.createTempSymbol("xray_sled_", true);
@@ -1222,7 +1222,7 @@ void MaxisAsmPrinter::NaClAlignIndirectJumpTargets(MachineFunction &MF) {
 bool MaxisAsmPrinter::isLongBranchPseudo(int Opcode) const {
   return (Opcode == Maxis::LONG_BRANCH_LUi
           || Opcode == Maxis::LONG_BRANCH_ADDi
-          || Opcode == Maxis::LONG_BRANCH_DADDiu);
+          || Opcode == Maxis::LONG_BRANCH_DADDi);
 }
 
 // Force static initialization.

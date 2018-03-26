@@ -40,9 +40,9 @@ def GenericIssueALU : ProcResource<1> { let Super = GenericALU; }
 def GenericWriteALU : SchedWriteRes<[GenericIssueALU]>;
 
 // and, lui, nor, or, slti, sltiu, sub, subu, xor
-// add, addi, addiu, addu, andi, ori, rotr, se[bh], sllv?, sr[al]v?, slt, sltu,
+// add, addi, addu, andi, ori, rotr, se[bh], sllv?, sr[al]v?, slt, sltu,
 // xori
-def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ADDIU, II_ANDI,
+def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
                                  II_AND, II_ANDI, II_CLO, II_CLZ, II_EXT,
                                  II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
@@ -86,7 +86,7 @@ def : ItinRW<[GenericWriteDIVU], [II_DIVU]>;
 // MAXIS64
 // ======
 
-def : ItinRW<[GenericWriteALU], [II_DADDIU, II_DADDU, II_DADDI, II_DADD,
+def : ItinRW<[GenericWriteALU], [II_DADDU, II_DADDI, II_DADD,
                                  II_DCLO, II_DCLZ, II_DROTR, II_DROTR32,
                                  II_DROTRV, II_DSBH, II_DSHD, II_DSLL,
                                  II_DSLL32, II_DSLLV, II_DSRA, II_DSRA32,
@@ -119,7 +119,7 @@ def : ItinRW<[GenericWriteMul], [II_MUH, II_MUHU, II_MULU]>;
 
 def : ItinRW<[GenericWriteDIV], [II_MOD, II_MODU]>;
 
-def : ItinRW<[GenericWriteALU], [II_ADDIUPC, II_ALIGN, II_ALUIPC, II_AUI,
+def : ItinRW<[GenericWriteALU], [II_ADDIPC, II_ALIGN, II_ALUIPC, II_AUI,
                                  II_AUIPC, II_BITSWAP, II_LSA, II_SELCCZ]>;
 
 // MAXIS64R6
@@ -159,7 +159,7 @@ def : ItinRW<[GenericWriteJump], [II_B, II_BCC, II_BCCZ, II_BCCZAL, II_J,
 def : ItinRW<[GenericWriteJumpAndLink], [II_JAL, II_JALR, II_JALR_HB,
                                          II_BC2CCZ]>;
 
-def : ItinRW<[GenericWriteJump], [II_JRC, II_JRADDIUSP]>;
+def : ItinRW<[GenericWriteJump], [II_JRC, II_JRADDISP]>;
 
 def : ItinRW<[GenericWriteJumpAndLink], [II_BCCZALS, II_JALS, II_JALRS]>;
 

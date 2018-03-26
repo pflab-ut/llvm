@@ -65,7 +65,7 @@ to MAXIS32 to compute addresses for the static relocation model.
   defm : MaxisHiLoRelocs<LUi, ADDi, ZERO, GPR32Opnd>;
 
   // lib/Target/Maxis/Maxis64InstrInfo.td
-  defm : MaxisHiLoRelocs<LUi64, DADDiu, ZERO_64, GPR64Opnd>, SYM_32;
+  defm : MaxisHiLoRelocs<LUi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
 
 The instantiation in Maxis64InstrInfo.td is used for MAXIS64 in ILP32
 mode, as guarded by the predicate "SYM_32" and also for a submode of

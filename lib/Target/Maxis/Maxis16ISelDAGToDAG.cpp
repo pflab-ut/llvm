@@ -83,7 +83,7 @@ void Maxis16DAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
 
   BuildMI(MBB, I, DL, TII.get(Maxis::LiRxImmX16), V0)
       .addExternalSymbol("_gp_disp", MaxisII::MO_ABS_HI);
-  BuildMI(MBB, I, DL, TII.get(Maxis::AddiuRxPcImmX16), V1)
+  BuildMI(MBB, I, DL, TII.get(Maxis::AddiRxPcImmX16), V1)
       .addExternalSymbol("_gp_disp", MaxisII::MO_ABS_LO);
 
   BuildMI(MBB, I, DL, TII.get(Maxis::SllX16), V2).addReg(V0).addImm(16);
@@ -144,7 +144,7 @@ bool Maxis16DAGToDAGISel::selectAddr(bool SPAllowed, SDValue Addr, SDValue &Base
     // When loading from constant pools, load the lower address part in
     // the instruction itself. Example, instead of:
     //  lui $2, %hi($CPI1_0)
-    //  addiu $2, $2, %lo($CPI1_0)
+    //  addi $2, $2, %lo($CPI1_0)
     //  lwc1 $f0, 0($2)
     // Generate:
     //  lui $2, %hi($CPI1_0)

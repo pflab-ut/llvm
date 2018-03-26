@@ -2162,7 +2162,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     switch (Inst.getOpcode()) {
       default:
         break;
-      case Maxis::ADDIUSP_MM:
+      case Maxis::ADDISP_MM:
         Opnd = Inst.getOperand(0);
         if (!Opnd.isImm())
           return Error(IDLoc, "expected immediate operand kind");
@@ -2188,7 +2188,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
         if (Imm < -1 || Imm > 126)
           return Error(IDLoc, "immediate operand value out of range");
         break;
-      case Maxis::ADDIUR2_MM:
+      case Maxis::ADDIR2_MM:
         Opnd = Inst.getOperand(2);
         if (!Opnd.isImm())
           return Error(IDLoc, "expected immediate operand kind");
@@ -2244,7 +2244,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
         if (Imm < 0 || Imm > 60 || (Imm % 4 != 0))
           return Error(IDLoc, "immediate operand value out of range");
         break;
-      case Maxis::ADDIUPC_MM:
+      case Maxis::ADDIPC_MM:
         MCOperand Opnd = Inst.getOperand(1);
         if (!Opnd.isImm())
           return Error(IDLoc, "expected immediate operand kind");
@@ -2461,7 +2461,6 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     }
     return expandAliasImmediate(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
   case Maxis::ADDi:   case Maxis::ADDi_MM:
-  case Maxis::ADDiu_MM:
   case Maxis::SLTi:   case Maxis::SLTi_MM:
   case Maxis::SLTiu:  case Maxis::SLTiu_MM:
     if ((Inst.getNumOperands() == 3) && Inst.getOperand(0).isReg() &&
@@ -2645,7 +2644,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     // traditional assembler behaviour. N32 would normally use addi for both
     // integers and addresses.
     if (IsAddress && !Is32BitImm) {
-      TOut.emitRRI(Maxis::DADDiu, DstReg, SrcReg, ImmValue, IDLoc, STI);
+      TOut.emitRRI(Maxis::DADDi, DstReg, SrcReg, ImmValue, IDLoc, STI);
       return false;
     }
 
@@ -2925,9 +2924,9 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
 
     // The remaining cases are:
     //   Small offset: ld $tmp, %got_disp(symbol)($gp)
-    //                >daddiu $tmp, $tmp, offset
+    //                >daddi $tmp, $tmp, offset
     //                >daddu $rd, $tmp, $rs
-    // The daddiu's marked with a '>' may be omitted if they are redundant. If
+    // The daddi's marked with a '>' may be omitted if they are redundant. If
     // this happens then the last instruction must use $rd as the result
     // register.
     const MaxisMCExpr *GotExpr = MaxisMCExpr::create(MaxisMCExpr::MEK_GOT_DISP,
@@ -2965,7 +2964,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
                  MCOperand::createExpr(GotExpr), IDLoc, STI);
 
     if (LoExpr)
-      TOut.emitRRX(Maxis::DADDiu, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
+      TOut.emitRRX(Maxis::DADDi, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
 
     if (UseSrcReg)
@@ -3001,21 +3000,21 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
 
       // If $rs is the same as $rd:
       // (d)la $rd, sym($rd) => lui    $at, %highest(sym)
-      //                        daddiu $at, $at, %higher(sym)
+      //                        daddi $at, $at, %higher(sym)
       //                        dsll   $at, $at, 16
-      //                        daddiu $at, $at, %hi(sym)
+      //                        daddi $at, $at, %hi(sym)
       //                        dsll   $at, $at, 16
-      //                        daddiu $at, $at, %lo(sym)
+      //                        daddi $at, $at, %lo(sym)
       //                        daddu  $rd, $at, $rd
       TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg,
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg, MCOperand::createExpr(HiExpr),
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(HiExpr),
                    IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg, MCOperand::createExpr(LoExpr),
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
       TOut.emitRRR(Maxis::DADDu, DstReg, ATReg, SrcReg, IDLoc, STI);
 
@@ -3027,8 +3026,8 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       // have $at available:
       // (d)la $rd, sym/sym($rs) => lui    $rd, %highest(sym)
       //                            lui    $at, %hi(sym)
-      //                            daddiu $rd, $rd, %higher(sym)
-      //                            daddiu $at, $at, %lo(sym)
+      //                            daddi $rd, $rd, %higher(sym)
+      //                            daddi $at, $at, %lo(sym)
       //                            dsll32 $rd, $rd, 0
       //                            daddu  $rd, $rd, $at
       //                            (daddu  $rd, $rd, $rs)
@@ -3037,9 +3036,9 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       TOut.emitRX(Maxis::LUi, DstReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HiExpr), IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, DstReg, DstReg,
+      TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg, MCOperand::createExpr(LoExpr),
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL32, DstReg, DstReg, 0, IDLoc, STI);
       TOut.emitRRR(Maxis::DADDu, DstReg, DstReg, ATReg, IDLoc, STI);
@@ -3051,20 +3050,20 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       // Otherwise, synthesize the address in the destination register
       // serially:
       // (d)la $rd, sym/sym($rs) => lui    $rd, %highest(sym)
-      //                            daddiu $rd, $rd, %higher(sym)
+      //                            daddi $rd, $rd, %higher(sym)
       //                            dsll   $rd, $rd, 16
-      //                            daddiu $rd, $rd, %hi(sym)
+      //                            daddi $rd, $rd, %hi(sym)
       //                            dsll   $rd, $rd, 16
-      //                            daddiu $rd, $rd, %lo(sym)
+      //                            daddi $rd, $rd, %lo(sym)
       TOut.emitRX(Maxis::LUi, DstReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
-      TOut.emitRRX(Maxis::DADDiu, DstReg, DstReg,
+      TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, DstReg, DstReg, 16, IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, DstReg, DstReg,
+      TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HiExpr), IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, DstReg, DstReg, 16, IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, DstReg, DstReg,
+      TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(LoExpr), IDLoc, STI);
       if (UseSrcReg)
         TOut.emitRRR(Maxis::DADDu, DstReg, DstReg, SrcReg, IDLoc, STI);
@@ -3224,10 +3223,10 @@ bool MaxisAsmParser::emitPartialAddress(MaxisTargetStreamer &TOut, SMLoc IDLoc,
 
       TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg,
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg, MCOperand::createExpr(HiExpr),
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(HiExpr),
                    IDLoc, STI);
       TOut.emitRRI(Maxis::DSLL, ATReg, ATReg, 16, IDLoc, STI);
     }
@@ -3351,7 +3350,7 @@ bool MaxisAsmParser::expandLoadImmReal(MCInst &Inst, bool IsSingle, bool IsGPR,
     if(emitPartialAddress(TOut, IDLoc, Sym))
       return true;
     if(isABI_N64())
-      TOut.emitRRX(Maxis::DADDiu, ATReg, ATReg,
+      TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(LoExpr), IDLoc, STI);
     else
       TOut.emitRRX(Maxis::ADDi, ATReg, ATReg,
@@ -4315,9 +4314,6 @@ bool MaxisAsmParser::expandAliasImmediate(MCInst &Inst, SMLoc IDLoc,
     case Maxis::ADDi_MM:
       FinalOpcode = Maxis::ADD_MM;
       break;
-    case Maxis::ADDiu_MM:
-      FinalOpcode = Maxis::ADDu_MM;
-      break;
     case Maxis::ANDi_MM:
       FinalOpcode = Maxis::AND_MM;
       break;
@@ -4870,7 +4866,7 @@ bool MaxisAsmParser::expandSeqI(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
     if (Imm > -0x8000 && Imm < 0) {
       Imm = -Imm;
-      Opc = isGP64bit() ? Maxis::DADDiu : Maxis::ADDi;
+      Opc = isGP64bit() ? Maxis::DADDi : Maxis::ADDi;
     } else {
       Opc = Maxis::XORi;
     }

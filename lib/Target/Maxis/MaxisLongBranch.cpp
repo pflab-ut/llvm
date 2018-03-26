@@ -397,31 +397,31 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
     } else {
       // Pre R6:
       // $longbr:
-      //  daddiu $sp, $sp, -16
+      //  daddi $sp, $sp, -16
       //  sd $ra, 0($sp)
-      //  daddiu $at, $zero, %hi($tgt - $baltgt)
+      //  daddi $at, $zero, %hi($tgt - $baltgt)
       //  dsll $at, $at, 16
       //  bal $baltgt
-      //  daddiu $at, $at, %lo($tgt - $baltgt)
+      //  daddi $at, $at, %lo($tgt - $baltgt)
       // $baltgt:
       //  daddu $at, $ra, $at
       //  ld $ra, 0($sp)
       //  jr64 $at
-      //  daddiu $sp, $sp, 16
+      //  daddi $sp, $sp, 16
       // $fallthrough:
 
       // R6:
       // $longbr:
-      //  daddiu $sp, $sp, -16
+      //  daddi $sp, $sp, -16
       //  sd $ra, 0($sp)
-      //  daddiu $at, $zero, %hi($tgt - $baltgt)
+      //  daddi $at, $zero, %hi($tgt - $baltgt)
       //  dsll $at, $at, 16
-      //  daddiu $at, $at, %lo($tgt - $baltgt)
+      //  daddi $at, $at, %lo($tgt - $baltgt)
       //  balc $baltgt
       // $baltgt:
       //  daddu $at, $ra, $at
       //  ld $ra, 0($sp)
-      //  daddiu $sp, $sp, 16
+      //  daddi $sp, $sp, 16
       //  jic $at, 0
       // $fallthrough:
 
@@ -442,11 +442,11 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
 
       Pos = LongBrMBB->begin();
 
-      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::DADDiu), Maxis::SP_64)
+      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::DADDi), Maxis::SP_64)
         .addReg(Maxis::SP_64).addImm(-16);
       BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::SD)).addReg(Maxis::RA_64)
         .addReg(Maxis::SP_64).addImm(0);
-      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::LONG_BRANCH_DADDiu),
+      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::LONG_BRANCH_DADDi),
               Maxis::AT_64).addReg(Maxis::ZERO_64)
                           .addMBB(TgtMBB, MaxisII::MO_ABS_HI).addMBB(BalTgtMBB);
       BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::DSLL), Maxis::AT_64)
@@ -454,17 +454,17 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
 
       MachineInstrBuilder BalInstr =
           BuildMI(*MF, DL, TII->get(BalOp)).addMBB(BalTgtMBB);
-      MachineInstrBuilder DADDiuInstr =
-          BuildMI(*MF, DL, TII->get(Maxis::LONG_BRANCH_DADDiu), Maxis::AT_64)
+      MachineInstrBuilder DADDiInstr =
+          BuildMI(*MF, DL, TII->get(Maxis::LONG_BRANCH_DADDi), Maxis::AT_64)
               .addReg(Maxis::AT_64)
               .addMBB(TgtMBB, MaxisII::MO_ABS_LO)
               .addMBB(BalTgtMBB);
       if (Subtarget.hasMaxis32r6()) {
-        LongBrMBB->insert(Pos, DADDiuInstr);
+        LongBrMBB->insert(Pos, DADDiInstr);
         LongBrMBB->insert(Pos, BalInstr);
       } else {
         LongBrMBB->insert(Pos, BalInstr);
-        LongBrMBB->insert(Pos, DADDiuInstr);
+        LongBrMBB->insert(Pos, DADDiInstr);
         LongBrMBB->rbegin()->bundleWithPred();
       }
 
@@ -476,7 +476,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
         .addReg(Maxis::SP_64).addImm(0);
 
       if (Subtarget.hasMaxis64r6()) {
-        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::DADDiu), Maxis::SP_64)
+        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::DADDi), Maxis::SP_64)
             .addReg(Maxis::SP_64)
             .addImm(16);
         BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::JIC64))
@@ -484,7 +484,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
             .addImm(0);
       } else {
         BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::JR64)).addReg(Maxis::AT_64);
-        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::DADDiu), Maxis::SP_64)
+        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::DADDi), Maxis::SP_64)
             .addReg(Maxis::SP_64)
             .addImm(16);
         BalTgtMBB->rbegin()->bundleWithPred();

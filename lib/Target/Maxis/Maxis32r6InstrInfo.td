@@ -65,7 +65,7 @@ def calloffset16 : Operand<iPTR> {
 //
 //===----------------------------------------------------------------------===//
 
-class ADDIUPC_ENC : PCREL19_FM<OPCODE2_ADDIUPC>;
+class ADDIPC_ENC : PCREL19_FM<OPCODE2_ADDIPC>;
 class ALIGN_ENC  : SPECIAL3_ALIGN_FM<OPCODE6_ALIGN>;
 class ALUIPC_ENC : PCREL16_FM<OPCODE5_ALUIPC>;
 class AUI_ENC    : AUI_FM;
@@ -311,8 +311,8 @@ class PCREL_DESC_BASE<string instr_asm, RegisterOperand GPROpnd,
   InstrItinClass Itinerary = itin;
 }
 
-class ADDIUPC_DESC : PCREL_DESC_BASE<"addiupc", GPR32Opnd, simm19_lsl2,
-                                     II_ADDIUPC>;
+class ADDIPC_DESC : PCREL_DESC_BASE<"addipc", GPR32Opnd, simm19_lsl2,
+                                     II_ADDIPC>;
 class LWPC_DESC: PCREL_DESC_BASE<"lwpc", GPR32Opnd, simm19_lsl2, II_LWPC>;
 class LWUPC_DESC: PCREL_DESC_BASE<"lwupc", GPR32Opnd, simm19_lsl2, II_LWUPC>;
 
@@ -810,7 +810,7 @@ class SDBBP_R6_DESC {
 //
 //===----------------------------------------------------------------------===//
 
-def ADDIUPC : R6MMR6Rel, ADDIUPC_ENC, ADDIUPC_DESC, ISA_MAXIS32R6;
+def ADDIPC : R6MMR6Rel, ADDIPC_ENC, ADDIPC_DESC, ISA_MAXIS32R6;
 def ALIGN : R6MMR6Rel, ALIGN_ENC, ALIGN_DESC, ISA_MAXIS32R6;
 def ALUIPC : R6MMR6Rel, ALUIPC_ENC, ALUIPC_DESC, ISA_MAXIS32R6;
 def AUI : R6MMR6Rel, AUI_ENC, AUI_DESC, ISA_MAXIS32R6;
@@ -949,7 +949,7 @@ def : MaxisInstAlias<"divu $rs, $rt", (DIVU GPR32Opnd:$rs, GPR32Opnd:$rs,
                                            GPR32Opnd:$rt)>, ISA_MAXIS32R6;
 
 def : MaxisInstAlias<"lapc $rd, $imm",
-                    (ADDIUPC GPR32Opnd:$rd, simm19_lsl2:$imm)>, ISA_MAXIS32R6;
+                    (ADDIPC GPR32Opnd:$rd, simm19_lsl2:$imm)>, ISA_MAXIS32R6;
 
 //===----------------------------------------------------------------------===//
 //

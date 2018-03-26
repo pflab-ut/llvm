@@ -252,14 +252,14 @@ bool MaxisMCInstLower::lowerLongBranch(const MachineInstr *MI,
   case Maxis::LONG_BRANCH_ADDi:
     lowerLongBranchADDi(MI, OutMI, Maxis::ADDi, MaxisMCExpr::MEK_LO);
     return true;
-  case Maxis::LONG_BRANCH_DADDiu:
+  case Maxis::LONG_BRANCH_DADDi:
     unsigned TargetFlags = MI->getOperand(2).getTargetFlags();
     if (TargetFlags == MaxisII::MO_ABS_HI)
-      lowerLongBranchADDi(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_HI);
+      lowerLongBranchADDi(MI, OutMI, Maxis::DADDi, MaxisMCExpr::MEK_HI);
     else if (TargetFlags == MaxisII::MO_ABS_LO)
-      lowerLongBranchADDi(MI, OutMI, Maxis::DADDiu, MaxisMCExpr::MEK_LO);
+      lowerLongBranchADDi(MI, OutMI, Maxis::DADDi, MaxisMCExpr::MEK_LO);
     else
-      report_fatal_error("Unexpected flags for LONG_BRANCH_DADDiu");
+      report_fatal_error("Unexpected flags for LONG_BRANCH_DADDi");
     return true;
   }
 }

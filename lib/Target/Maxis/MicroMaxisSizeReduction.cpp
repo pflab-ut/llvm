@@ -150,13 +150,13 @@ private:
   static bool ReduceArithmeticInstructions(MachineInstr *MI,
                                            const ReduceEntry &Entry);
 
-  // Attempts to reduce ADDIU into ADDIUSP instruction,
+  // Attempts to reduce ADDI into ADDISP instruction,
   // returns true on success.
-  static bool ReduceADDIUToADDIUSP(MachineInstr *MI, const ReduceEntry &Entry);
+  static bool ReduceADDIToADDISP(MachineInstr *MI, const ReduceEntry &Entry);
 
-  // Attempts to reduce ADDIU into ADDIUR1SP instruction,
+  // Attempts to reduce ADDI into ADDIR1SP instruction,
   // returns true on success.
-  static bool ReduceADDIUToADDIUR1SP(MachineInstr *MI,
+  static bool ReduceADDIToADDIR1SP(MachineInstr *MI,
                                      const ReduceEntry &Entry);
 
   // Attempts to reduce XOR into XOR16 instruction,
@@ -180,14 +180,14 @@ llvm::SmallVector<ReduceEntry, 16> MicroMaxisSizeReduce::ReduceTable = {
     // ReduceType, OpCodes, ReduceFunction,
     // OpInfo(TransferOperands),
     // ImmField(Shift, LBound, HBound, ImmFieldPosition)
-    {RT_OneInstr, OpCodes(Maxis::ADDi, Maxis::ADDIUR1SP_MM),
-     ReduceADDIUToADDIUR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
-    {RT_OneInstr, OpCodes(Maxis::ADDi, Maxis::ADDIUSP_MM), ReduceADDIUToADDIUSP,
+    {RT_OneInstr, OpCodes(Maxis::ADDi, Maxis::ADDIR1SP_MM),
+     ReduceADDIToADDIR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
+    {RT_OneInstr, OpCodes(Maxis::ADDi, Maxis::ADDISP_MM), ReduceADDIToADDISP,
      OpInfo(OT_Operand2), ImmField(0, 0, 0, 2)},
-    {RT_OneInstr, OpCodes(Maxis::ADDi_MM, Maxis::ADDIUR1SP_MM),
-     ReduceADDIUToADDIUR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
-    {RT_OneInstr, OpCodes(Maxis::ADDi_MM, Maxis::ADDIUSP_MM),
-     ReduceADDIUToADDIUSP, OpInfo(OT_Operand2), ImmField(0, 0, 0, 2)},
+    {RT_OneInstr, OpCodes(Maxis::ADDi_MM, Maxis::ADDIR1SP_MM),
+     ReduceADDIToADDIR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
+    {RT_OneInstr, OpCodes(Maxis::ADDi_MM, Maxis::ADDISP_MM),
+     ReduceADDIToADDISP, OpInfo(OT_Operand2), ImmField(0, 0, 0, 2)},
     {RT_OneInstr, OpCodes(Maxis::ADDu, Maxis::ADDU16_MM),
      ReduceArithmeticInstructions, OpInfo(OT_OperandsAll),
      ImmField(0, 0, 0, -1)},
@@ -198,8 +198,8 @@ llvm::SmallVector<ReduceEntry, 16> MicroMaxisSizeReduce::ReduceTable = {
      OpInfo(OT_OperandsAll), ImmField(0, -1, 15, 2)},
     {RT_OneInstr, OpCodes(Maxis::LBu_MM, Maxis::LBU16_MM), ReduceLXUtoLXU16,
      OpInfo(OT_OperandsAll), ImmField(0, -1, 15, 2)},
-    {RT_OneInstr, OpCodes(Maxis::LEA_ADDi, Maxis::ADDIUR1SP_MM),
-     ReduceADDIUToADDIUR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
+    {RT_OneInstr, OpCodes(Maxis::LEA_ADDi, Maxis::ADDIR1SP_MM),
+     ReduceADDIToADDIR1SP, OpInfo(OT_Operands02), ImmField(2, 0, 64, 2)},
     {RT_OneInstr, OpCodes(Maxis::LHu, Maxis::LHU16_MM), ReduceLXUtoLXU16,
      OpInfo(OT_OperandsAll), ImmField(1, 0, 16, 2)},
     {RT_OneInstr, OpCodes(Maxis::LHu_MM, Maxis::LHU16_MM), ReduceLXUtoLXU16,
@@ -263,8 +263,8 @@ static bool GetImm(MachineInstr *MI, unsigned Op, int64_t &Imm) {
   return true;
 }
 
-// Returns true if the value is a valid immediate for ADDIUSP.
-static bool AddiuspImmValue(int64_t Value) {
+// Returns true if the value is a valid immediate for ADDISP.
+static bool AddispImmValue(int64_t Value) {
   int64_t Value2 = Value >> 2;
   if (((Value & (int64_t)maskTrailingZeros<uint64_t>(2)) == Value) &&
       ((Value2 >= 2 && Value2 <= 257) || (Value2 >= -258 && Value2 <= -3)))
@@ -349,7 +349,7 @@ bool MicroMaxisSizeReduce::ReduceArithmeticInstructions(
   return ReplaceInstruction(MI, Entry);
 }
 
-bool MicroMaxisSizeReduce::ReduceADDIUToADDIUR1SP(MachineInstr *MI,
+bool MicroMaxisSizeReduce::ReduceADDIToADDIR1SP(MachineInstr *MI,
                                                  const ReduceEntry &Entry) {
 
   if (!ImmInRange(MI, Entry))
@@ -361,14 +361,14 @@ bool MicroMaxisSizeReduce::ReduceADDIUToADDIUR1SP(MachineInstr *MI,
   return ReplaceInstruction(MI, Entry);
 }
 
-bool MicroMaxisSizeReduce::ReduceADDIUToADDIUSP(MachineInstr *MI,
+bool MicroMaxisSizeReduce::ReduceADDIToADDISP(MachineInstr *MI,
                                                const ReduceEntry &Entry) {
 
   int64_t ImmValue;
   if (!GetImm(MI, Entry.ImmField(), ImmValue))
     return false;
 
-  if (!AddiuspImmValue(ImmValue))
+  if (!AddispImmValue(ImmValue))
     return false;
 
   if (!IsSP(MI->getOperand(0)) || !IsSP(MI->getOperand(1)))

@@ -60,7 +60,7 @@ def MaxisTailCall : SDNode<"MaxisISD::TailCall", SDT_MaxisJmpLink,
 // MaxisISelLowering to lower stuff like GlobalAddress, ExternalSymbol
 // static model. (nothing to do with Maxis Registers Hi and Lo)
 
-// Hi is the odd node out, on MAXIS64 it can expand to either daddiu when
+// Hi is the odd node out, on MAXIS64 it can expand to either daddi when
 // using static relocations with 64 bit symbols, or lui when using 32 bit
 // symbols.
 def MaxisHigher : SDNode<"MaxisISD::Higher", SDTIntUnaryOp>;

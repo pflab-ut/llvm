@@ -384,7 +384,7 @@ static DecodeStatus DecodeSpecial3LlSc(MCInst &Inst,
                                        uint64_t Address,
                                        const void *Decoder);
 
-static DecodeStatus DecodeAddiur2Simm7(MCInst &Inst,
+static DecodeStatus DecodeAddir2Simm7(MCInst &Inst,
                                        unsigned Value,
                                        uint64_t Address,
                                        const void *Decoder);
@@ -2300,7 +2300,7 @@ static DecodeStatus DecodeJumpTargetMM(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
-static DecodeStatus DecodeAddiur2Simm7(MCInst &Inst,
+static DecodeStatus DecodeAddir2Simm7(MCInst &Inst,
                                        unsigned Value,
                                        uint64_t Address,
                                        const void *Decoder) {

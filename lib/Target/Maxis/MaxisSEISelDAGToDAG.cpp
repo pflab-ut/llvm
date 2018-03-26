@@ -94,14 +94,14 @@ bool MaxisSEDAGToDAGISel::replaceUsesWithZeroReg(MachineRegisterInfo *MRI,
                                                 const MachineInstr& MI) {
   unsigned DstReg = 0, ZeroReg = 0;
 
-  // Check if MI is "addi $dst, $zero, 0" or "daddiu $dst, $zero, 0".
+  // Check if MI is "addi $dst, $zero, 0" or "daddi $dst, $zero, 0".
   if ((MI.getOpcode() == Maxis::ADDi) &&
       (MI.getOperand(1).getReg() == Maxis::ZERO) &&
       (MI.getOperand(2).isImm()) &&
       (MI.getOperand(2).getImm() == 0)) {
     DstReg = MI.getOperand(0).getReg();
     ZeroReg = Maxis::ZERO;
-  } else if ((MI.getOpcode() == Maxis::DADDiu) &&
+  } else if ((MI.getOpcode() == Maxis::DADDi) &&
              (MI.getOperand(1).getReg() == Maxis::ZERO_64) &&
              (MI.getOperand(2).isImm()) &&
              (MI.getOperand(2).getImm() == 0)) {
@@ -160,13 +160,13 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
 
     // lui $v0, %hi(%neg(%gp_rel(fname)))
     // daddu $v1, $v0, $t9
-    // daddiu $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
+    // daddi $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
     const GlobalValue *FName = &MF.getFunction();
     BuildMI(MBB, I, DL, TII.get(Maxis::LUi64), V0)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_HI);
     BuildMI(MBB, I, DL, TII.get(Maxis::DADDu), V1).addReg(V0)
       .addReg(Maxis::T9_64);
-    BuildMI(MBB, I, DL, TII.get(Maxis::DADDiu), GlobalBaseReg).addReg(V1)
+    BuildMI(MBB, I, DL, TII.get(Maxis::DADDi), GlobalBaseReg).addReg(V1)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_LO);
     return;
   }
@@ -1059,7 +1059,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       // 64bit values.
 
       bool Is32BitSplat = ABI.IsO32() || SplatBitSize < 64;
-      const unsigned ADDiOp = Is32BitSplat ? Maxis::ADDi : Maxis::DADDiu;
+      const unsigned ADDiOp = Is32BitSplat ? Maxis::ADDi : Maxis::DADDi;
       const MVT SplatMVT = Is32BitSplat ? MVT::i32 : MVT::i64;
       SDValue ZeroVal = CurDAG->getRegister(
           Is32BitSplat ? Maxis::ZERO : Maxis::ZERO_64, SplatMVT);

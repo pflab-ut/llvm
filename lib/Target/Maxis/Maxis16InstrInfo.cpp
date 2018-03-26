@@ -224,7 +224,7 @@ void Maxis16InstrInfo::makeFrame(unsigned SP, int64_t FrameSize,
     int64_t Remainder = FrameSize - Base;
     MIB.addImm(Base);
     if (isInt<16>(-Remainder))
-      BuildAddiuSpImm(MBB, I, -Remainder);
+      BuildAddiSpImm(MBB, I, -Remainder);
     else
       adjustStackPtrBig(SP, -Remainder, MBB, I, Maxis::V0, Maxis::V1);
   }
@@ -250,7 +250,7 @@ void Maxis16InstrInfo::restoreFrame(unsigned SP, int64_t FrameSize,
                      // returns largest possible n bit unsigned integer
 
     if (isInt<16>(Remainder))
-      BuildAddiuSpImm(MBB, I, Remainder);
+      BuildAddiSpImm(MBB, I, Remainder);
     else
       adjustStackPtrBig(SP, Remainder, MBB, I, Maxis::A0, Maxis::A1);
   }
@@ -303,8 +303,8 @@ void Maxis16InstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
   if (Amount == 0)
     return;
 
-  if (isInt<16>(Amount))  // need to change to addiu sp, ....and isInt<16>
-    BuildAddiuSpImm(MBB, I, Amount);
+  if (isInt<16>(Amount))  // need to change to addi sp, ....and isInt<16>
+    BuildAddiSpImm(MBB, I, Amount);
   else
     adjustStackPtrBigUnrestricted(SP, Amount, MBB, I);
 }
@@ -445,17 +445,17 @@ void Maxis16InstrInfo::ExpandRetRA16(MachineBasicBlock &MBB,
   BuildMI(MBB, I, I->getDebugLoc(), get(Opc));
 }
 
-const MCInstrDesc &Maxis16InstrInfo::AddiuSpImm(int64_t Imm) const {
+const MCInstrDesc &Maxis16InstrInfo::AddiSpImm(int64_t Imm) const {
   if (validSpImm8(Imm))
-    return get(Maxis::AddiuSpImm16);
+    return get(Maxis::AddiSpImm16);
   else
-    return get(Maxis::AddiuSpImmX16);
+    return get(Maxis::AddiSpImmX16);
 }
 
-void Maxis16InstrInfo::BuildAddiuSpImm
+void Maxis16InstrInfo::BuildAddiSpImm
   (MachineBasicBlock &MBB, MachineBasicBlock::iterator I, int64_t Imm) const {
   DebugLoc DL;
-  BuildMI(MBB, I, DL, AddiuSpImm(Imm)).addImm(Imm);
+  BuildMI(MBB, I, DL, AddiSpImm(Imm)).addImm(Imm);
 }
 
 const MaxisInstrInfo *llvm::createMaxis16InstrInfo(const MaxisSubtarget &STI) {
@@ -476,7 +476,7 @@ bool Maxis16InstrInfo::validImmediate(unsigned Opcode, unsigned Reg,
   case Maxis::SwRxSpImmX16:
   case Maxis::LwRxSpImmX16:
     return isInt<16>(Amount);
-  case Maxis::AddiuRxRyOffMemX16:
+  case Maxis::AddiRxRyOffMemX16:
     if ((Reg == Maxis::PC) || (Reg == Maxis::SP))
       return isInt<16>(Amount);
     return isInt<15>(Amount);

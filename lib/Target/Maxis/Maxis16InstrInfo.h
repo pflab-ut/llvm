@@ -98,9 +98,9 @@ public:
 
   // build the proper one based on the Imm field
 
-  const MCInstrDesc& AddiuSpImm(int64_t Imm) const;
+  const MCInstrDesc& AddiSpImm(int64_t Imm) const;
 
-  void BuildAddiuSpImm
+  void BuildAddiSpImm
     (MachineBasicBlock &MBB, MachineBasicBlock::iterator I, int64_t Imm) const;
 private:
   unsigned getAnalyzableBrOpc(unsigned Opc) const override;

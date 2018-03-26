@@ -98,11 +98,6 @@ let DecoderNamespace = "Maxis64" in {
 /// Arithmetic Instructions (ALU Immediate)
 def DADDi   : ArithLogicI<"daddi", simm16_64, GPR64Opnd, II_DADDI>,
               ADDI_FM<0x18>, ISA_MAXIS3_NOT_32R6_64R6;
-let AdditionalPredicates = [NotInMicroMaxis] in {
-  def DADDiu : ArithLogicI<"daddiu", simm16_64, GPR64Opnd, II_DADDIU,
-                           immSExt16, add>,
-               ADDI_FM<0x19>, IsAsCheapAsAMove, ISA_MAXIS3;
-}
 
 let isCodeGenOnly = 1 in {
 def SLTi64  : SetCC_I<"slti", setlt, simm16_64, immSExt16, GPR64Opnd>,
@@ -306,7 +301,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
              ISA_MAXIS64R2;
 }
 
-def LEA_ADDiu64 : EffectiveAddress<"daddiu", GPR64Opnd>, LW_FM<0x19>;
+def LEA_ADDi64 : EffectiveAddress<"daddi", GPR64Opnd>, LW_FM<0x19>;
 
 let isCodeGenOnly = 1 in
 def RDHWR64 : ReadHardware<GPR64Opnd, HWRegsOpnd>, RDHWR_FM;
@@ -368,10 +363,10 @@ let isCodeGenOnly = 1, rs = 0, shamt = 0 in {
 // long branches.  See the comment in file MaxisLongBranch.cpp for detailed
 // explanation.
 
-// Expands to: daddiu $dst, $src, %PART($tgt - $baltgt)
+// Expands to: daddi $dst, $src, %PART($tgt - $baltgt)
 // where %PART may be %hi or %lo, depending on the relocation kind
 // that $tgt is annotated with.
-def LONG_BRANCH_DADDiu : PseudoSE<(outs GPR64Opnd:$dst),
+def LONG_BRANCH_DADDi : PseudoSE<(outs GPR64Opnd:$dst),
   (ins GPR64Opnd:$src, brtarget:$tgt, brtarget:$baltgt), []>;
 
 // Cavium Octeon cnMAXIS instructions
@@ -541,7 +536,7 @@ def DMTC2 : MTC3OP<"dmtc2", COP2Opnd, GPR64Opnd, II_DMTC2>, MFC3OP_FM<0x12, 5>,
 //===----------------------------------------------------------------------===//
 
 // Materialize i64 constants.
-defm : MaterializeImms<i64, ZERO_64, DADDiu, LUi64, ORi64>;
+defm : MaterializeImms<i64, ZERO_64, DADDi, LUi64, ORi64>;
 
 def : MaxisPat<(i64 immZExt32Low16Zero:$imm),
               (DSLL (ORi64 ZERO_64, (HI16 imm:$imm)), 16)>;
@@ -558,7 +553,7 @@ def : MaxisPat<(i64 (extloadi32 addr:$src)), (LW64 addr:$src)>;
 
 // hi/lo relocs
 let AdditionalPredicates = [NotInMicroMaxis] in
-defm : MaxisHiLoRelocs<LUi64, DADDiu, ZERO_64, GPR64Opnd>, SYM_32;
+defm : MaxisHiLoRelocs<LUi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
 
 def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (LUi64 tglobaladdr:$in)>;
 def : MaxisPat<(MaxisGotHi texternalsym:$in), (LUi64 texternalsym:$in)>;
@@ -581,64 +576,64 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                 (LUi64 texternalsym:$in)>, SYM_64;
 
   def : MaxisPat<(MaxisHigher (i64 tglobaladdr:$in)),
-                (DADDiu ZERO_64, tglobaladdr:$in)>, SYM_64;
+                (DADDi ZERO_64, tglobaladdr:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 tblockaddress:$in)),
-                (DADDiu ZERO_64, tblockaddress:$in)>, SYM_64;
+                (DADDi ZERO_64, tblockaddress:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 tjumptable:$in)),
-                (DADDiu ZERO_64, tjumptable:$in)>, SYM_64;
+                (DADDi ZERO_64, tjumptable:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 tconstpool:$in)),
-                (DADDiu ZERO_64, tconstpool:$in)>, SYM_64;
+                (DADDi ZERO_64, tconstpool:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 tglobaltlsaddr:$in)),
-                (DADDiu ZERO_64, tglobaltlsaddr:$in)>, SYM_64;
+                (DADDi ZERO_64, tglobaltlsaddr:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 texternalsym:$in)),
-                (DADDiu ZERO_64, texternalsym:$in)>, SYM_64;
+                (DADDi ZERO_64, texternalsym:$in)>, SYM_64;
 
   def : MaxisPat<(add GPR64:$hi, (MaxisHigher (i64 tglobaladdr:$lo))),
-                (DADDiu GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHigher (i64 tblockaddress:$lo))),
-                (DADDiu GPR64:$hi, tblockaddress:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tblockaddress:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHigher (i64 tjumptable:$lo))),
-                (DADDiu GPR64:$hi, tjumptable:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tjumptable:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHigher (i64 tconstpool:$lo))),
-                (DADDiu GPR64:$hi, tconstpool:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tconstpool:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHigher (i64 tglobaltlsaddr:$lo))),
-                (DADDiu GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
 
   def : MaxisPat<(add GPR64:$hi, (MaxisHi (i64 tglobaladdr:$lo))),
-                (DADDiu GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHi (i64 tblockaddress:$lo))),
-                (DADDiu GPR64:$hi, tblockaddress:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tblockaddress:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHi (i64 tjumptable:$lo))),
-                (DADDiu GPR64:$hi, tjumptable:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tjumptable:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHi (i64 tconstpool:$lo))),
-                (DADDiu GPR64:$hi, tconstpool:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tconstpool:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisHi (i64 tglobaltlsaddr:$lo))),
-                (DADDiu GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
 
   def : MaxisPat<(add GPR64:$hi, (MaxisLo (i64 tglobaladdr:$lo))),
-                (DADDiu GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaladdr:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisLo (i64 tblockaddress:$lo))),
-                (DADDiu GPR64:$hi, tblockaddress:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tblockaddress:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisLo (i64 tjumptable:$lo))),
-                (DADDiu GPR64:$hi, tjumptable:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tjumptable:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisLo (i64 tconstpool:$lo))),
-                (DADDiu GPR64:$hi, tconstpool:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tconstpool:$lo)>, SYM_64;
   def : MaxisPat<(add GPR64:$hi, (MaxisLo (i64 tglobaltlsaddr:$lo))),
-                (DADDiu GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
+                (DADDi GPR64:$hi, tglobaltlsaddr:$lo)>, SYM_64;
 }
 
 // gp_rel relocs
 def : MaxisPat<(add GPR64:$gp, (MaxisGPRel tglobaladdr:$in)),
-              (DADDiu GPR64:$gp, tglobaladdr:$in)>, ABI_N64;
+              (DADDi GPR64:$gp, tglobaladdr:$in)>, ABI_N64;
 def : MaxisPat<(add GPR64:$gp, (MaxisGPRel tconstpool:$in)),
-              (DADDiu GPR64:$gp, tconstpool:$in)>, ABI_N64;
+              (DADDi GPR64:$gp, tconstpool:$in)>, ABI_N64;
 
-def : WrapperPat<tglobaladdr, DADDiu, GPR64>;
-def : WrapperPat<tconstpool, DADDiu, GPR64>;
-def : WrapperPat<texternalsym, DADDiu, GPR64>;
-def : WrapperPat<tblockaddress, DADDiu, GPR64>;
-def : WrapperPat<tjumptable, DADDiu, GPR64>;
-def : WrapperPat<tglobaltlsaddr, DADDiu, GPR64>;
+def : WrapperPat<tglobaladdr, DADDi, GPR64>;
+def : WrapperPat<tconstpool, DADDi, GPR64>;
+def : WrapperPat<texternalsym, DADDi, GPR64>;
+def : WrapperPat<tblockaddress, DADDi, GPR64>;
+def : WrapperPat<tjumptable, DADDi, GPR64>;
+def : WrapperPat<tglobaltlsaddr, DADDi, GPR64>;
 
 
 defm : BrcondPats<GPR64, BEQ64, BEQ, BNE64, SLT64, SLTu64, SLTi64, SLTiu64,
@@ -714,7 +709,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(addc GPR64:$lhs, GPR64:$rhs),
                 (DADDu GPR64:$lhs, GPR64:$rhs)>, ASE_NOT_DSP;
   def : MaxisPat<(addc GPR64:$lhs, immSExt16:$imm),
-                (DADDiu GPR64:$lhs, imm:$imm)>, ASE_NOT_DSP;
+                (DADDi GPR64:$lhs, imm:$imm)>, ASE_NOT_DSP;
 }
 
 // Octeon bbit0/bbit1 MaxisPattern
@@ -762,10 +757,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                       (DADDi GPR64Opnd:$rs, GPR64Opnd:$rs, simm16_64:$imm),
                       0>, ISA_MAXIS3_NOT_32R6_64R6;
   def : MaxisInstAlias<"daddu $rs, $rt, $imm",
-                      (DADDiu GPR64Opnd:$rs, GPR64Opnd:$rt, simm16_64:$imm),
+                      (DADDi GPR64Opnd:$rs, GPR64Opnd:$rt, simm16_64:$imm),
                       0>, ISA_MAXIS3;
   def : MaxisInstAlias<"daddu $rs, $imm",
-                      (DADDiu GPR64Opnd:$rs, GPR64Opnd:$rs, simm16_64:$imm),
+                      (DADDi GPR64Opnd:$rs, GPR64Opnd:$rs, simm16_64:$imm),
                       0>, ISA_MAXIS3;
 
   defm : OneOrTwoOperandMacroImmediateAlias<"and", ANDi64, GPR64Opnd, imm64>,
@@ -809,10 +804,10 @@ def : MaxisInstAlias<"dsub $rs, $imm",
                     0>, ISA_MAXIS3_NOT_32R6_64R6;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"dsubu $rt, $rs, $imm",
-                      (DADDiu GPR64Opnd:$rt, GPR64Opnd:$rs,
+                      (DADDi GPR64Opnd:$rt, GPR64Opnd:$rs,
                               InvertedImOperand64:$imm), 0>, ISA_MAXIS3;
   def : MaxisInstAlias<"dsubu $rs, $imm",
-                      (DADDiu GPR64Opnd:$rs, GPR64Opnd:$rs,
+                      (DADDi GPR64Opnd:$rs, GPR64Opnd:$rs,
                               InvertedImOperand64:$imm), 0>, ISA_MAXIS3;
 }
 def : MaxisInstAlias<"dsra $rd, $rt, $rs",

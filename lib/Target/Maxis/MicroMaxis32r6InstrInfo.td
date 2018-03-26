@@ -47,9 +47,9 @@ def brtarget_lsl2_mm : Operand<OtherVT> {
 //
 //===----------------------------------------------------------------------===//
 class ADD_MMR6_ENC : ARITH_FM_MMR6<"add", 0x110>;
-class ADDIU_MMR6_ENC : ADDI_FM_MMR6<"addiu", 0xc>;
+class ADDI_MMR6_ENC : ADDI_FM_MMR6<"addi", 0xc>;
 class ADDU_MMR6_ENC : ARITH_FM_MMR6<"addu", 0x150>;
-class ADDIUPC_MMR6_ENC : PCREL19_FM_MMR6<0b00>;
+class ADDIPC_MMR6_ENC : PCREL19_FM_MMR6<0b00>;
 class ALUIPC_MMR6_ENC : PCREL16_FM_MMR6<0b11111>;
 class AND_MMR6_ENC : ARITH_FM_MMR6<"and", 0x250>;
 class ANDI_MMR6_ENC : ADDI_FM_MMR6<"andi", 0x34>;
@@ -110,7 +110,7 @@ class JALRC16_MMR6_ENC : POOL16C_JALRC_FM_MM16R6<0xb>;
 class JIALC_MMR6_ENC : JMP_IDX_COMPACT_FM<0b100000>;
 class JIC_MMR6_ENC   : JMP_IDX_COMPACT_FM<0b101000>;
 class JRC16_MMR6_ENC: POOL16C_JALRC_FM_MM16R6<0x3>;
-class JRCADDIUSP_MMR6_ENC : POOL16C_JRCADDIUSP_FM_MM16R6<0x13>;
+class JRCADDISP_MMR6_ENC : POOL16C_JRCADDISP_FM_MM16R6<0x13>;
 class LSA_MMR6_ENC : POOL32A_LSA_FM<0b001111>;
 class LWP_MMR6_ENC : POOL32B_LWP_SWP_FM_MMR6<0x1>;
 class LWPC_MMR6_ENC  : PCREL19_FM_MMR6<0b01>;
@@ -363,7 +363,7 @@ class BNEC_MMR6_DESC : CMP_CBR_2R_MMR6_DESC_BASE<"bnec", brtarget_lsl2_mm,
                                                  GPR32Opnd>;
 
 class ADD_MMR6_DESC : ArithLogicR<"add", GPR32Opnd, 1, II_ADD>;
-class ADDIU_MMR6_DESC : ArithLogicI<"addiu", simm16, GPR32Opnd, II_ADDIU, immSExt16, add>;
+class ADDI_MMR6_DESC : ArithLogicI<"addi", simm16, GPR32Opnd, II_ADDI, immSExt16, add>;
 class ADDU_MMR6_DESC : ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU>;
 class MUL_MMR6_DESC : ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>;
 class MUH_MMR6_DESC : ArithLogicR<"muh", GPR32Opnd, 1, II_MUH, mulhs>;
@@ -539,10 +539,10 @@ class JRC16_MMR6_DESC_BASE<string opstr, RegisterOperand RO>
 }
 class JRC16_MMR6_DESC : JRC16_MMR6_DESC_BASE<"jrc16", GPR32Opnd>;
 
-class JRCADDIUSP_MMR6_DESC
-    : MicroMaxisInst16<(outs), (ins uimm5_lsl2:$imm), "jrcaddiusp\t$imm",
-                      [], II_JRADDIUSP, FrmR>,
-      MMR6Arch<"jrcaddiusp">, MicroMaxisR6Inst16 {
+class JRCADDISP_MMR6_DESC
+    : MicroMaxisInst16<(outs), (ins uimm5_lsl2:$imm), "jrcaddisp\t$imm",
+                      [], II_JRADDISP, FrmR>,
+      MMR6Arch<"jrcaddisp">, MicroMaxisR6Inst16 {
   let hasDelaySlot = 0;
   let isTerminator = 1;
   let isBarrier = 1;
@@ -610,8 +610,8 @@ class PCREL_MMR6_DESC_BASE<string instr_asm, RegisterOperand GPROpnd,
   InstrItinClass Itinerary = Itin;
 }
 
-class ADDIUPC_MMR6_DESC : PCREL_MMR6_DESC_BASE<"addiupc", GPR32Opnd,
-                                               simm19_lsl2, II_ADDIUPC>;
+class ADDIPC_MMR6_DESC : PCREL_MMR6_DESC_BASE<"addipc", GPR32Opnd,
+                                               simm19_lsl2, II_ADDIPC>;
 class LWPC_MMR6_DESC: PCREL_MMR6_DESC_BASE<"lwpc", GPR32Opnd, simm19_lsl2,
                                            II_LWPC>;
 
@@ -1432,9 +1432,9 @@ class BNVC_MMR6_DESC : BOVC_BNVC_MMR6_DESC_BASE<"bnvc", brtargetr6, GPR32Opnd>;
 
 let DecoderNamespace = "MicroMaxisR6" in {
 def ADD_MMR6 : StdMMR6Rel, ADD_MMR6_DESC, ADD_MMR6_ENC, ISA_MICROMAXIS32R6;
-def ADDIU_MMR6 : StdMMR6Rel, ADDIU_MMR6_DESC, ADDIU_MMR6_ENC, ISA_MICROMAXIS32R6;
+def ADDI_MMR6 : StdMMR6Rel, ADDI_MMR6_DESC, ADDI_MMR6_ENC, ISA_MICROMAXIS32R6;
 def ADDU_MMR6 : StdMMR6Rel, ADDU_MMR6_DESC, ADDU_MMR6_ENC, ISA_MICROMAXIS32R6;
-def ADDIUPC_MMR6 : R6MMR6Rel, ADDIUPC_MMR6_ENC, ADDIUPC_MMR6_DESC,
+def ADDIPC_MMR6 : R6MMR6Rel, ADDIPC_MMR6_ENC, ADDIPC_MMR6_DESC,
                    ISA_MICROMAXIS32R6;
 def ALUIPC_MMR6 : R6MMR6Rel, ALUIPC_MMR6_ENC, ALUIPC_MMR6_DESC,
                   ISA_MICROMAXIS32R6;
@@ -1478,7 +1478,7 @@ def JALRC16_MMR6 : R6MMR6Rel, JALRC16_MMR6_DESC, JALRC16_MMR6_ENC,
 def JIALC_MMR6 : R6MMR6Rel, JIALC_MMR6_ENC, JIALC_MMR6_DESC, ISA_MICROMAXIS32R6;
 def JIC_MMR6 : R6MMR6Rel, JIC_MMR6_ENC, JIC_MMR6_DESC, ISA_MICROMAXIS32R6;
 def JRC16_MMR6 : R6MMR6Rel, JRC16_MMR6_DESC, JRC16_MMR6_ENC, ISA_MICROMAXIS32R6;
-def JRCADDIUSP_MMR6 : R6MMR6Rel, JRCADDIUSP_MMR6_DESC, JRCADDIUSP_MMR6_ENC,
+def JRCADDISP_MMR6 : R6MMR6Rel, JRCADDISP_MMR6_DESC, JRCADDISP_MMR6_ENC,
                       ISA_MICROMAXIS32R6;
 def LSA_MMR6 : R6MMR6Rel, LSA_MMR6_ENC, LSA_MMR6_DESC, ISA_MICROMAXIS32R6;
 def LWP_MMR6 : StdMMR6Rel, LWP_MMR6_ENC, LWP_MMR6_DESC, ISA_MICROMAXIS32R6;
@@ -1836,7 +1836,7 @@ def : MaxisInstAlias<"seh $rd", (SEH_MMR6 GPR32Opnd:$rd, GPR32Opnd:$rd), 0>,
 def : MaxisInstAlias<"seb $rd", (SEB_MMR6 GPR32Opnd:$rd, GPR32Opnd:$rd), 0>,
                     ISA_MICROMAXIS32R6;
 def : MaxisInstAlias<"lapc $rd, $imm",
-                    (ADDIUPC_MMR6 GPR32Opnd:$rd, simm19_lsl2:$imm)>,
+                    (ADDIPC_MMR6 GPR32Opnd:$rd, simm19_lsl2:$imm)>,
                     ISA_MICROMAXIS32R6;
 
 //===----------------------------------------------------------------------===//
