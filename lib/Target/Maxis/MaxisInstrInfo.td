@@ -1860,15 +1860,15 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
   def ANDi : MMRel, StdMMR6Rel,
              ArithLogicI<"andi", uimm16, GPR32Opnd, II_ANDI, immZExt16, and>,
-             ADDI_FM<0xc>;
+             ADDI_FM<0x1c>;
   def ORi  : MMRel, StdMMR6Rel,
              ArithLogicI<"ori", uimm16, GPR32Opnd, II_ORI, immZExt16, or>,
-             ADDI_FM<0xd>;
+             ADDI_FM<0x1d>;
   def XORi : MMRel, StdMMR6Rel,
              ArithLogicI<"xori", uimm16, GPR32Opnd, II_XORI, immZExt16, xor>,
-             ADDI_FM<0xe>;
+             ADDI_FM<0x1e>;
 }
-def ADDi  : MMRel, ArithLogicI<"addi", simm16_relaxed, GPR32Opnd, II_ADDI>, ADDI_FM<0x8>,
+def ADDi  : MMRel, ArithLogicI<"addi", simm16_relaxed, GPR32Opnd, II_ADDI>, ADDI_FM<0x11>,
             ISA_MAXIS1_NOT_32R6_64R6;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SLTi  : MMRel, SetCC_I<"slti", setlt, simm16, immSExt16, GPR32Opnd>,
