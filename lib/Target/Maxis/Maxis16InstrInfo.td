@@ -1151,11 +1151,11 @@ def ShRxRyOffMemX16:
 def SlliX16: FEXT_SHIFT16_ins<0b00, "slli", IIM16Alu>;
 
 //
-// Format: SLLV ry, rx MAXIS16e
+// Format: SLL ry, rx MAXIS16e
 // Purpose: Shift Word Left Logical Variable
 // To execute a left-shift of a word by a variable number of bits.
 //
-def SllvRxRy16 : FRxRxRy16_ins<0b00100, "sllv", IIM16Alu>;
+def SllRxRy16 : FRxRxRy16_ins<0b00100, "sll", IIM16Alu>;
 
 // Format: SLTI rx, immediate MAXIS16e
 // Purpose: Set on Less Than Immediate
@@ -1333,7 +1333,7 @@ class shift_rotate_reg16_pat<SDNode OpNode, Instruction I> :
   Maxis16Pat<(OpNode CPU16Regs:$r, CPU16Regs:$ra),
             (I CPU16Regs:$r, CPU16Regs:$ra)>;
 
-def: shift_rotate_reg16_pat<shl, SllvRxRy16>;
+def: shift_rotate_reg16_pat<shl, SllRxRy16>;
 def: shift_rotate_reg16_pat<sra, SravRxRy16>;
 def: shift_rotate_reg16_pat<srl, SrlvRxRy16>;
 

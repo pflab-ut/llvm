@@ -99,9 +99,9 @@ def II_DMULTU           : InstrItinClass;
 def II_DROTR            : InstrItinClass;
 def II_DROTR32          : InstrItinClass;
 def II_DROTRV           : InstrItinClass;
-def II_DSLLI             : InstrItinClass;
-def II_DSLLI32           : InstrItinClass;
-def II_DSLLV            : InstrItinClass;
+def II_DSLLI            : InstrItinClass;
+def II_DSLLI32          : InstrItinClass;
+def II_DSLL             : InstrItinClass;
 def II_DSRA             : InstrItinClass;
 def II_DSRA32           : InstrItinClass;
 def II_DSRAV            : InstrItinClass;
@@ -305,8 +305,8 @@ def II_SEQ_SNE          : InstrItinClass; // seq and sne
 def II_SEQI_SNEI        : InstrItinClass; // seqi and snei
 def II_SH               : InstrItinClass;
 def II_SHE              : InstrItinClass;
-def II_SLLI              : InstrItinClass;
-def II_SLLV             : InstrItinClass;
+def II_SLLI             : InstrItinClass;
+def II_SLL              : InstrItinClass;
 def II_SLTI_SLTIU       : InstrItinClass; // slti and sltiu
 def II_SLT_SLTU         : InstrItinClass; // slt and sltu
 def II_SQRT_D           : InstrItinClass;
@@ -359,7 +359,7 @@ def II_YIELD            : InstrItinClass;
 def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<IIM16Alu           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADDI            , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_ADDIPC         , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_ADDIPC          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADD             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADDU            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_AUI             , [InstrStage<1,  [ALU]>]>,
@@ -369,11 +369,11 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_ALIGN           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_BADDU           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_BITSWAP         , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_SLLI             , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_SLLI            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRA             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRL             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ROTR            , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_SLLV            , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_SLL             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRAV            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SRLV            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ROTRV           , [InstrStage<1,  [ALU]>]>,
@@ -398,7 +398,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_DSRL32          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRA            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRA32          , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_DSLLV           , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_DSLL            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRLV           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSRAV           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_DSUBU           , [InstrStage<1,  [ALU]>]>,

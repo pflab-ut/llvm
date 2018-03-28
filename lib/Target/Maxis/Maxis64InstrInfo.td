@@ -145,7 +145,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def DSRA : shift_rotate_imm<"dsra", uimm6, GPR64Opnd, II_DSRA, sra,
                               immZExt6>,
              SRA_FM<0x3b, 0>, ISA_MAXIS3;
-  def DSLLV  : shift_rotate_reg<"dsllv", GPR64Opnd, II_DSLLV, shl>,
+  def DSLL  : shift_rotate_reg<"dsll", GPR64Opnd, II_DSLL, shl>,
                SRLV_FM<0x14, 0>, ISA_MAXIS3;
   def DSRAV  : shift_rotate_reg<"dsrav", GPR64Opnd, II_DSRAV, sra>,
                SRLV_FM<0x17, 0>, ISA_MAXIS3;
@@ -671,7 +671,7 @@ def : MaxisPat<(i32 (trunc GPR64:$src)),
 
 // variable shift instructions patterns
 def : MaxisPat<(shl GPR64:$rt, (i32 (trunc GPR64:$rs))),
-              (DSLLV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
+              (DSLL GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 def : MaxisPat<(srl GPR64:$rt, (i32 (trunc GPR64:$rs))),
               (DSRLV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 def : MaxisPat<(sra GPR64:$rt, (i32 (trunc GPR64:$rs))),
@@ -815,7 +815,7 @@ def : MaxisInstAlias<"dsra $rd, $rt, $rs",
                     ISA_MAXIS3;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"dslli $rd, $rt, $rs",
-                      (DSLLV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
+                      (DSLL GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dsrl $rd, $rt, $rs",
                       (DSRLV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
@@ -824,7 +824,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                       (DSRLV GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dslli $rd, $rt",
-                      (DSLLV GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
+                      (DSLL GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dins $rt, $rs, $pos, $size",
                       (DINSM GPR64Opnd:$rt, GPR64Opnd:$rs, uimm5:$pos,

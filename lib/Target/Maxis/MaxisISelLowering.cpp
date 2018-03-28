@@ -1639,10 +1639,10 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   }
   BuildMI(BB, DL, TII->get(Maxis::ORi), MaskUpper)
     .addReg(Maxis::ZERO).addImm(MaskImm);
-  BuildMI(BB, DL, TII->get(Maxis::SLLV), Mask)
+  BuildMI(BB, DL, TII->get(Maxis::SLL), Mask)
     .addReg(MaskUpper).addReg(ShiftAmt);
   BuildMI(BB, DL, TII->get(Maxis::NOR), Mask2).addReg(Maxis::ZERO).addReg(Mask);
-  BuildMI(BB, DL, TII->get(Maxis::SLLV), Incr2).addReg(Incr).addReg(ShiftAmt);
+  BuildMI(BB, DL, TII->get(Maxis::SLL), Incr2).addReg(Incr).addReg(ShiftAmt);
 
   // atomic.load.binop
   // loopMBB:
@@ -1902,16 +1902,16 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   }
   BuildMI(BB, DL, TII->get(Maxis::ORi), MaskUpper)
     .addReg(Maxis::ZERO).addImm(MaskImm);
-  BuildMI(BB, DL, TII->get(Maxis::SLLV), Mask)
+  BuildMI(BB, DL, TII->get(Maxis::SLL), Mask)
     .addReg(MaskUpper).addReg(ShiftAmt);
   BuildMI(BB, DL, TII->get(Maxis::NOR), Mask2).addReg(Maxis::ZERO).addReg(Mask);
   BuildMI(BB, DL, TII->get(Maxis::ANDi), MaskedCmpVal)
     .addReg(CmpVal).addImm(MaskImm);
-  BuildMI(BB, DL, TII->get(Maxis::SLLV), ShiftedCmpVal)
+  BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftedCmpVal)
     .addReg(MaskedCmpVal).addReg(ShiftAmt);
   BuildMI(BB, DL, TII->get(Maxis::ANDi), MaskedNewVal)
     .addReg(NewVal).addImm(MaskImm);
-  BuildMI(BB, DL, TII->get(Maxis::SLLV), ShiftedNewVal)
+  BuildMI(BB, DL, TII->get(Maxis::SLL), ShiftedNewVal)
     .addReg(MaskedNewVal).addReg(ShiftAmt);
 
   //  loop1MBB:

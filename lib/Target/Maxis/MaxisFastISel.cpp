@@ -1984,7 +1984,7 @@ bool MaxisFastISel::selectShift(const Instruction *I) {
   default:
     llvm_unreachable("Unexpected instruction.");
   case Instruction::Shl:
-    Opcode = Maxis::SLLV;
+    Opcode = Maxis::SLL;
     break;
   case Instruction::AShr:
     Opcode = Maxis::SRAV;

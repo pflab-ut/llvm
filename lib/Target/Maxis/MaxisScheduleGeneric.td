@@ -40,14 +40,14 @@ def GenericIssueALU : ProcResource<1> { let Super = GenericALU; }
 def GenericWriteALU : SchedWriteRes<[GenericIssueALU]>;
 
 // and, lui, nor, or, slti, sltiu, sub, subu, xor
-// add, addi, addu, andi, ori, rotr, se[bh], sllv?, sr[al]v?, slt, sltu,
+// add, addi, addu, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
 // xori
 def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
                                  II_AND, II_ANDI, II_CLO, II_CLZ, II_EXT,
                                  II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
                                  II_SEH, II_SLTI_SLTIU, II_SLT_SLTU, II_SLLI,
-                                 II_SRA, II_SRL, II_SLLV, II_SRAV, II_SRLV,
+                                 II_SRA, II_SRL, II_SLL, II_SRAV, II_SRLV,
                                  II_SSNOP, II_SUB, II_SUBU, II_WSBH, II_XOR,
                                  II_XORI]>;
 
@@ -89,7 +89,7 @@ def : ItinRW<[GenericWriteDIVU], [II_DIVU]>;
 def : ItinRW<[GenericWriteALU], [II_DADDU, II_DADDI, II_DADD,
                                  II_DCLO, II_DCLZ, II_DROTR, II_DROTR32,
                                  II_DROTRV, II_DSBH, II_DSHD, II_DSLLI,
-                                 II_DSLLI32, II_DSLLV, II_DSRA, II_DSRA32,
+                                 II_DSLLI32, II_DSLL, II_DSRA, II_DSRA32,
                                  II_DSRAV, II_DSRL, II_DSRL32, II_DSRLV,
                                  II_DSUBU, II_DSUB]>;
 
