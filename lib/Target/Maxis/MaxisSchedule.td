@@ -256,6 +256,7 @@ def II_MTC2             : InstrItinClass;
 def II_MTHI_MTLO        : InstrItinClass; // mthi and mtlo
 def II_MTTR             : InstrItinClass;
 def II_MUL              : InstrItinClass;
+def II_MULI             : InstrItinClass;
 def II_MUH              : InstrItinClass;
 def II_MUHU             : InstrItinClass;
 def II_MULU             : InstrItinClass;
@@ -572,6 +573,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_MUH             , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MUHU            , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MUL             , [InstrStage<17, [IMULDIV]>]>,
+  InstrItinData<II_MULI            , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MULT            , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MULTU           , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MULU            , [InstrStage<17, [IMULDIV]>]>,

@@ -1866,6 +1866,8 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 }
 def ADDi  : MMRel, ArithLogicI<"addi", simm16_relaxed, GPR32Opnd, II_ADDI>, ADDI_FM<0x11>,
             ISA_MAXIS1_NOT_32R6_64R6;
+def MULi  : MMRel, ArithLogicI<"muli", simm16_relaxed, GPR32Opnd, II_MULI>, ADDI_FM<0x12>,
+            ISA_MAXIS1_NOT_32R6_64R6;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SEQi  : MMRel, SetCC_I<"seqi", seteq, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x18>;
