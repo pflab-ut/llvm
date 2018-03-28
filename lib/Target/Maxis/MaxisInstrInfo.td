@@ -1905,7 +1905,7 @@ def SLLi  : MMRel, shift_rotate_imm<"slli", uimm5, GPR32Opnd, II_SLLI, shl,
                                    immZExt5>, SRA_FM<0, 0>;
 def SRLi  : MMRel, shift_rotate_imm<"srli", uimm5, GPR32Opnd, II_SRLI, srl,
                                    immZExt5>, SRA_FM<2, 0>;
-def SRA  : MMRel, shift_rotate_imm<"sra", uimm5, GPR32Opnd, II_SRA, sra,
+def SRAi  : MMRel, shift_rotate_imm<"srai", uimm5, GPR32Opnd, II_SRAI, sra,
                                    immZExt5>, SRA_FM<3, 0>;
 def SLL : MMRel, shift_rotate_reg<"sll", GPR32Opnd, II_SLL, shl>,
            SRL_FM<4, 0>;
@@ -2528,13 +2528,13 @@ def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"slli $rd, $rt, $rs",
                       (SLL GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
-  def : MaxisInstAlias<"sra $rd, $rt, $rs",
+  def : MaxisInstAlias<"srai $rd, $rt, $rs",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srli $rd, $rt, $rs",
                       (SRL GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"slli $rd, $rt",
                       (SLL GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
-  def : MaxisInstAlias<"sra $rd, $rt",
+  def : MaxisInstAlias<"srai $rd, $rt",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"srli $rd, $rt",
                       (SRL GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;

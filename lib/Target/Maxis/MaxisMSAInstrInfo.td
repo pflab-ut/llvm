@@ -3879,12 +3879,12 @@ def : MSAPat<(vextract_zext_i64 (v2f64 MSA128D:$ws), immZExt1Ptr:$idx),
 
 // Vector extraction with variable index
 def : MSAPat<(i32 (vextract_sext_i8 v16i8:$ws, i32:$idx)),
-             (SRA (COPY_TO_REGCLASS (i32 (EXTRACT_SUBREG (SPLAT_B v16i8:$ws,
+             (SRAi (COPY_TO_REGCLASS (i32 (EXTRACT_SUBREG (SPLAT_B v16i8:$ws,
                                                                   i32:$idx),
                                                          sub_lo)),
                                     GPR32), (i32 24))>;
 def : MSAPat<(i32 (vextract_sext_i16 v8i16:$ws, i32:$idx)),
-             (SRA (COPY_TO_REGCLASS (i32 (EXTRACT_SUBREG (SPLAT_H v8i16:$ws,
+             (SRAi (COPY_TO_REGCLASS (i32 (EXTRACT_SUBREG (SPLAT_H v8i16:$ws,
                                                                   i32:$idx),
                                                          sub_lo)),
                                     GPR32), (i32 16))>;
@@ -3932,7 +3932,7 @@ def : MSAPat<(f64 (vector_extract v2f64:$ws, i32:$idx)),
 // Vector extraction with variable index (N64 ABI)
 def : MSAPat<
   (i32 (vextract_sext_i8 v16i8:$ws, i64:$idx)),
-  (SRA (COPY_TO_REGCLASS
+  (SRAi (COPY_TO_REGCLASS
          (i32 (EXTRACT_SUBREG
                 (SPLAT_B v16i8:$ws,
                   (COPY_TO_REGCLASS
@@ -3942,7 +3942,7 @@ def : MSAPat<
        (i32 24))>;
 def : MSAPat<
   (i32 (vextract_sext_i16 v8i16:$ws, i64:$idx)),
-  (SRA (COPY_TO_REGCLASS
+  (SRAi (COPY_TO_REGCLASS
          (i32 (EXTRACT_SUBREG
                 (SPLAT_H v8i16:$ws,
                   (COPY_TO_REGCLASS

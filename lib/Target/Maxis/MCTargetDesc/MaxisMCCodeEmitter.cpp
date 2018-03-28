@@ -80,8 +80,8 @@ static void LowerLargeShift(MCInst& Inst) {
   case Maxis::DSRLi:
     Inst.setOpcode(Maxis::DSRLi32);
     return;
-  case Maxis::DSRA:
-    Inst.setOpcode(Maxis::DSRA32);
+  case Maxis::DSRAi:
+    Inst.setOpcode(Maxis::DSRAi32);
     return;
   case Maxis::DROTR:
     Inst.setOpcode(Maxis::DROTR32);
@@ -164,7 +164,7 @@ encodeInstruction(const MCInst &MI, raw_ostream &OS,
   // If shift amount is >= 32 it the inst needs to be lowered further
   case Maxis::DSLLi:
   case Maxis::DSRLi:
-  case Maxis::DSRA:
+  case Maxis::DSRAi:
   case Maxis::DROTR:
     LowerLargeShift(TmpInst);
     break;

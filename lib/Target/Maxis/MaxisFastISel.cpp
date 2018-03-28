@@ -1809,7 +1809,7 @@ bool MaxisFastISel::emitIntSExt32r1(MVT SrcVT, unsigned SrcReg, MVT DestVT,
   }
   unsigned TempReg = createResultReg(&Maxis::GPR32RegClass);
   emitInst(Maxis::SLLi, TempReg).addReg(SrcReg).addImm(ShiftAmt);
-  emitInst(Maxis::SRA, DestReg).addReg(TempReg).addImm(ShiftAmt);
+  emitInst(Maxis::SRAi, DestReg).addReg(TempReg).addImm(ShiftAmt);
   return true;
 }
 
@@ -1964,7 +1964,7 @@ bool MaxisFastISel::selectShift(const Instruction *I) {
       Opcode = Maxis::SLLi;
       break;
     case Instruction::AShr:
-      Opcode = Maxis::SRA;
+      Opcode = Maxis::SRAi;
       break;
     case Instruction::LShr:
       Opcode = Maxis::SRLi;

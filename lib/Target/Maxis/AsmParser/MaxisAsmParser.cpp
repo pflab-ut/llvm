@@ -4695,7 +4695,7 @@ bool MaxisAsmParser::expandMulO(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
   TOut.emitR(Maxis::MFLO, DstReg, IDLoc, STI);
 
-  TOut.emitRRI(Inst.getOpcode() == Maxis::MULOMacro ? Maxis::SRA : Maxis::DSRA32,
+  TOut.emitRRI(Inst.getOpcode() == Maxis::MULOMacro ? Maxis::SRAi : Maxis::DSRAi32,
                DstReg, DstReg, 0x1F, IDLoc, STI);
 
   TOut.emitR(Maxis::MFHI, ATReg, IDLoc, STI);

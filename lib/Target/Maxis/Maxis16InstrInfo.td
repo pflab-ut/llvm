@@ -1239,12 +1239,12 @@ def SravRxRy16: FRxRxRy16_ins<0b00111, "srav", IIM16Alu>;
 
 
 //
-// Format: SRA rx, ry, sa MAXIS16e
+// Format: SRAI rx, ry, sa MAXIS16e
 // Purpose: Shift Word Right Arithmetic (Extended)
 // To execute an arithmetic right-shift of a word by a fixed
 // number of bits-1 to 8 bits.
 //
-def SraX16: FEXT_SHIFT16_ins<0b11, "sra", IIM16Alu>;
+def SraiX16: FEXT_SHIFT16_ins<0b11, "srai", IIM16Alu>;
 
 
 //
@@ -1327,7 +1327,7 @@ def: ArithLogicI16_pat<add, immSExt8, AddiRxRxImm16>;
 def: ArithLogicI16_pat<add, immSExt16, AddiRxRxImmX16>;
 def: ArithLogicI16_pat<shl, immZExt5, SlliX16>;
 def: ArithLogicI16_pat<srl, immZExt5, SrliX16>;
-def: ArithLogicI16_pat<sra, immZExt5, SraX16>;
+def: ArithLogicI16_pat<sra, immZExt5, SraiX16>;
 
 class shift_rotate_reg16_pat<SDNode OpNode, Instruction I> :
   Maxis16Pat<(OpNode CPU16Regs:$r, CPU16Regs:$ra),

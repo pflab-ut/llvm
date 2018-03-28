@@ -816,7 +816,7 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
 
   if (FirstOperandOpc == ISD::SRA || FirstOperandOpc == ISD::SRL) {
     // Pattern match EXT.
-    //  $dst = and ((sra or srli) $src , pos), (2**size - 1)
+    //  $dst = and ((srai or srli) $src , pos), (2**size - 1)
     //  => ext $dst, $src, pos, size
 
     // The second operand of the shift must be an immediate.
@@ -1539,7 +1539,7 @@ MachineBasicBlock *MaxisTargetLowering::emitSignExtendToI32InReg(
   int64_t ShiftImm = 32 - (Size * 8);
 
   BuildMI(BB, DL, TII->get(Maxis::SLLi), ScrReg).addReg(SrcReg).addImm(ShiftImm);
-  BuildMI(BB, DL, TII->get(Maxis::SRA), DstReg).addReg(ScrReg).addImm(ShiftImm);
+  BuildMI(BB, DL, TII->get(Maxis::SRAi), DstReg).addReg(ScrReg).addImm(ShiftImm);
 
   return BB;
 }
@@ -2466,7 +2466,7 @@ SDValue MaxisTargetLowering::lowerShiftLeftParts(SDValue Op,
 }
 
 SDValue MaxisTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
-                                                 bool IsSRA) const {
+                                                 bool IsSRAi) const {
   SDLoc DL(Op);
   SDValue Lo = Op.getOperand(0), Hi = Op.getOperand(1);
   SDValue Shamt = Op.getOperand(2);
@@ -2474,14 +2474,14 @@ SDValue MaxisTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
 
   // if shamt < (VT.bits):
   //  lo = (or (shl (shl hi, 1), ~shamt) (srli lo, shamt))
-  //  if isSRA:
-  //    hi = (sra hi, shamt)
+  //  if isSRAi:
+  //    hi = (srai hi, shamt)
   //  else:
   //    hi = (srli hi, shamt)
   // else:
-  //  if isSRA:
-  //   lo = (sra hi, shamt[4:0])
-  //   hi = (sra hi, 31)
+  //  if isSRAi:
+  //   lo = (srai hi, shamt[4:0])
+  //   hi = (srai hi, 31)
   //  else:
   //   lo = (srli hi, shamt[4:0])
   //   hi = 0
@@ -2492,7 +2492,7 @@ SDValue MaxisTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
   SDValue ShiftLeftHi = DAG.getNode(ISD::SHL, DL, VT, ShiftLeft1Hi, Not);
   SDValue ShiftRightLo = DAG.getNode(ISD::SRL, DL, VT, Lo, Shamt);
   SDValue Or = DAG.getNode(ISD::OR, DL, VT, ShiftLeftHi, ShiftRightLo);
-  SDValue ShiftRightHi = DAG.getNode(IsSRA ? ISD::SRA : ISD::SRL,
+  SDValue ShiftRightHi = DAG.getNode(IsSRAi ? ISD::SRA : ISD::SRL,
                                      DL, VT, Hi, Shamt);
   SDValue Cond = DAG.getNode(ISD::AND, DL, MVT::i32, Shamt,
                              DAG.getConstant(VT.getSizeInBits(), DL, MVT::i32));
@@ -2500,7 +2500,7 @@ SDValue MaxisTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
                             DAG.getConstant(VT.getSizeInBits() - 1, DL, VT));
   Lo = DAG.getNode(ISD::SELECT, DL, VT, Cond, ShiftRightHi, Or);
   Hi = DAG.getNode(ISD::SELECT, DL, VT, Cond,
-                   IsSRA ? Ext : DAG.getConstant(0, DL, VT), ShiftRightHi);
+                   IsSRAi ? Ext : DAG.getConstant(0, DL, VT), ShiftRightHi);
 
   SDValue Ops[2] = {Lo, Hi};
   return DAG.getMergeValues(Ops, DL);

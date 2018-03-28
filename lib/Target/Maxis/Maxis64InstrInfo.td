@@ -142,7 +142,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def DSRLi : shift_rotate_imm<"dsrli", uimm6, GPR64Opnd, II_DSRLI, srl,
                               immZExt6>,
              SRA_FM<0x3a, 0>, ISA_MAXIS3;
-  def DSRA : shift_rotate_imm<"dsra", uimm6, GPR64Opnd, II_DSRA, sra,
+  def DSRAi : shift_rotate_imm<"dsrai", uimm6, GPR64Opnd, II_DSRAI, sra,
                               immZExt6>,
              SRA_FM<0x3b, 0>, ISA_MAXIS3;
   def DSLL  : shift_rotate_reg<"dsll", GPR64Opnd, II_DSLL, shl>,
@@ -155,7 +155,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                SRA_FM<0x3c, 0>, ISA_MAXIS3;
   def DSRLi32 : shift_rotate_imm<"dsrli32", uimm5, GPR64Opnd, II_DSRLI32>,
                SRA_FM<0x3e, 0>, ISA_MAXIS3;
-  def DSRA32 : shift_rotate_imm<"dsra32", uimm5, GPR64Opnd, II_DSRA32>,
+  def DSRAi32 : shift_rotate_imm<"dsrai32", uimm5, GPR64Opnd, II_DSRAI32>,
                SRA_FM<0x3f, 0>, ISA_MAXIS3;
 
 // Rotate Instructions
@@ -810,7 +810,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                       (DADDi GPR64Opnd:$rs, GPR64Opnd:$rs,
                               InvertedImOperand64:$imm), 0>, ISA_MAXIS3;
 }
-def : MaxisInstAlias<"dsra $rd, $rt, $rs",
+def : MaxisInstAlias<"dsrai $rd, $rt, $rs",
                     (DSRAV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                     ISA_MAXIS3;
 let AdditionalPredicates = [NotInMicroMaxis] in {

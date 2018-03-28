@@ -47,7 +47,7 @@ def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
                                  II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
                                  II_SEH, II_SLTI_SLTIU, II_SLT_SLTU, II_SLLI,
-                                 II_SRA, II_SRLI, II_SLL, II_SRAV, II_SRL,
+                                 II_SRAI, II_SRLI, II_SLL, II_SRAV, II_SRL,
                                  II_SSNOP, II_SUB, II_SUBU, II_WSBH, II_XOR,
                                  II_XORI]>;
 
@@ -89,7 +89,7 @@ def : ItinRW<[GenericWriteDIVU], [II_DIVU]>;
 def : ItinRW<[GenericWriteALU], [II_DADDU, II_DADDI, II_DADD,
                                  II_DCLO, II_DCLZ, II_DROTR, II_DROTR32,
                                  II_DROTRV, II_DSBH, II_DSHD, II_DSLLI,
-                                 II_DSLLI32, II_DSLL, II_DSRA, II_DSRA32,
+                                 II_DSLLI32, II_DSLL, II_DSRAI, II_DSRAI32,
                                  II_DSRAV, II_DSRLI, II_DSRLI32, II_DSRL,
                                  II_DSUBU, II_DSUB]>;
 
@@ -1006,7 +1006,7 @@ def : InstRW<[GenericWriteFPUDivI], (instregex "^MOD_(S|U)_[BHWD]$")>;
 def : InstRW<[GenericWriteFPUDivI], (instregex "^DIV_(S|U)_[BHWD]$")>;
 
 // hadd_[su].[bhwd], hsub_[su].[bhwd], max_[sua].[bhwd], min_[sua].[bhwd],
-// maxi_[su].[bhwd], mini_[su].[bhwd], sra?.[bhwd], srar?.[bhwd], srlr.[bhwd],
+// maxi_[su].[bhwd], mini_[su].[bhwd], srai?.[bhwd], srar?.[bhwd], srlr.[bhwd],
 // slli?.[bhwd], pckev.[bhwd], pckod.[bhwd], nloc.[bhwd], nlzc.[bhwd],
 // insve.[bhwd]
 def : InstRW<[GenericWriteMSAShortLogic], (instregex "^HADD_(S|U)_[BHWD]$")>;

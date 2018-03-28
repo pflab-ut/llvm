@@ -736,7 +736,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                  SRA_FM_MM<0, 0>;
   def SRLI_MM   : MMRel, shift_rotate_imm<"srli", uimm5, GPR32Opnd, II_SRLI>,
                  SRA_FM_MM<0x40, 0>;
-  def SRA_MM   : MMRel, shift_rotate_imm<"sra", uimm5, GPR32Opnd, II_SRA>,
+  def SRAI_MM   : MMRel, shift_rotate_imm<"srai", uimm5, GPR32Opnd, II_SRAI>,
                  SRA_FM_MM<0x80, 0>;
   def SLL_MM  : MMRel, shift_rotate_reg<"sll", GPR32Opnd, II_SLL>,
                  SRL_FM_MM<0x10, 0>;
@@ -1053,7 +1053,7 @@ let Predicates = [InMicroMaxis] in {
                 (SRL_MM GPR32:$lhs, GPR32:$rhs)>;
 
   def : MaxisPat<(sra GPR32:$src, immZExt5:$imm),
-                (SRA_MM GPR32:$src, immZExt5:$imm)>;
+                (SRAI_MM GPR32:$src, immZExt5:$imm)>;
   def : MaxisPat<(sra GPR32:$lhs, GPR32:$rhs),
                 (SRAV_MM GPR32:$lhs, GPR32:$rhs)>;
 
@@ -1140,20 +1140,20 @@ let Predicates = [InMicroMaxis] in {
           (SLTu_MM GPR32Opnd:$rs, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"slli $rd, $rt, $rs",
                       (SLL_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
-  def : MaxisInstAlias<"sra $rd, $rt, $rs",
+  def : MaxisInstAlias<"srai $rd, $rt, $rs",
                       (SRAV_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srli $rd, $rt, $rs",
                       (SRL_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"slli $rd, $rt",
                       (SLL_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
-  def : MaxisInstAlias<"sra $rd, $rt",
+  def : MaxisInstAlias<"srai $rd, $rt",
                       (SRAV_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"srli $rd, $rt",
                       (SRL_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"slli $rd, $shamt",
                       (SLLI_MM GPR32Opnd:$rd, GPR32Opnd:$rd, uimm5:$shamt), 0>;
-  def : MaxisInstAlias<"sra $rd, $shamt",
-                      (SRA_MM GPR32Opnd:$rd, GPR32Opnd:$rd, uimm5:$shamt), 0>;
+  def : MaxisInstAlias<"srai $rd, $shamt",
+                      (SRAI_MM GPR32Opnd:$rd, GPR32Opnd:$rd, uimm5:$shamt), 0>;
   def : MaxisInstAlias<"srl $rd, $shamt",
                       (SRLI_MM GPR32Opnd:$rd, GPR32Opnd:$rd, uimm5:$shamt), 0>;
   def : MaxisInstAlias<"rotr $rt, $imm",
