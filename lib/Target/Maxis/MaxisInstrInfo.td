@@ -1867,8 +1867,14 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 def ADDi  : MMRel, ArithLogicI<"addi", simm16_relaxed, GPR32Opnd, II_ADDI>, ADDI_FM<0x11>,
             ISA_MAXIS1_NOT_32R6_64R6;
 let AdditionalPredicates = [NotInMicroMaxis] in {
+  def SEQi  : MMRel, SetCC_I<"seqi", seteq, simm16, immSExt16, GPR32Opnd>,
+              SLTI_FM<0x18>;
+  def SNEi  : MMRel, SetCC_I<"snei", setne, simm16, immSExt16, GPR32Opnd>,
+              SLTI_FM<0x19>;
   def SLTi  : MMRel, SetCC_I<"slti", setlt, simm16, immSExt16, GPR32Opnd>,
-              SLTI_FM<0xa>;
+              SLTI_FM<0x1a>;
+  def SGEi  : MMRel, SetCC_I<"sgei", setlt, simm16, immSExt16, GPR32Opnd>,
+              SLTI_FM<0x1b>;
   def SLTiu : MMRel, SetCC_I<"sltiu", setult, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0xb>;
 }
@@ -1886,8 +1892,12 @@ def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
 def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD>, ADD_FM<0x4, 0x8>;
 def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0x4, 0x9>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
+  def SEQ   : MMRel, SetCC_R<"seq", seteq, GPR32Opnd>, ADD_FM<0x5, 0x10>;
+  def SNE   : MMRel, SetCC_R<"sne", seteq, GPR32Opnd>, ADD_FM<0x5, 0x11>;
   def SLT   : MMRel, SetCC_R<"slt", setlt, GPR32Opnd>, ADD_FM<0x5, 0x12>;
   def SLTu  : MMRel, SetCC_R<"sltu", setult, GPR32Opnd>, ADD_FM<0x5, 0x16>;
+  def SGE   : MMRel, SetCC_R<"sge", setge, GPR32Opnd>, ADD_FM<0x5, 0x13>;
+  def SGEu  : MMRel, SetCC_R<"sgeu", setuge, GPR32Opnd>, ADD_FM<0x5, 0x17>;
   def AND   : MMRel, StdMMR6Rel, ArithLogicR<"and", GPR32Opnd, 1, II_AND, and>,
               ADD_FM<0x5, 0x18>;
   def OR    : MMRel, StdMMR6Rel, ArithLogicR<"or", GPR32Opnd, 1, II_OR, or>,

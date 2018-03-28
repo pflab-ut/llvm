@@ -487,10 +487,12 @@ def POP   : Count1s<"pop", GPR32Opnd>, POP_FM<0x2c>, ASE_CNMAXIS;
 def DPOP  : Count1s<"dpop", GPR64Opnd>, POP_FM<0x2d>, ASE_CNMAXIS;
 
 // Set on equal/not equal
+/*
 def SEQ   : SetCC64_R<"seq", seteq>, SEQ_FM<0x2a>, ASE_CNMAXIS;
 def SEQi  : SetCC64_I<"seqi", seteq>, SEQI_FM<0x2e>, ASE_CNMAXIS;
 def SNE   : SetCC64_R<"sne", setne>, SEQ_FM<0x2b>, ASE_CNMAXIS;
 def SNEi  : SetCC64_I<"snei", setne>, SEQI_FM<0x2f>, ASE_CNMAXIS;
+*/
 
 // 192-bit x 64-bit Unsigned Multiply and Add
 def V3MULU: ArithLogicR<"v3mulu", GPR64Opnd, 0, II_DMUL>, ADD_FM<0x1c, 0x11>,
