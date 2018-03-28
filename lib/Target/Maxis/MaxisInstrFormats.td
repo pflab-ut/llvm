@@ -468,7 +468,7 @@ class JALR_FM {
   let Inst{20-16} = 0;
   let Inst{15-11} = rd;
   let Inst{10-6}  = 0;
-  let Inst{5-0}   = 9;
+  let Inst{5-0}   = 0x1;
 }
 
 class BGEZAL_FM<bits<5> funct> : StdArch {
