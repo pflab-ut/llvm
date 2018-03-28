@@ -520,18 +520,18 @@ def FMOV_D64 : ABSS_FT<"mov.d", FGR64Opnd, FGR64Opnd, II_MOV_D>,
 /// Floating Point Memory Instructions
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def LWC1 : MMRel, LW_FT<"lwc1", FGR32Opnd, mem_simm16, II_LWC1, load>,
-             LW_FM<0x31>;
+             LW_FM<0x2f>;
   def SWC1 : MMRel, SW_FT<"swc1", FGR32Opnd, mem_simm16, II_SWC1, store>,
-             LW_FM<0x39>;
+             LW_FM<0x2f>;
 }
 
 let DecoderNamespace = "MaxisFP64", AdditionalPredicates = [NotInMicroMaxis] in {
   def LDC164 : StdMMR6Rel, LW_FT<"ldc1", FGR64Opnd, mem_simm16, II_LDC1, load>,
-               LW_FM<0x35>, ISA_MAXIS2, FGR_64 {
+               LW_FM<0x2f>, ISA_MAXIS2, FGR_64 {
     let BaseOpcode = "LDC164";
   }
   def SDC164 : StdMMR6Rel, SW_FT<"sdc1", FGR64Opnd, mem_simm16, II_SDC1, store>,
-               LW_FM<0x3d>, ISA_MAXIS2, FGR_64;
+               LW_FM<0x2f>, ISA_MAXIS2, FGR_64;
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {

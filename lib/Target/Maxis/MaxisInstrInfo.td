@@ -1945,55 +1945,55 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 /// Load and Store Instructions
 ///  aligned
 def LB  : LoadMemory<"lb", GPR32Opnd, mem_simm16, sextloadi8, II_LB>, MMRel,
-          LW_FM<0x20>;
+          LW_FM<0x30>;
 def LBu : LoadMemory<"lbu", GPR32Opnd, mem_simm16, zextloadi8, II_LBU,
-                     addrDefault>, MMRel, LW_FM<0x24>;
+                     addrDefault>, MMRel, LW_FM<0x34>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def LH  : LoadMemory<"lh", GPR32Opnd, mem_simm16, sextloadi16, II_LH,
-                       addrDefault>, MMRel, LW_FM<0x21>;
+                       addrDefault>, MMRel, LW_FM<0x31>;
   def LHu : LoadMemory<"lhu", GPR32Opnd, mem_simm16, zextloadi16, II_LHU>,
-            MMRel, LW_FM<0x25>;
+            MMRel, LW_FM<0x35>;
   def LW  : StdMMR6Rel, Load<"lw", GPR32Opnd, load, II_LW, addrDefault>, MMRel,
-            LW_FM<0x23>;
+            LW_FM<0x32>;
 }
 def SB  : StdMMR6Rel, Store<"sb", GPR32Opnd, truncstorei8, II_SB>, MMRel,
-          LW_FM<0x28>;
-def SH  : Store<"sh", GPR32Opnd, truncstorei16, II_SH>, MMRel, LW_FM<0x29>;
+          LW_FM<0x38>;
+def SH  : Store<"sh", GPR32Opnd, truncstorei16, II_SH>, MMRel, LW_FM<0x39>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
-def SW  : Store<"sw", GPR32Opnd, store, II_SW>, MMRel, LW_FM<0x2b>;
+def SW  : Store<"sw", GPR32Opnd, store, II_SW>, MMRel, LW_FM<0x3a>;
 }
 
 /// load/store left/right
 let EncodingPredicates = []<Predicate>, // FIXME: Lack of HasStdEnc is probably a bug
     AdditionalPredicates = [NotInMicroMaxis] in {
-def LWL : LoadLeftRight<"lwl", MaxisLWL, GPR32Opnd, II_LWL>, LW_FM<0x22>,
+def LWL : LoadLeftRight<"lwl", MaxisLWL, GPR32Opnd, II_LWL>, LW_FM<0x2f>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def LWR : LoadLeftRight<"lwr", MaxisLWR, GPR32Opnd, II_LWR>, LW_FM<0x26>,
+def LWR : LoadLeftRight<"lwr", MaxisLWR, GPR32Opnd, II_LWR>, LW_FM<0x2f>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def SWL : StoreLeftRight<"swl", MaxisSWL, GPR32Opnd, II_SWL>, LW_FM<0x2a>,
+def SWL : StoreLeftRight<"swl", MaxisSWL, GPR32Opnd, II_SWL>, LW_FM<0x2f>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def SWR : StoreLeftRight<"swr", MaxisSWR, GPR32Opnd, II_SWR>, LW_FM<0x2e>,
+def SWR : StoreLeftRight<"swr", MaxisSWR, GPR32Opnd, II_SWR>, LW_FM<0x2f>,
           ISA_MAXIS1_NOT_32R6_64R6;
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
 // COP2 Memory Instructions
-def LWC2 : StdMMR6Rel, LW_FT2<"lwc2", COP2Opnd, II_LWC2, load>, LW_FM<0x32>,
+def LWC2 : StdMMR6Rel, LW_FT2<"lwc2", COP2Opnd, II_LWC2, load>, LW_FM<0x2f>,
            ISA_MAXIS1_NOT_32R6_64R6;
 def SWC2 : StdMMR6Rel, SW_FT2<"swc2", COP2Opnd, II_SWC2, store>,
-           LW_FM<0x3a>, ISA_MAXIS1_NOT_32R6_64R6;
-def LDC2 : StdMMR6Rel, LW_FT2<"ldc2", COP2Opnd, II_LDC2, load>, LW_FM<0x36>,
+           LW_FM<0x2f>, ISA_MAXIS1_NOT_32R6_64R6;
+def LDC2 : StdMMR6Rel, LW_FT2<"ldc2", COP2Opnd, II_LDC2, load>, LW_FM<0x2f>,
            ISA_MAXIS2_NOT_32R6_64R6;
 def SDC2 : StdMMR6Rel, SW_FT2<"sdc2", COP2Opnd, II_SDC2, store>,
-           LW_FM<0x3e>, ISA_MAXIS2_NOT_32R6_64R6;
+           LW_FM<0x2f>, ISA_MAXIS2_NOT_32R6_64R6;
 
 // COP3 Memory Instructions
 let DecoderNamespace = "COP3_" in {
-  def LWC3 : LW_FT3<"lwc3", COP3Opnd, II_LWC3, load>, LW_FM<0x33>;
-  def SWC3 : SW_FT3<"swc3", COP3Opnd, II_SWC3, store>, LW_FM<0x3b>;
-  def LDC3 : LW_FT3<"ldc3", COP3Opnd, II_LDC3, load>, LW_FM<0x37>,
+  def LWC3 : LW_FT3<"lwc3", COP3Opnd, II_LWC3, load>, LW_FM<0x2f>;
+  def SWC3 : SW_FT3<"swc3", COP3Opnd, II_SWC3, store>, LW_FM<0x2f>;
+  def LDC3 : LW_FT3<"ldc3", COP3Opnd, II_LDC3, load>, LW_FM<0x2f>,
              ISA_MAXIS2;
-  def SDC3 : SW_FT3<"sdc3", COP3Opnd, II_SDC3, store>, LW_FM<0x3f>,
+  def SDC3 : SW_FT3<"sdc3", COP3Opnd, II_SDC3, store>, LW_FM<0x2f>,
              ISA_MAXIS2;
 }
 
@@ -2050,8 +2050,8 @@ def WAIT : WAIT_FT<"wait">, WAIT_FM;
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
 /// Load-linked, Store-conditional
-def LL : LLBase<"ll", GPR32Opnd>, LW_FM<0x30>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
-def SC : SCBase<"sc", GPR32Opnd>, LW_FM<0x38>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
+def LL : LLBase<"ll", GPR32Opnd>, LW_FM<0x20>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
+def SC : SCBase<"sc", GPR32Opnd>, LW_FM<0x28>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
 }
 
 /// Jump and Branch Instructions
