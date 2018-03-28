@@ -146,11 +146,11 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                               immZExt6>,
              SRA_FM<0x3b, 0>, ISA_MAXIS3;
   def DSLL  : shift_rotate_reg<"dsll", GPR64Opnd, II_DSLL, shl>,
-               SRLV_FM<0x14, 0>, ISA_MAXIS3;
+               SRL_FM<0x14, 0>, ISA_MAXIS3;
   def DSRAV  : shift_rotate_reg<"dsrav", GPR64Opnd, II_DSRAV, sra>,
-               SRLV_FM<0x17, 0>, ISA_MAXIS3;
-  def DSRLV  : shift_rotate_reg<"dsrlv", GPR64Opnd, II_DSRLV, srl>,
-               SRLV_FM<0x16, 0>, ISA_MAXIS3;
+               SRL_FM<0x17, 0>, ISA_MAXIS3;
+  def DSRL  : shift_rotate_reg<"dsrl", GPR64Opnd, II_DSRL, srl>,
+               SRL_FM<0x16, 0>, ISA_MAXIS3;
   def DSLLi32 : shift_rotate_imm<"dslli32", uimm5, GPR64Opnd, II_DSLLI32>,
                SRA_FM<0x3c, 0>, ISA_MAXIS3;
   def DSRLi32 : shift_rotate_imm<"dsrli32", uimm5, GPR64Opnd, II_DSRLI32>,
@@ -163,7 +163,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                                 immZExt6>,
                SRA_FM<0x3a, 1>, ISA_MAXIS64R2;
   def DROTRV : shift_rotate_reg<"drotrv", GPR64Opnd, II_DROTRV, rotr>,
-               SRLV_FM<0x16, 1>, ISA_MAXIS64R2;
+               SRL_FM<0x16, 1>, ISA_MAXIS64R2;
   def DROTR32 : shift_rotate_imm<"drotr32", uimm5, GPR64Opnd, II_DROTR32>,
                 SRA_FM<0x3e, 1>, ISA_MAXIS64R2;
 }
@@ -673,7 +673,7 @@ def : MaxisPat<(i32 (trunc GPR64:$src)),
 def : MaxisPat<(shl GPR64:$rt, (i32 (trunc GPR64:$rs))),
               (DSLL GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 def : MaxisPat<(srl GPR64:$rt, (i32 (trunc GPR64:$rs))),
-              (DSRLV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
+              (DSRL GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 def : MaxisPat<(sra GPR64:$rt, (i32 (trunc GPR64:$rs))),
               (DSRAV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
@@ -818,10 +818,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                       (DSLL GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dsrli $rd, $rt, $rs",
-                      (DSRLV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
+                      (DSRL GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dsrli $rd, $rt",
-                      (DSRLV GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
+                      (DSRL GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,
                       ISA_MAXIS3;
   def : MaxisInstAlias<"dslli $rd, $rt",
                       (DSLL GPR64Opnd:$rd, GPR64Opnd:$rd, GPR32Opnd:$rt), 0>,

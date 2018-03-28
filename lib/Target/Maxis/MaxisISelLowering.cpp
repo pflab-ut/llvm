@@ -1700,7 +1700,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
 
   BuildMI(BB, DL, TII->get(Maxis::AND), MaskedOldVal1)
     .addReg(OldVal).addReg(Mask);
-  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrliRes)
+  BuildMI(BB, DL, TII->get(Maxis::SRL), SrliRes)
       .addReg(MaskedOldVal1).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrliRes);
 
@@ -1945,7 +1945,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   //    sign_extend dest,srlires
   BB = sinkMBB;
 
-  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrliRes)
+  BuildMI(BB, DL, TII->get(Maxis::SRL), SrliRes)
       .addReg(MaskedOldVal0).addReg(ShiftAmt);
   BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrliRes);
 

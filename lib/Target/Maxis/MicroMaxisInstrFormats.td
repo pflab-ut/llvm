@@ -361,7 +361,7 @@ class SRA_FM_MM<bits<10> funct, bit rotate> : MMArch {
   let Inst{9-0}   = funct;
 }
 
-class SRLV_FM_MM<bits<10> funct, bit rotate> : MMArch {
+class SRL_FM_MM<bits<10> funct, bit rotate> : MMArch {
   bits<5> rd;
   bits<5> rt;
   bits<5> rs;

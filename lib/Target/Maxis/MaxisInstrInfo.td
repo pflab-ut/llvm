@@ -1908,11 +1908,11 @@ def SRLi  : MMRel, shift_rotate_imm<"srli", uimm5, GPR32Opnd, II_SRLI, srl,
 def SRA  : MMRel, shift_rotate_imm<"sra", uimm5, GPR32Opnd, II_SRA, sra,
                                    immZExt5>, SRA_FM<3, 0>;
 def SLL : MMRel, shift_rotate_reg<"sll", GPR32Opnd, II_SLL, shl>,
-           SRLV_FM<4, 0>;
-def SRLV : MMRel, shift_rotate_reg<"srlv", GPR32Opnd, II_SRLV, srl>,
-           SRLV_FM<6, 0>;
+           SRL_FM<4, 0>;
+def SRL : MMRel, shift_rotate_reg<"srl", GPR32Opnd, II_SRL, srl>,
+           SRL_FM<6, 0>;
 def SRAV : MMRel, shift_rotate_reg<"srav", GPR32Opnd, II_SRAV, sra>,
-           SRLV_FM<7, 0>;
+           SRL_FM<7, 0>;
 }
 
 // Rotate Instructions
@@ -1921,7 +1921,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                                       immZExt5>,
               SRA_FM<2, 1>, ISA_MAXIS32R2;
   def ROTRV : MMRel, shift_rotate_reg<"rotrv", GPR32Opnd, II_ROTRV, rotr>,
-              SRLV_FM<6, 1>, ISA_MAXIS32R2;
+              SRL_FM<6, 1>, ISA_MAXIS32R2;
 }
 
 /// Load and Store Instructions
@@ -2531,13 +2531,13 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"sra $rd, $rt, $rs",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srli $rd, $rt, $rs",
-                      (SRLV GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+                      (SRL GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"slli $rd, $rt",
                       (SLL GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"sra $rd, $rt",
                       (SRAV GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"srli $rd, $rt",
-                      (SRLV GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
+                      (SRL GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"seh $rd", (SEH GPR32Opnd:$rd, GPR32Opnd:$rd), 0>,
                      ISA_MAXIS32R2;
   def : MaxisInstAlias<"seb $rd", (SEB GPR32Opnd:$rd, GPR32Opnd:$rd), 0>,

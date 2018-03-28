@@ -1248,12 +1248,12 @@ def SraX16: FEXT_SHIFT16_ins<0b11, "sra", IIM16Alu>;
 
 
 //
-// Format: SRLV ry, rx MAXIS16e
+// Format: SRL ry, rx MAXIS16e
 // Purpose: Shift Word Right Logical Variable
 // To execute a logical right-shift of a word by a variable
 // number of bits.
 //
-def SrlvRxRy16: FRxRxRy16_ins<0b00110, "srlv", IIM16Alu>;
+def SrlRxRy16: FRxRxRy16_ins<0b00110, "srl", IIM16Alu>;
 
 
 //
@@ -1335,7 +1335,7 @@ class shift_rotate_reg16_pat<SDNode OpNode, Instruction I> :
 
 def: shift_rotate_reg16_pat<shl, SllRxRy16>;
 def: shift_rotate_reg16_pat<sra, SravRxRy16>;
-def: shift_rotate_reg16_pat<srl, SrlvRxRy16>;
+def: shift_rotate_reg16_pat<srl, SrlRxRy16>;
 
 class LoadM16_pat<PatFrag OpNode, Instruction I, ComplexPattern Addr> :
   Maxis16Pat<(OpNode Addr:$addr), (I Addr:$addr)>;

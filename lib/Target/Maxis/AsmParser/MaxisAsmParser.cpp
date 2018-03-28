@@ -4396,12 +4396,12 @@ bool MaxisAsmParser::expandRotation(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     default:
       llvm_unreachable("unexpected instruction opcode");
     case Maxis::ROL:
-      FirstShift = Maxis::SRLV;
+      FirstShift = Maxis::SRL;
       SecondShift = Maxis::SLL;
       break;
     case Maxis::ROR:
       FirstShift = Maxis::SLL;
-      SecondShift = Maxis::SRLV;
+      SecondShift = Maxis::SRL;
       break;
     }
 
@@ -4521,12 +4521,12 @@ bool MaxisAsmParser::expandDRotation(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     default:
       llvm_unreachable("unexpected instruction opcode");
     case Maxis::DROL:
-      FirstShift = Maxis::DSRLV;
+      FirstShift = Maxis::DSRL;
       SecondShift = Maxis::DSLL;
       break;
     case Maxis::DROR:
       FirstShift = Maxis::DSLL;
-      SecondShift = Maxis::DSRLV;
+      SecondShift = Maxis::DSRL;
       break;
     }
 

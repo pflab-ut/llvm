@@ -294,7 +294,7 @@ class SRA_FM<bits<6> funct, bit rotate> : StdArch {
   let Inst{5-0}   = funct;
 }
 
-class SRLV_FM<bits<6> funct, bit rotate> : StdArch {
+class SRL_FM<bits<6> funct, bit rotate> : StdArch {
   bits<5> rd;
   bits<5> rt;
   bits<5> rs;
