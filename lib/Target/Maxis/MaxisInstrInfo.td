@@ -2089,8 +2089,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def JALRPseudo : JumpLinkRegPseudo<GPR32Opnd, JALR, RA>;
 }
 
+/*
 def JALX : MMRel, JumpLink<"jalx", calltarget>, FJ<0x1D>,
            ISA_MAXIS32_NOT_32R6_64R6;
+*/           
 def BGEZAL : MMRel, BGEZAL_FT<"bgezal", brtarget, GPR32Opnd>, BGEZAL_FM<0x11>,
              ISA_MAXIS1_NOT_32R6_64R6;
 def BGEZALL : MMRel, BGEZAL_FT<"bgezall", brtarget, GPR32Opnd>,
@@ -2204,7 +2206,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 }
 
 /// No operation.
-def NOP : PseudoSE<(outs), (ins), []>, PseudoInstExpansion<(SLLi ZERO, ZERO, 0)>;
+//def NOP : PseudoSE<(outs), (ins), []>, PseudoInstExpansion<(SLLi ZERO, ZERO, 0)>;
 
 // FrameIndexes are legalized when they are operands from load/store
 // instructions. The same not happens for stack address copies, so an
@@ -2268,6 +2270,7 @@ def MTC2 : MTC3OP<"mtc2", COP2Opnd, GPR32Opnd, II_MTC2>, MFC3OP_FM<0x12, 4>;
 class Barrier<string asmstr, InstrItinClass itin = NoItinerary> :
   InstSE<(outs), (ins), asmstr, [], itin, FrmOther, asmstr>;
 
+def NOP : MMRel, StdMMR6Rel, Barrier<"nop", II_NOP>, BARRIER_FM<0>;
 def SSNOP : MMRel, StdMMR6Rel, Barrier<"ssnop", II_SSNOP>, BARRIER_FM<1>;
 def EHB : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM<3>;
 
