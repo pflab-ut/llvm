@@ -278,6 +278,8 @@ def II_RDHWR            : InstrItinClass;
 def II_RESTORE          : InstrItinClass;
 def II_RECIP_S          : InstrItinClass;
 def II_RECIP_D          : InstrItinClass;
+def II_REM              : InstrItinClass;
+def II_REMU             : InstrItinClass;
 def II_RINT_S           : InstrItinClass;
 def II_RINT_D           : InstrItinClass;
 def II_ROTR             : InstrItinClass;
@@ -581,6 +583,8 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_MSUBU           , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_DIV             , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_DIVU            , [InstrStage<38, [IMULDIV]>]>,
+  InstrItinData<II_REM             , [InstrStage<38, [IMULDIV]>]>,
+  InstrItinData<II_REMU            , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_DDIV            , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_DDIVU           , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_CEIL            , [InstrStage<1,  [ALU]>]>,

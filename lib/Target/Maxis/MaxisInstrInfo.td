@@ -1891,6 +1891,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 let Defs = [HI0, LO0] in
 def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
             ADD_FM<0x4, 0x10>, ISA_MAXIS32_NOT_32R6_64R6;
+def REM   : MMRel, ArithLogicR<"rem", GPR32Opnd, 1, II_REM, srem>,
+            ADD_FM<0x2, 0x2>, ISA_MAXIS32_NOT_32R6_64R6;
+def REMu  : MMRel, ArithLogicR<"remu", GPR32Opnd, 1, II_REM, urem>,
+            ADD_FM<0x2, 0x6>, ISA_MAXIS32_NOT_32R6_64R6;
 def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD>, ADD_FM<0x4, 0x8>;
 def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0x4, 0x9>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
