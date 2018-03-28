@@ -196,7 +196,7 @@ def P5600WriteEitherALU : SchedWriteVariant<
 def : ItinRW<[P5600WriteEitherALU],
              [II_ADD, II_ADDI, II_ANDI, II_ORI, II_ROTR, II_SEB, II_SEH,
               II_SLT_SLTU, II_SLLI, II_SRAI, II_SRLI, II_XORI, II_ADDU, II_SLL,
-              II_SRAV, II_SRL, II_LSA]>;
+              II_SRA, II_SRL, II_LSA]>;
 def : InstRW<[], (instrs COPY)>;
 
 // FPU Pipelines
@@ -564,7 +564,7 @@ def : InstRW<[P5600WriteLoadFPU], (instregex "LD_[BHWD]")>;
 // The following instruction classes are never valid on P5600.
 //   II_DADDI, II_DADDU, II_DMFC1, II_DMTC1, II_DMULT, II_DMULTU, II_DROTR,
 //   II_DROTR32, II_DROTRV, II_DDIV, II_DSLLI, II_DSLLI32, II_DSLL, II_DSRAI,
-//   II_DSRAI32, II_DSRAV, II_DSRLI, II_DSRLI32, II_DSRL, II_DSUBU, II_DDIVU,
+//   II_DSRAI32, II_DSRA, II_DSRLI, II_DSRLI32, II_DSRL, II_DSUBU, II_DDIVU,
 //   II_JALRC, II_LD, II_LD[LR], II_RESTORE, II_SAVE, II_SD, II_SDC1, II_SD[LR]
 //
 // The following instructions are never valid on P5600.

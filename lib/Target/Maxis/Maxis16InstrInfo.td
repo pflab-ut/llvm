@@ -1230,12 +1230,12 @@ def SltuRxRyRz16: FRRTR16_ins<"sltu"> {
 
 def SltuCCRxRy16: FCCRR16_ins<"sltu">;
 //
-// Format: SRAV ry, rx MAXIS16e
+// Format: SRA ry, rx MAXIS16e
 // Purpose: Shift Word Right Arithmetic Variable
 // To execute an arithmetic right-shift of a word by a variable
 // number of bits.
 //
-def SravRxRy16: FRxRxRy16_ins<0b00111, "srav", IIM16Alu>;
+def SraRxRy16: FRxRxRy16_ins<0b00111, "sra", IIM16Alu>;
 
 
 //
@@ -1334,7 +1334,7 @@ class shift_rotate_reg16_pat<SDNode OpNode, Instruction I> :
             (I CPU16Regs:$r, CPU16Regs:$ra)>;
 
 def: shift_rotate_reg16_pat<shl, SllRxRy16>;
-def: shift_rotate_reg16_pat<sra, SravRxRy16>;
+def: shift_rotate_reg16_pat<sra, SraRxRy16>;
 def: shift_rotate_reg16_pat<srl, SrlRxRy16>;
 
 class LoadM16_pat<PatFrag OpNode, Instruction I, ComplexPattern Addr> :

@@ -742,7 +742,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                  SRL_FM_MM<0x10, 0>;
   def SRL_MM  : MMRel, shift_rotate_reg<"srl", GPR32Opnd, II_SRL>,
                  SRL_FM_MM<0x50, 0>;
-  def SRAV_MM  : MMRel, shift_rotate_reg<"srav", GPR32Opnd, II_SRAV>,
+  def SRA_MM  : MMRel, shift_rotate_reg<"sra", GPR32Opnd, II_SRA>,
                  SRL_FM_MM<0x90, 0>;
   def ROTR_MM  : MMRel, shift_rotate_imm<"rotr", uimm5, GPR32Opnd, II_ROTR>,
                  SRA_FM_MM<0xc0, 0> {
@@ -1055,7 +1055,7 @@ let Predicates = [InMicroMaxis] in {
   def : MaxisPat<(sra GPR32:$src, immZExt5:$imm),
                 (SRAI_MM GPR32:$src, immZExt5:$imm)>;
   def : MaxisPat<(sra GPR32:$lhs, GPR32:$rhs),
-                (SRAV_MM GPR32:$lhs, GPR32:$rhs)>;
+                (SRA_MM GPR32:$lhs, GPR32:$rhs)>;
 
   def : MaxisPat<(store GPRMM16:$src, addrimm4lsl2:$addr),
                 (SW16_MM GPRMM16:$src, addrimm4lsl2:$addr)>;
@@ -1141,13 +1141,13 @@ let Predicates = [InMicroMaxis] in {
   def : MaxisInstAlias<"slli $rd, $rt, $rs",
                       (SLL_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srai $rd, $rt, $rs",
-                      (SRAV_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+                      (SRA_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"srli $rd, $rt, $rs",
                       (SRL_MM GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
   def : MaxisInstAlias<"slli $rd, $rt",
                       (SLL_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"srai $rd, $rt",
-                      (SRAV_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
+                      (SRA_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"srli $rd, $rt",
                       (SRL_MM GPR32Opnd:$rd, GPR32Opnd:$rd, GPR32Opnd:$rt), 0>;
   def : MaxisInstAlias<"slli $rd, $shamt",

@@ -1987,7 +1987,7 @@ bool MaxisFastISel::selectShift(const Instruction *I) {
     Opcode = Maxis::SLL;
     break;
   case Instruction::AShr:
-    Opcode = Maxis::SRAV;
+    Opcode = Maxis::SRA;
     break;
   case Instruction::LShr:
     Opcode = Maxis::SRL;

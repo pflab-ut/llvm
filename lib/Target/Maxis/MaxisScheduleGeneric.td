@@ -47,7 +47,7 @@ def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
                                  II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
                                  II_SEH, II_SLTI_SLTIU, II_SLT_SLTU, II_SLLI,
-                                 II_SRAI, II_SRLI, II_SLL, II_SRAV, II_SRL,
+                                 II_SRAI, II_SRLI, II_SLL, II_SRA, II_SRL,
                                  II_SSNOP, II_SUB, II_SUBU, II_WSBH, II_XOR,
                                  II_XORI]>;
 
@@ -90,7 +90,7 @@ def : ItinRW<[GenericWriteALU], [II_DADDU, II_DADDI, II_DADD,
                                  II_DCLO, II_DCLZ, II_DROTR, II_DROTR32,
                                  II_DROTRV, II_DSBH, II_DSHD, II_DSLLI,
                                  II_DSLLI32, II_DSLL, II_DSRAI, II_DSRAI32,
-                                 II_DSRAV, II_DSRLI, II_DSRLI32, II_DSRL,
+                                 II_DSRA, II_DSRLI, II_DSRLI32, II_DSRL,
                                  II_DSUBU, II_DSUB]>;
 
 def : ItinRW<[GenericWriteDIV], [II_DDIV]>;

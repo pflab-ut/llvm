@@ -147,7 +147,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
              SRA_FM<0x3b, 0>, ISA_MAXIS3;
   def DSLL  : shift_rotate_reg<"dsll", GPR64Opnd, II_DSLL, shl>,
                SRL_FM<0x14, 0>, ISA_MAXIS3;
-  def DSRAV  : shift_rotate_reg<"dsrav", GPR64Opnd, II_DSRAV, sra>,
+  def DSRA  : shift_rotate_reg<"dsra", GPR64Opnd, II_DSRA, sra>,
                SRL_FM<0x17, 0>, ISA_MAXIS3;
   def DSRL  : shift_rotate_reg<"dsrl", GPR64Opnd, II_DSRL, srl>,
                SRL_FM<0x16, 0>, ISA_MAXIS3;
@@ -675,7 +675,7 @@ def : MaxisPat<(shl GPR64:$rt, (i32 (trunc GPR64:$rs))),
 def : MaxisPat<(srl GPR64:$rt, (i32 (trunc GPR64:$rs))),
               (DSRL GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 def : MaxisPat<(sra GPR64:$rt, (i32 (trunc GPR64:$rs))),
-              (DSRAV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
+              (DSRA GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(rotr GPR64:$rt, (i32 (trunc GPR64:$rs))),
                 (DROTRV GPR64:$rt, (EXTRACT_SUBREG GPR64:$rs, sub_32))>;
@@ -811,7 +811,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                               InvertedImOperand64:$imm), 0>, ISA_MAXIS3;
 }
 def : MaxisInstAlias<"dsrai $rd, $rt, $rs",
-                    (DSRAV GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
+                    (DSRA GPR64Opnd:$rd, GPR64Opnd:$rt, GPR32Opnd:$rs), 0>,
                     ISA_MAXIS3;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"dslli $rd, $rt, $rs",
