@@ -2181,9 +2181,9 @@ def MFLO : MMRel, MoveFromLOHI<"mflo", GPR32Opnd, AC0>, MFLO_FM<0x12>,
 
 /// Sign Ext In Register Instructions.
 def SEB : MMRel, StdMMR6Rel, SignExtInReg<"seb", i8, GPR32Opnd, II_SEB>,
-          SEB_FM<0x10, 0x20>, ISA_MAXIS32R2;
+          SEB_FM<0x18, 0x4>, ISA_MAXIS32_NOT_32R6_64R6;
 def SEH : MMRel, StdMMR6Rel, SignExtInReg<"seh", i16, GPR32Opnd, II_SEH>,
-          SEB_FM<0x18, 0x20>, ISA_MAXIS32R2;
+          SEB_FM<0x19, 0x4>, ISA_MAXIS32_NOT_32R6_64R6;
 
 /// Count Leading
 def CLZ : MMRel, CountLeading0<"clz", GPR32Opnd, II_CLZ>, CLO_FM<0x20>,
