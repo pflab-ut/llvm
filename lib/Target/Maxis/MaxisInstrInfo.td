@@ -1894,6 +1894,8 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
               ADD_FM<0x5, 0x19>;
   def XOR   : MMRel, StdMMR6Rel, ArithLogicR<"xor", GPR32Opnd, 1, II_XOR, xor>,
               ADD_FM<0x5, 0x1a>;
+  def NAND  : MMRel, StdMMR6Rel, ArithLogicR<"nand", GPR32Opnd, 1, II_NAND, nand>,
+              ADD_FM<0x5, 0x1c>;
   def NOR   : MMRel, StdMMR6Rel, LogicNOR<"nor", GPR32Opnd>, ADD_FM<0x5, 0x1d>;
   def XNOR  : MMRel, StdMMR6Rel, ArithLogicR<"xnor", GPR32Opnd, 1, II_XNOR, xnor>,
               ADD_FM<0x5, 0x1e>;

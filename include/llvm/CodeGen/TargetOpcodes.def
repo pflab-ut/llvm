@@ -225,6 +225,9 @@ HANDLE_TARGET_OPCODE(G_XOR)
 /// Generic bitwise exclusive-nor instruction.
 HANDLE_TARGET_OPCODE(G_XNOR)
 
+/// Generic bitwise nand instruction.
+HANDLE_TARGET_OPCODE(G_NAND)
+
 HANDLE_TARGET_OPCODE(G_IMPLICIT_DEF)
 
 /// Generic PHI instruction with types.

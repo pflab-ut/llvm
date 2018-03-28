@@ -1,3 +1,4 @@
+
 //===-- llvm/CodeGen/ISDOpcodes.h - CodeGen opcodes -------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -359,8 +360,8 @@ namespace ISD {
     /// integers.
     SMIN, SMAX, UMIN, UMAX,
 
-    /// Bitwise operators - logical and, logical, logical xor, or logical xnor.
-    AND, OR, XOR, XNOR,
+    /// Bitwise operators - logical and, logical, logical xor, logical xnor, or logical nand.
+    AND, OR, XOR, XNOR, NAND,
 
     /// ABS - Determine the unsigned absolute value of a signed integer value of
     /// the same bitwidth.
@@ -826,7 +827,7 @@ namespace ISD {
     /// These reductions are non-strict, and have a single vector operand.
     VECREDUCE_FADD, VECREDUCE_FMUL,
     VECREDUCE_ADD, VECREDUCE_MUL,
-    VECREDUCE_AND, VECREDUCE_OR, VECREDUCE_XOR, VECREDUCE_XNOR,
+    VECREDUCE_AND, VECREDUCE_OR, VECREDUCE_XOR, VECREDUCE_XNOR, VECREDUCE_NAND,
     VECREDUCE_SMAX, VECREDUCE_SMIN, VECREDUCE_UMAX, VECREDUCE_UMIN,
     /// FMIN/FMAX nodes can have flags, for NaN/NoNaN variants.
     VECREDUCE_FMAX, VECREDUCE_FMIN,

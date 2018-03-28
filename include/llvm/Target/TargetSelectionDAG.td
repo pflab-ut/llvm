@@ -110,7 +110,7 @@ def SDTOther  : SDTypeProfile<1, 0, [SDTCisVT<0, OtherVT>]>; // for 'vt'.
 def SDTUNDEF  : SDTypeProfile<1, 0, []>;                     // for 'undef'.
 def SDTUnaryOp  : SDTypeProfile<1, 1, []>;                   // for bitconvert.
 
-def SDTIntBinOp : SDTypeProfile<1, 2, [     // add, and, or, xor, xnor, udiv, etc.
+def SDTIntBinOp : SDTypeProfile<1, 2, [     // add, and, or, xor, xnor, nand, udiv, etc.
   SDTCisSameAs<0, 1>, SDTCisSameAs<0, 2>, SDTCisInt<0>
 ]>;
 def SDTIntShiftOp : SDTypeProfile<1, 2, [   // shl, sra, srl
@@ -367,6 +367,8 @@ def or         : SDNode<"ISD::OR"        , SDTIntBinOp,
 def xor        : SDNode<"ISD::XOR"       , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def xnor       : SDNode<"ISD::XNOR"      , SDTIntBinOp,
+                        [SDNPCommutative, SDNPAssociative]>;
+def nand       : SDNode<"ISD::NAND"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def addc       : SDNode<"ISD::ADDC"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPOutGlue]>;

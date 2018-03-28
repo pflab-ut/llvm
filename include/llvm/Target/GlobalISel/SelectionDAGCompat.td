@@ -51,6 +51,7 @@ def : GINodeEquiv<G_AND, and>;
 def : GINodeEquiv<G_OR, or>;
 def : GINodeEquiv<G_XOR, xor>;
 def : GINodeEquiv<G_XNOR, xnor>;
+def : GINodeEquiv<G_NAND, nand>;
 def : GINodeEquiv<G_SHL, shl>;
 def : GINodeEquiv<G_LSHR, srl>;
 def : GINodeEquiv<G_ASHR, sra>;

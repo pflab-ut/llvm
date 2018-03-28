@@ -218,6 +218,14 @@ def G_XNOR : GenericInstruction {
   let isCommutable = 1;
 }
 
+// Generic bitwise nand.
+def G_NAND : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2);
+  let hasSideEffects = 0;
+  let isCommutable = 1;
+}
+
 // Generic left-shift.
 def G_SHL : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
