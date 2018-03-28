@@ -278,23 +278,23 @@ class ADDI_FM<bits<6> op> : StdArch {
   let Inst{15-0}  = imm16;
 }
 
-class SRA_FM<bits<6> funct, bit rotate> : StdArch {
+class SHTI_FM<bits<5> funct, bit rotate> : StdArch {
   bits<5> rd;
   bits<5> rt;
   bits<5> shamt;
 
   bits<32> Inst;
 
-  let Inst{31-26} = 0;
-  let Inst{25-22} = 0;
-  let Inst{21}    = rotate;
-  let Inst{20-16} = rt;
-  let Inst{15-11} = rd;
-  let Inst{10-6}  = shamt;
-  let Inst{5-0}   = funct;
+  let Inst{31-26} = 0x14;
+  let Inst{25-21} = rt;
+  let Inst{20-16} = rd;
+  let Inst{15-11} = 0;
+  let Inst{10-6}  = funct;
+  let Inst{5}     = rotate;
+  let Inst{4-0}   = shamt;
 }
 
-class SRL_FM<bits<6> funct, bit rotate> : StdArch {
+class SHT_FM<bits<5> funct, bit rotate> : StdArch {
   bits<5> rd;
   bits<5> rt;
   bits<5> rs;
@@ -302,12 +302,12 @@ class SRL_FM<bits<6> funct, bit rotate> : StdArch {
   bits<32> Inst;
 
   let Inst{31-26} = 0;
-  let Inst{25-21} = rs;
-  let Inst{20-16} = rt;
+  let Inst{25-21} = rt;
+  let Inst{20-16} = rs;
   let Inst{15-11} = rd;
-  let Inst{10-7}  = 0;
-  let Inst{6}     = rotate;
-  let Inst{5-0}   = funct;
+  let Inst{10-6}  = funct;
+  let Inst{5}     = rotate;
+  let Inst{4-0}   = 0x5;
 }
 
 class BEQ_FM<bits<6> op> : StdArch {

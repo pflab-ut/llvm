@@ -1902,26 +1902,26 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 /// Shift Instructions
 let AdditionalPredicates = [NotInMicroMaxis] in {
 def SLLi  : MMRel, shift_rotate_imm<"slli", uimm5, GPR32Opnd, II_SLLI, shl,
-                                   immZExt5>, SRA_FM<0, 0>;
+                                   immZExt5>, SHTI_FM<0, 0>;
 def SRLi  : MMRel, shift_rotate_imm<"srli", uimm5, GPR32Opnd, II_SRLI, srl,
-                                   immZExt5>, SRA_FM<2, 0>;
+                                   immZExt5>, SHTI_FM<1, 0>;
 def SRAi  : MMRel, shift_rotate_imm<"srai", uimm5, GPR32Opnd, II_SRAI, sra,
-                                   immZExt5>, SRA_FM<3, 0>;
+                                   immZExt5>, SHTI_FM<3, 0>;
 def SLL : MMRel, shift_rotate_reg<"sll", GPR32Opnd, II_SLL, shl>,
-           SRL_FM<4, 0>;
+           SHT_FM<0, 0>;
 def SRL : MMRel, shift_rotate_reg<"srl", GPR32Opnd, II_SRL, srl>,
-           SRL_FM<6, 0>;
+           SHT_FM<1, 0>;
 def SRA : MMRel, shift_rotate_reg<"sra", GPR32Opnd, II_SRA, sra>,
-           SRL_FM<7, 0>;
+           SHT_FM<3, 0>;
 }
 
 // Rotate Instructions
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def ROTR  : MMRel, shift_rotate_imm<"rotr", uimm5, GPR32Opnd, II_ROTR, rotr,
                                       immZExt5>,
-              SRA_FM<2, 1>, ISA_MAXIS32R2;
+              SHTI_FM<2, 1>, ISA_MAXIS32R2;
   def ROTRV : MMRel, shift_rotate_reg<"rotrv", GPR32Opnd, II_ROTRV, rotr>,
-              SRL_FM<6, 1>, ISA_MAXIS32R2;
+              SHT_FM<6, 1>, ISA_MAXIS32R2;
 }
 
 /// Load and Store Instructions

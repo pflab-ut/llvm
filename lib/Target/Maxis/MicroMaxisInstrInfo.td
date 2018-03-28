@@ -733,24 +733,24 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
 
   /// Shift Instructions
   def SLLI_MM   : MMRel, shift_rotate_imm<"slli", uimm5, GPR32Opnd, II_SLLI>,
-                 SRA_FM_MM<0, 0>;
+                 SHTI_FM_MM<0, 0>;
   def SRLI_MM   : MMRel, shift_rotate_imm<"srli", uimm5, GPR32Opnd, II_SRLI>,
-                 SRA_FM_MM<0x40, 0>;
+                 SHTI_FM_MM<0x40, 0>;
   def SRAI_MM   : MMRel, shift_rotate_imm<"srai", uimm5, GPR32Opnd, II_SRAI>,
-                 SRA_FM_MM<0x80, 0>;
+                 SHTI_FM_MM<0x80, 0>;
   def SLL_MM  : MMRel, shift_rotate_reg<"sll", GPR32Opnd, II_SLL>,
-                 SRL_FM_MM<0x10, 0>;
+                 SHT_FM_MM<0x10, 0>;
   def SRL_MM  : MMRel, shift_rotate_reg<"srl", GPR32Opnd, II_SRL>,
-                 SRL_FM_MM<0x50, 0>;
+                 SHT_FM_MM<0x50, 0>;
   def SRA_MM  : MMRel, shift_rotate_reg<"sra", GPR32Opnd, II_SRA>,
-                 SRL_FM_MM<0x90, 0>;
+                 SHT_FM_MM<0x90, 0>;
   def ROTR_MM  : MMRel, shift_rotate_imm<"rotr", uimm5, GPR32Opnd, II_ROTR>,
-                 SRA_FM_MM<0xc0, 0> {
+                 SHTI_FM_MM<0xc0, 0> {
     list<dag> Pattern = [(set GPR32Opnd:$rd,
                           (rotr GPR32Opnd:$rt, immZExt5:$shamt))];
   }
   def ROTRV_MM : MMRel, shift_rotate_reg<"rotrv", GPR32Opnd, II_ROTRV>,
-                 SRL_FM_MM<0xd0, 0> {
+                 SHT_FM_MM<0xd0, 0> {
     list<dag> Pattern = [(set GPR32Opnd:$rd,
                           (rotr GPR32Opnd:$rt, GPR32Opnd:$rs))];
   }

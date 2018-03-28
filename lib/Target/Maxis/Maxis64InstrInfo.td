@@ -138,34 +138,34 @@ def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x1f>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def DSLLi : shift_rotate_imm<"dslli", uimm6, GPR64Opnd, II_DSLLI, shl,
                               immZExt6>,
-             SRA_FM<0x38, 0>, ISA_MAXIS3;
+             SHTI_FM<0x18, 0>, ISA_MAXIS3;
   def DSRLi : shift_rotate_imm<"dsrli", uimm6, GPR64Opnd, II_DSRLI, srl,
                               immZExt6>,
-             SRA_FM<0x3a, 0>, ISA_MAXIS3;
+             SHTI_FM<0x1a, 0>, ISA_MAXIS3;
   def DSRAi : shift_rotate_imm<"dsrai", uimm6, GPR64Opnd, II_DSRAI, sra,
                               immZExt6>,
-             SRA_FM<0x3b, 0>, ISA_MAXIS3;
+             SHTI_FM<0x1b, 0>, ISA_MAXIS3;
   def DSLL  : shift_rotate_reg<"dsll", GPR64Opnd, II_DSLL, shl>,
-               SRL_FM<0x14, 0>, ISA_MAXIS3;
+               SHT_FM<0x14, 0>, ISA_MAXIS3;
   def DSRA  : shift_rotate_reg<"dsra", GPR64Opnd, II_DSRA, sra>,
-               SRL_FM<0x17, 0>, ISA_MAXIS3;
+               SHT_FM<0x17, 0>, ISA_MAXIS3;
   def DSRL  : shift_rotate_reg<"dsrl", GPR64Opnd, II_DSRL, srl>,
-               SRL_FM<0x16, 0>, ISA_MAXIS3;
+               SHT_FM<0x16, 0>, ISA_MAXIS3;
   def DSLLi32 : shift_rotate_imm<"dslli32", uimm5, GPR64Opnd, II_DSLLI32>,
-               SRA_FM<0x3c, 0>, ISA_MAXIS3;
+               SHTI_FM<0x1c, 0>, ISA_MAXIS3;
   def DSRLi32 : shift_rotate_imm<"dsrli32", uimm5, GPR64Opnd, II_DSRLI32>,
-               SRA_FM<0x3e, 0>, ISA_MAXIS3;
+               SHTI_FM<0x1e, 0>, ISA_MAXIS3;
   def DSRAi32 : shift_rotate_imm<"dsrai32", uimm5, GPR64Opnd, II_DSRAI32>,
-               SRA_FM<0x3f, 0>, ISA_MAXIS3;
+               SHTI_FM<0x1f, 0>, ISA_MAXIS3;
 
 // Rotate Instructions
   def DROTR  : shift_rotate_imm<"drotr", uimm6, GPR64Opnd, II_DROTR, rotr,
                                 immZExt6>,
-               SRA_FM<0x3a, 1>, ISA_MAXIS64R2;
+               SHTI_FM<0x1a, 1>, ISA_MAXIS64R2;
   def DROTRV : shift_rotate_reg<"drotrv", GPR64Opnd, II_DROTRV, rotr>,
-               SRL_FM<0x16, 1>, ISA_MAXIS64R2;
+               SHT_FM<0x16, 1>, ISA_MAXIS64R2;
   def DROTR32 : shift_rotate_imm<"drotr32", uimm5, GPR64Opnd, II_DROTR32>,
-                SRA_FM<0x3e, 1>, ISA_MAXIS64R2;
+                SHTI_FM<0x1e, 1>, ISA_MAXIS64R2;
 }
 
 /// Load and Store Instructions
