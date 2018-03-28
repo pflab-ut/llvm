@@ -1997,7 +1997,7 @@ let DecoderNamespace = "COP3_" in {
              ISA_MAXIS2;
 }
 
-  def SYNC : MMRel, StdMMR6Rel, SYNC_FT<"sync">, SYNC_FM, ISA_MAXIS2;
+//  def SYNC : MMRel, StdMMR6Rel, SYNC_FT<"sync">, SYNC_FM, ISA_MAXIS2;
   def SYNCI : MMRel, StdMMR6Rel, SYNCI_FT<"synci">, SYNCI_FM, ISA_MAXIS32R2;
 }
 
@@ -2271,7 +2271,9 @@ class Barrier<string asmstr, InstrItinClass itin = NoItinerary> :
   InstSE<(outs), (ins), asmstr, [], itin, FrmOther, asmstr>;
 
 def NOP : MMRel, StdMMR6Rel, Barrier<"nop", II_NOP>, BARRIER_FM<0>;
-def SSNOP : MMRel, StdMMR6Rel, Barrier<"ssnop", II_SSNOP>, BARRIER_FM<1>;
+def SYNC : MMRel, StdMMR6Rel, Barrier<"sync", II_SYNC>, BARRIER_FM<1>;
+def WI : MMRel, StdMMR6Rel, Barrier<"wi", II_WI>, BARRIER_FM<2>;
+def ERT : MMRel, StdMMR6Rel, Barrier<"ert", II_ERT>, BARRIER_FM<4>;
 def EHB : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM<3>;
 
 let isCTI = 1 in
@@ -2565,9 +2567,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                      ISA_MAXIS32R2;
 }
 def : MaxisInstAlias<"sdbbp", (SDBBP 0)>, ISA_MAXIS32_NOT_32R6_64R6;
+/*
 def : MaxisInstAlias<"sync",
                     (SYNC 0), 1>, ISA_MAXIS2;
-
+*/
 def : MaxisInstAlias<"mulo $rs, $rt",
                     (MULOMacro GPR32Opnd:$rs, GPR32Opnd:$rs, GPR32Opnd:$rt), 0>,
                     ISA_MAXIS1_NOT_32R6_64R6;
@@ -2785,9 +2788,10 @@ def : MaxisPat<(mul GPR32:$lhs, GPR32:$rhs),
       ISA_MAXIS1_NOT_32R6_64R6;
 
 // SYNC
+/*
 def : MaxisPat<(MaxisSync (i32 immz)),
               (SYNC 0)>, ISA_MAXIS2;
-
+*/
 // Call
 def : MaxisPat<(MaxisJmpLink (i32 texternalsym:$dst)),
               (JAL texternalsym:$dst)>;

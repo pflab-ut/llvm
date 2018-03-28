@@ -1900,11 +1900,13 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
 
   // SSNOP is deprecated on MAXIS32r6/MAXIS64r6
   // We still accept it but it is a normal nop.
+  /*
   if (hasMaxis32r6() && Inst.getOpcode() == Maxis::SSNOP) {
     std::string ISA = hasMaxis64r6() ? "MAXIS64r6" : "MAXIS32r6";
     Warning(IDLoc, "ssnop is deprecated for " + ISA + " and is equivalent to a "
                                                       "nop instruction");
   }
+  */
 
   if (hasCnMaxis()) {
     const unsigned Opcode = Inst.getOpcode();
@@ -5140,8 +5142,10 @@ unsigned MaxisAsmParser::checkTargetMatchPredicate(MCInst &Inst) {
       return Match_RequiresDifferentSrcAndDst;
     return Match_Success;
   case Maxis::SYNC:
+    /*
     if (Inst.getOperand(0).getImm() != 0 && !hasMaxis32())
       return Match_NonZeroOperandForSync;
+    */
     return Match_Success;
   // As described the MAXISR6 spec, the compact branches that compare registers
   // must:

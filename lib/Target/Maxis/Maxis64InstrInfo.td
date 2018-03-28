@@ -850,10 +850,12 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 def : MaxisInstAlias<"dmfc2 $rt, $rd", (DMFC2 GPR64Opnd:$rt, COP2Opnd:$rd, 0), 0>;
 def : MaxisInstAlias<"dmtc2 $rt, $rd", (DMTC2 COP2Opnd:$rd, GPR64Opnd:$rt, 0), 0>;
 
+/*
 def : MaxisInstAlias<"synciobdma", (SYNC 0x2), 0>, ASE_MAXIS64_CNMAXIS;
 def : MaxisInstAlias<"syncs", (SYNC 0x6), 0>, ASE_MAXIS64_CNMAXIS;
 def : MaxisInstAlias<"syncw", (SYNC 0x4), 0>, ASE_MAXIS64_CNMAXIS;
 def : MaxisInstAlias<"syncws", (SYNC 0x5), 0>, ASE_MAXIS64_CNMAXIS;
+*/
 
 // cnMAXIS Aliases.
 

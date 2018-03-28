@@ -141,6 +141,8 @@ def II_EHB              : InstrItinClass;
 def II_SDBBP            : InstrItinClass;
 def II_NOP              : InstrItinClass;
 def II_SSNOP            : InstrItinClass;
+def II_WI               : InstrItinClass;
+def II_ERT              : InstrItinClass;
 def II_SYSCALL          : InstrItinClass;
 def II_PAUSE            : InstrItinClass;
 def II_WAIT             : InstrItinClass;
@@ -516,7 +518,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_JIALC           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JR              , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JR_HB           , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_JRADDISP       , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_JRADDISP        , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_JRC             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ReturnPseudo    , [InstrStage<1,  [ALU]>]>,
   InstrItinData<IIPseudo           , [InstrStage<1,  [ALU]>]>,
@@ -529,6 +531,8 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_SDBBP           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SSNOP           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_NOP             , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_WI              , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_ERT             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_SYSCALL         , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_PAUSE           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_WAIT            , [InstrStage<1,  [ALU]>]>,
