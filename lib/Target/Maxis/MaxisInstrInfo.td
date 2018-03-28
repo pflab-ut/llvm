@@ -1769,6 +1769,17 @@ class MTC3OP<string asmstr, RegisterOperand RO, RegisterOperand RD,
   InstSE<(outs RO:$rd), (ins RD:$rt, uimm3:$sel),
          !strconcat(asmstr, "\t$rt, $rd, $sel"), [], itin, FrmFR>;
 
+class MTS2OP<string asmstr, RegisterOperand RO, RegisterOperand RD,
+             InstrItinClass itin> :
+  InstSE<(outs RO:$rd), (ins RD:$rt),
+         !strconcat(asmstr, "\t$rt, $rd"), [], itin, FrmFR>;
+
+class MFS2OP<string asmstr, RegisterOperand RO, RegisterOperand RD,
+             InstrItinClass itin> :
+  InstSE<(outs RO:$rd), (ins RD:$rt),
+         !strconcat(asmstr, "\t$rd, $rt"), [], itin, FrmFR>;
+
+
 class TrapBase<Instruction RealInst>
   : PseudoSE<(outs), (ins), [(trap)], II_TRAP>,
     PseudoInstExpansion<(RealInst 0, 0)> {
@@ -2262,6 +2273,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def MTC0 : MTC3OP<"mtc0", COP0Opnd, GPR32Opnd, II_MTC0>, MFC3OP_FM<0x10, 4>,
              ISA_MAXIS32;
   def MFC0 : MFC3OP<"mfc0", GPR32Opnd, COP0Opnd, II_MFC0>, MFC3OP_FM<0x10, 0>,
+             ISA_MAXIS32;
+  def MTS  : MTS2OP<"mts", GPR32Opnd, COP0Opnd, II_MTC0>, MTS_FM<0x3, 0x2>,
+             ISA_MAXIS32;
+  def MFS  : MFS2OP<"mfs", GPR32Opnd, COP0Opnd, II_MFC0>, MFS_FM<0x3, 0x3>,
              ISA_MAXIS32;
 }
 def MFC2 : MFC3OP<"mfc2", GPR32Opnd, COP2Opnd, II_MFC2>, MFC3OP_FM<0x12, 0>;
