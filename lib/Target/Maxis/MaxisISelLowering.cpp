@@ -816,7 +816,7 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
 
   if (FirstOperandOpc == ISD::SRA || FirstOperandOpc == ISD::SRL) {
     // Pattern match EXT.
-    //  $dst = and ((sra or srl) $src , pos), (2**size - 1)
+    //  $dst = and ((sra or srli) $src , pos), (2**size - 1)
     //  => ext $dst, $src, pos, size
 
     // The second operand of the shift must be an immediate.
@@ -951,16 +951,16 @@ static SDValue performORCombine(SDNode *N, SelectionDAG &DAG,
       SDLoc DL(N);
       EVT ValTy = N->getOperand(0)->getValueType(0);
       SDValue Const1;
-      SDValue SrlX;
+      SDValue SrliX;
       if (!isConstCase) {
         Const1 = DAG.getConstant(SMPos0, DL, MVT::i32);
-        SrlX = DAG.getNode(ISD::SRL, DL, And1->getValueType(0), And1, Const1);
+        SrliX = DAG.getNode(ISD::SRL, DL, And1->getValueType(0), And1, Const1);
       }
       return DAG.getNode(
           MaxisISD::Ins, DL, N->getValueType(0),
           isConstCase
               ? DAG.getConstant(CN1->getSExtValue() >> SMPos0, DL, ValTy)
-              : SrlX,
+              : SrliX,
           DAG.getConstant(SMPos0, DL, MVT::i32),
           DAG.getConstant(ValTy.getSizeInBits() / 8 < 8 ? SMSize0 & 31
                                                         : SMSize0,
@@ -988,7 +988,7 @@ static SDValue performMADD_MSUBCombine(SDNode *ROOTNode, SelectionDAG &CurDAG,
   // arithmetic. E.g.
   // (add (mul a b) c) =>
   //   let res = (madd (mthi (drotr c 32))x(mtlo c) a b) in
-  //   MAXIS64:   (or (dslli (mfhi res) 32) (dsrl (dslli (mflo res) 32) 32)
+  //   MAXIS64:   (or (dslli (mfhi res) 32) (dsrli (dslli (mflo res) 32) 32)
   //   or
   //   MAXIS64R2: (dins (mflo res) (mfhi res) 32 32)
   //
@@ -1578,7 +1578,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
   unsigned MaskedOldVal0 = RegInfo.createVirtualRegister(RC);
   unsigned StoreVal = RegInfo.createVirtualRegister(RC);
   unsigned MaskedOldVal1 = RegInfo.createVirtualRegister(RC);
-  unsigned SrlRes = RegInfo.createVirtualRegister(RC);
+  unsigned SrliRes = RegInfo.createVirtualRegister(RC);
   unsigned Success = RegInfo.createVirtualRegister(RC);
 
   unsigned LL, SC;
@@ -1694,15 +1694,15 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicBinaryPartword(
 
   //  sinkMBB:
   //    and     maskedoldval1,oldval,mask
-  //    srl     srlres,maskedoldval1,shiftamt
-  //    sign_extend dest,srlres
+  //    srli     srlires,maskedoldval1,shiftamt
+  //    sign_extend dest,srlires
   BB = sinkMBB;
 
   BuildMI(BB, DL, TII->get(Maxis::AND), MaskedOldVal1)
     .addReg(OldVal).addReg(Mask);
-  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrlRes)
+  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrliRes)
       .addReg(MaskedOldVal1).addReg(ShiftAmt);
-  BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
+  BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrliRes);
 
   MI.eraseFromParent(); // The instruction is gone now.
 
@@ -1833,7 +1833,7 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
   unsigned MaskedNewVal = RegInfo.createVirtualRegister(RC);
   unsigned MaskedOldVal1 = RegInfo.createVirtualRegister(RC);
   unsigned StoreVal = RegInfo.createVirtualRegister(RC);
-  unsigned SrlRes = RegInfo.createVirtualRegister(RC);
+  unsigned SrliRes = RegInfo.createVirtualRegister(RC);
   unsigned Success = RegInfo.createVirtualRegister(RC);
   unsigned LL, SC;
 
@@ -1941,13 +1941,13 @@ MachineBasicBlock *MaxisTargetLowering::emitAtomicCmpSwapPartword(
       .addReg(Success).addReg(Maxis::ZERO).addMBB(loop1MBB);
 
   //  sinkMBB:
-  //    srl     srlres,maskedoldval0,shiftamt
-  //    sign_extend dest,srlres
+  //    srli     srlires,maskedoldval0,shiftamt
+  //    sign_extend dest,srlires
   BB = sinkMBB;
 
-  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrlRes)
+  BuildMI(BB, DL, TII->get(Maxis::SRLV), SrliRes)
       .addReg(MaskedOldVal0).addReg(ShiftAmt);
-  BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrlRes);
+  BB = emitSignExtendToI32InReg(MI, BB, Size, Dest, SrliRes);
 
   MI.eraseFromParent(); // The instruction is gone now.
 
@@ -2283,15 +2283,15 @@ static SDValue lowerFCOPYSIGN32(SDValue Op, SelectionDAG &DAG,
     Res = DAG.getNode(MaxisISD::Ins, DL, MVT::i32, E, Const31, Const1, X);
   } else {
     // slli SllX, X, 1
-    // srl SrlX, SllX, 1
-    // srl SrlY, Y, 31
-    // slli SllY, SrlX, 31
-    // or  Or, SrlX, SlliY
+    // srli SrlX, SllX, 1
+    // srl SrliY, Y, 31
+    // slli SllY, SrliX, 31
+    // or  Or, SrliX, SlliY
     SDValue SlliX = DAG.getNode(ISD::SHL, DL, MVT::i32, X, Const1);
-    SDValue SrlX = DAG.getNode(ISD::SRL, DL, MVT::i32, SlliX, Const1);
-    SDValue SrlY = DAG.getNode(ISD::SRL, DL, MVT::i32, Y, Const31);
-    SDValue SlliY = DAG.getNode(ISD::SHL, DL, MVT::i32, SrlY, Const31);
-    Res = DAG.getNode(ISD::OR, DL, MVT::i32, SrlX, SlliY);
+    SDValue SrliX = DAG.getNode(ISD::SRL, DL, MVT::i32, SlliX, Const1);
+    SDValue SrliY = DAG.getNode(ISD::SRL, DL, MVT::i32, Y, Const31);
+    SDValue SlliY = DAG.getNode(ISD::SHL, DL, MVT::i32, SrliY, Const31);
+    Res = DAG.getNode(ISD::OR, DL, MVT::i32, SrliX, SlliY);
   }
 
   if (TyX == MVT::f32)
@@ -2333,23 +2333,23 @@ static SDValue lowerFCOPYSIGN64(SDValue Op, SelectionDAG &DAG,
   }
 
   // (d)slli SlliX, X, 1
-  // (d)srl SrlX, SlliX, 1
-  // (d)srl SrlY, Y, width(Y)-1
-  // (d)slli SlliY, SrlX, width(Y)-1
-  // or     Or, SrlX, SlliY
+  // (d)srli SrliX, SlliX, 1
+  // (d)srli SrliY, Y, width(Y)-1
+  // (d)slli SlliY, SrliX, width(Y)-1
+  // or     Or, SrliX, SlliY
   SDValue SlliX = DAG.getNode(ISD::SHL, DL, TyX, X, Const1);
-  SDValue SrlX = DAG.getNode(ISD::SRL, DL, TyX, SlliX, Const1);
-  SDValue SrlY = DAG.getNode(ISD::SRL, DL, TyY, Y,
+  SDValue SrliX = DAG.getNode(ISD::SRL, DL, TyX, SlliX, Const1);
+  SDValue SrliY = DAG.getNode(ISD::SRL, DL, TyY, Y,
                              DAG.getConstant(WidthY - 1, DL, MVT::i32));
 
   if (WidthX > WidthY)
-    SrlY = DAG.getNode(ISD::ZERO_EXTEND, DL, TyX, SrlY);
+    SrliY = DAG.getNode(ISD::ZERO_EXTEND, DL, TyX, SrliY);
   else if (WidthY > WidthX)
-    SrlY = DAG.getNode(ISD::TRUNCATE, DL, TyX, SrlY);
+    SrliY = DAG.getNode(ISD::TRUNCATE, DL, TyX, SrliY);
 
-  SDValue SlliY = DAG.getNode(ISD::SHL, DL, TyX, SrlY,
+  SDValue SlliY = DAG.getNode(ISD::SHL, DL, TyX, SrliY,
                              DAG.getConstant(WidthX - 1, DL, MVT::i32));
-  SDValue Or = DAG.getNode(ISD::OR, DL, TyX, SrlX, SlliY);
+  SDValue Or = DAG.getNode(ISD::OR, DL, TyX, SrliX, SlliY);
   return DAG.getNode(ISD::BITCAST, DL, Op.getOperand(0).getValueType(), Or);
 }
 
@@ -2443,7 +2443,7 @@ SDValue MaxisTargetLowering::lowerShiftLeftParts(SDValue Op,
   SDValue Shamt = Op.getOperand(2);
   // if shamt < (VT.bits):
   //  lo = (shl lo, shamt)
-  //  hi = (or (shl hi, shamt) (srl (srl lo, 1), ~shamt))
+  //  hi = (or (shl hi, shamt) (srli (srli lo, 1), ~shamt))
   // else:
   //  lo = 0
   //  hi = (shl lo, shamt[4:0])
@@ -2473,17 +2473,17 @@ SDValue MaxisTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
   MVT VT = Subtarget.isGP64bit() ? MVT::i64 : MVT::i32;
 
   // if shamt < (VT.bits):
-  //  lo = (or (shl (shl hi, 1), ~shamt) (srl lo, shamt))
+  //  lo = (or (shl (shl hi, 1), ~shamt) (srli lo, shamt))
   //  if isSRA:
   //    hi = (sra hi, shamt)
   //  else:
-  //    hi = (srl hi, shamt)
+  //    hi = (srli hi, shamt)
   // else:
   //  if isSRA:
   //   lo = (sra hi, shamt[4:0])
   //   hi = (sra hi, 31)
   //  else:
-  //   lo = (srl hi, shamt[4:0])
+  //   lo = (srli hi, shamt[4:0])
   //   hi = 0
   SDValue Not = DAG.getNode(ISD::XOR, DL, MVT::i32, Shamt,
                             DAG.getConstant(-1, DL, MVT::i32));
@@ -2579,12 +2579,12 @@ SDValue MaxisTargetLowering::lowerLOAD(SDValue Op, SelectionDAG &DAG) const {
   //  (set tmp0, (lwl (add baseptr, 3), undef))
   //  (set tmp1, (lwr baseptr, tmp0))
   //  (set tmp2, (shl tmp1, 32))
-  //  (set dst, (srl tmp2, 32))
+  //  (set dst, (srli tmp2, 32))
   SDLoc DL(LD);
   SDValue Const32 = DAG.getConstant(32, DL, MVT::i32);
   SDValue SLLi = DAG.getNode(ISD::SHL, DL, MVT::i64, LWR, Const32);
-  SDValue SRL = DAG.getNode(ISD::SRL, DL, MVT::i64, SLLi, Const32);
-  SDValue Ops[] = { SRL, LWR.getValue(1) };
+  SDValue SRLi = DAG.getNode(ISD::SRL, DL, MVT::i64, SLLi, Const32);
+  SDValue Ops[] = { SRLi, LWR.getValue(1) };
   return DAG.getMergeValues(Ops, DL);
 }
 

@@ -1257,12 +1257,12 @@ def SrlvRxRy16: FRxRxRy16_ins<0b00110, "srlv", IIM16Alu>;
 
 
 //
-// Format: SRL rx, ry, sa MAXIS16e
+// Format: SRLI rx, ry, sa MAXIS16e
 // Purpose: Shift Word Right Logical (Extended)
 // To execute a logical right-shift of a word by a fixed
 // number of bits-1 to 31 bits.
 //
-def SrlX16: FEXT_SHIFT16_ins<0b10, "srl", IIM16Alu>;
+def SrliX16: FEXT_SHIFT16_ins<0b10, "srli", IIM16Alu>;
 
 //
 // Format: SUBU rz, rx, ry MAXIS16e
@@ -1326,7 +1326,7 @@ class ArithLogicI16_pat<SDNode OpNode, PatFrag imm_type, Instruction I> :
 def: ArithLogicI16_pat<add, immSExt8, AddiRxRxImm16>;
 def: ArithLogicI16_pat<add, immSExt16, AddiRxRxImmX16>;
 def: ArithLogicI16_pat<shl, immZExt5, SlliX16>;
-def: ArithLogicI16_pat<srl, immZExt5, SrlX16>;
+def: ArithLogicI16_pat<srl, immZExt5, SrliX16>;
 def: ArithLogicI16_pat<sra, immZExt5, SraX16>;
 
 class shift_rotate_reg16_pat<SDNode OpNode, Instruction I> :

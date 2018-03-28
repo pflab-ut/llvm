@@ -2172,7 +2172,7 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
           return Error(IDLoc, "immediate operand value out of range");
         break;
       case Maxis::SLLI16_MM:
-      case Maxis::SRL16_MM:
+      case Maxis::SRLI16_MM:
         Opnd = Inst.getOperand(2);
         if (!Opnd.isImm())
           return Error(IDLoc, "expected immediate operand kind");
@@ -2676,7 +2676,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       // not clear why other masks are handled differently.
       if (ImmValue == 0xffffffff) {
         TOut.emitRI(Maxis::LUi, TmpReg, 0xffff, IDLoc, STI);
-        TOut.emitRRI(Maxis::DSRL32, TmpReg, TmpReg, 0, IDLoc, STI);
+        TOut.emitRRI(Maxis::DSRLi32, TmpReg, TmpReg, 0, IDLoc, STI);
         if (UseSrcReg)
           TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
         return false;
@@ -4189,14 +4189,14 @@ bool MaxisAsmParser::expandUsh(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
   if (IsLargeOffset) {
     TOut.emitRRI(Maxis::SB, DstReg, ATReg, FirstOffset, IDLoc, STI);
-    TOut.emitRRI(Maxis::SRL, DstReg, DstReg, 8, IDLoc, STI);
+    TOut.emitRRI(Maxis::SRLi, DstReg, DstReg, 8, IDLoc, STI);
     TOut.emitRRI(Maxis::SB, DstReg, ATReg, SecondOffset, IDLoc, STI);
     TOut.emitRRI(Maxis::LBu, ATReg, ATReg, 0, IDLoc, STI);
     TOut.emitRRI(Maxis::SLLi, DstReg, DstReg, 8, IDLoc, STI);
     TOut.emitRRR(Maxis::OR, DstReg, DstReg, ATReg, IDLoc, STI);
   } else {
     TOut.emitRRI(Maxis::SB, DstReg, SrcReg, FirstOffset, IDLoc, STI);
-    TOut.emitRRI(Maxis::SRL, ATReg, DstReg, 8, IDLoc, STI);
+    TOut.emitRRI(Maxis::SRLi, ATReg, DstReg, 8, IDLoc, STI);
     TOut.emitRRI(Maxis::SB, ATReg, SrcReg, SecondOffset, IDLoc, STI);
   }
 
@@ -4452,7 +4452,7 @@ bool MaxisAsmParser::expandRotationImm(MCInst &Inst, SMLoc IDLoc,
 
   if (hasMaxis32()) {
     if (ImmValue == 0) {
-      TOut.emitRRI(Maxis::SRL, DReg, SReg, 0, Inst.getLoc(), STI);
+      TOut.emitRRI(Maxis::SRLi, DReg, SReg, 0, Inst.getLoc(), STI);
       return false;
     }
 
@@ -4461,10 +4461,10 @@ bool MaxisAsmParser::expandRotationImm(MCInst &Inst, SMLoc IDLoc,
       llvm_unreachable("unexpected instruction opcode");
     case Maxis::ROLImm:
       FirstShift = Maxis::SLLi;
-      SecondShift = Maxis::SRL;
+      SecondShift = Maxis::SRLi;
       break;
     case Maxis::RORImm:
-      FirstShift = Maxis::SRL;
+      FirstShift = Maxis::SRLi;
       SecondShift = Maxis::SLLi;
       break;
     }
@@ -4588,7 +4588,7 @@ bool MaxisAsmParser::expandDRotationImm(MCInst &Inst, SMLoc IDLoc,
 
   if (hasMaxis64()) {
     if (ImmValue == 0) {
-      TOut.emitRRI(Maxis::DSRL, DReg, SReg, 0, Inst.getLoc(), STI);
+      TOut.emitRRI(Maxis::DSRLi, DReg, SReg, 0, Inst.getLoc(), STI);
       return false;
     }
 
@@ -4598,28 +4598,28 @@ bool MaxisAsmParser::expandDRotationImm(MCInst &Inst, SMLoc IDLoc,
     case Maxis::DROLImm:
       if ((ImmValue >= 1) && (ImmValue <= 31)) {
         FirstShift = Maxis::DSLLi;
-        SecondShift = Maxis::DSRL32;
+        SecondShift = Maxis::DSRLi32;
       }
       if (ImmValue == 32) {
         FirstShift = Maxis::DSLLi32;
-        SecondShift = Maxis::DSRL32;
+        SecondShift = Maxis::DSRLi32;
       }
       if ((ImmValue >= 33) && (ImmValue <= 63)) {
         FirstShift = Maxis::DSLLi32;
-        SecondShift = Maxis::DSRL;
+        SecondShift = Maxis::DSRLi;
       }
       break;
     case Maxis::DRORImm:
       if ((ImmValue >= 1) && (ImmValue <= 31)) {
-        FirstShift = Maxis::DSRL;
+        FirstShift = Maxis::DSRLi;
         SecondShift = Maxis::DSLLi32;
       }
       if (ImmValue == 32) {
-        FirstShift = Maxis::DSRL32;
+        FirstShift = Maxis::DSRLi32;
         SecondShift = Maxis::DSLLi32;
       }
       if ((ImmValue >= 33) && (ImmValue <= 63)) {
-        FirstShift = Maxis::DSRL32;
+        FirstShift = Maxis::DSRLi32;
         SecondShift = Maxis::DSLLi;
       }
       break;

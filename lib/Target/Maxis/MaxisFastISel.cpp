@@ -1581,7 +1581,7 @@ bool MaxisFastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
             return false;
         }
         emitInst(Maxis::SLLi, TempReg[0]).addReg(SrcReg).addImm(8);
-        emitInst(Maxis::SRL, TempReg[1]).addReg(SrcReg).addImm(8);
+        emitInst(Maxis::SRLi, TempReg[1]).addReg(SrcReg).addImm(8);
         emitInst(Maxis::OR, TempReg[2]).addReg(TempReg[0]).addReg(TempReg[1]);
         emitInst(Maxis::ANDi, DestReg).addReg(TempReg[2]).addImm(0xFFFF);
         updateValueMap(II, DestReg);
@@ -1602,8 +1602,8 @@ bool MaxisFastISel::fastLowerIntrinsicCall(const IntrinsicInst *II) {
             return false;
         }
 
-        emitInst(Maxis::SRL, TempReg[0]).addReg(SrcReg).addImm(8);
-        emitInst(Maxis::SRL, TempReg[1]).addReg(SrcReg).addImm(24);
+        emitInst(Maxis::SRLi, TempReg[0]).addReg(SrcReg).addImm(8);
+        emitInst(Maxis::SRLi, TempReg[1]).addReg(SrcReg).addImm(24);
         emitInst(Maxis::ANDi, TempReg[2]).addReg(TempReg[0]).addImm(0xFF00);
         emitInst(Maxis::OR, TempReg[3]).addReg(TempReg[1]).addReg(TempReg[2]);
 
@@ -1967,7 +1967,7 @@ bool MaxisFastISel::selectShift(const Instruction *I) {
       Opcode = Maxis::SRA;
       break;
     case Instruction::LShr:
-      Opcode = Maxis::SRL;
+      Opcode = Maxis::SRLi;
       break;
     }
 
