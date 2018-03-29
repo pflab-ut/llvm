@@ -2496,6 +2496,9 @@ def : MaxisInstAlias<"ble $rs, $rt, $offset", (BGE GPR32Opnd:$rt,
       ISA_MAXIS1_NOT_32R6_64R6;
 def : MaxisInstAlias<"blez $rs, $offset", (BGE ZERO, GPR32Opnd:$rs, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"bleu $rs, $rt, $offset", (BGEU GPR32Opnd:$rt,
+                    GPR32Opnd:$rs, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
 
 def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;
 let Predicates = [NotInMicroMaxis] in {
@@ -2694,7 +2697,7 @@ class CondBranchPseudo<string instr_asm> :
 //def BGE : CondBranchPseudo<"bge">;
 //def BGT : CondBranchPseudo<"bgt">;
 //def BLTU : CondBranchPseudo<"bltu">;
-def BLEU : CondBranchPseudo<"bleu">;
+//def BLEU : CondBranchPseudo<"bleu">;
 //def BGEU : CondBranchPseudo<"bgeu">;
 //def BGTU : CondBranchPseudo<"bgtu">;
 def BLTL : CondBranchPseudo<"bltl">, ISA_MAXIS2_NOT_32R6_64R6;

@@ -2364,7 +2364,7 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     //  case Maxis::BGE:
     //  case Maxis::BGT:
     //  case Maxis::BLTU:
-  case Maxis::BLEU:
+    //  case Maxis::BLEU:
     //  case Maxis::BGEU:
     //  case Maxis::BGTU:
   case Maxis::BLTL:
@@ -3692,9 +3692,11 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     case Maxis::BLTUImmMacro:
       PseudoOpcode = Maxis::BLTU;
       break;
+      /*
     case Maxis::BLEUImmMacro:
       PseudoOpcode = Maxis::BLEU;
       break;
+      */
     case Maxis::BGEUImmMacro:
       PseudoOpcode = Maxis::BGEU;
       break;
@@ -3749,12 +3751,13 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ZeroTrgOpcode = Maxis::BLT;
     break;
     //  case Maxis::BLE:
-  case Maxis::BLEU:
+    //  case Maxis::BLEU:
   case Maxis::BLEL:
   case Maxis::BLEUL:
     AcceptsEquality = true;
     ReverseOrderSLT = true;
-    IsUnsigned = ((PseudoOpcode == Maxis::BLEU) || (PseudoOpcode == Maxis::BLEUL));
+    //    IsUnsigned = ((PseudoOpcode == Maxis::BLEU) || (PseudoOpcode == Maxis::BLEUL));
+    IsUnsigned = false;
     IsLikely = ((PseudoOpcode == Maxis::BLEL) || (PseudoOpcode == Maxis::BLEUL));
     //    ZeroSrcOpcode = Maxis::BGEZ;
     ZeroSrcOpcode = Maxis::BGE;
@@ -3860,10 +3863,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       return false;
     }
     */
+    /*
     if ((IsSrcRegZero && PseudoOpcode == Maxis::BLEU)
-        /* ||
+         ||
         (IsTrgRegZero && PseudoOpcode == Maxis::BGEU)
-        */
         ) {
       // If the $rs is $0 and the pseudo-branch is BLEU (0 <= x) or
       // if the $rt is $0 and the pseudo-branch is BGEU (x >= 0),
@@ -3875,6 +3878,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       Warning(IDLoc, "branch is always taken");
       return false;
     }
+    */
     if (IsUnsigned) {
       // If the $rs is $0 and the pseudo-branch is BLTU (0 < x) or
       // if the $rt is $0 and the pseudo-branch is BGTU (x > 0),
