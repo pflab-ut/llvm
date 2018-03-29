@@ -193,7 +193,7 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     const GlobalValue *FName = &MF.getFunction();
     BuildMI(MBB, I, DL, TII.get(Maxis::CATi), V0)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_HI);
-    BuildMI(MBB, I, DL, TII.get(Maxis::ADDu), V1).addReg(V0).addReg(Maxis::T9);
+    BuildMI(MBB, I, DL, TII.get(Maxis::ADD), V1).addReg(V0).addReg(Maxis::T9);
     BuildMI(MBB, I, DL, TII.get(Maxis::ADDi), GlobalBaseReg).addReg(V1)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_LO);
     return;
@@ -206,7 +206,7 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   //
   //  0. cati  $2, $0, %hi(_gp_disp)
   //  1. addi $2, $2, %lo(_gp_disp)
-  //  2. addu  $globalbasereg, $2, $t9
+  //  2. add  $globalbasereg, $2, $t9
   //
   // We emit only the last instruction here.
   //
@@ -216,11 +216,11 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   // avoid any reordering.
   //
   // Register $2 (Maxis::V0) is added to the list of live-in registers to ensure
-  // the value instruction 1 (addi) defines is valid when instruction 2 (addu)
+  // the value instruction 1 (addi) defines is valid when instruction 2 (add)
   // reads it.
   MF.getRegInfo().addLiveIn(Maxis::V0);
   MBB.addLiveIn(Maxis::V0);
-  BuildMI(MBB, I, DL, TII.get(Maxis::ADDu), GlobalBaseReg)
+  BuildMI(MBB, I, DL, TII.get(Maxis::ADD), GlobalBaseReg)
     .addReg(Maxis::V0).addReg(Maxis::T9);
 }
 

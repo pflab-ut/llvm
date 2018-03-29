@@ -481,7 +481,7 @@ void MaxisSEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
   } else {
     // For numbers which are not 16bit integers we synthesize Amount inline
     // then add or subtract it from sp.
-    unsigned Opc = ABI.GetPtrAdduOp();
+    unsigned Opc = ABI.GetPtrAddOp();
     if (Amount < 0) {
       Opc = ABI.GetPtrSubuOp();
       Amount = -Amount;
@@ -754,7 +754,7 @@ void MaxisSEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
   // ISD::EH_RETURN. We convert it to a stack increment by OffsetReg, and
   // indirect jump to TargetReg
   MaxisABIInfo ABI = Subtarget.getABI();
-  unsigned ADDU = ABI.GetPtrAdduOp();
+  unsigned ADD = ABI.GetPtrAddOp();
   unsigned SP = Subtarget.isGP64bit() ? Maxis::SP_64 : Maxis::SP;
   unsigned RA = Subtarget.isGP64bit() ? Maxis::RA_64 : Maxis::RA;
   unsigned T9 = Subtarget.isGP64bit() ? Maxis::T9_64 : Maxis::T9;
@@ -762,18 +762,18 @@ void MaxisSEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
   unsigned OffsetReg = I->getOperand(0).getReg();
   unsigned TargetReg = I->getOperand(1).getReg();
 
-  // addu $ra, $v0, $zero
-  // addu $sp, $sp, $v1
+  // add $ra, $v0, $zero
+  // add $sp, $sp, $v1
   // jr   $ra (via RetRA)
   const TargetMachine &TM = MBB.getParent()->getTarget();
   if (TM.isPositionIndependent())
-    BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), T9)
+    BuildMI(MBB, I, I->getDebugLoc(), get(ADD), T9)
         .addReg(TargetReg)
         .addReg(ZERO);
-  BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), RA)
+  BuildMI(MBB, I, I->getDebugLoc(), get(ADD), RA)
       .addReg(TargetReg)
       .addReg(ZERO);
-  BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), SP).addReg(SP).addReg(OffsetReg);
+  BuildMI(MBB, I, I->getDebugLoc(), get(ADD), SP).addReg(SP).addReg(OffsetReg);
   expandRetRA(MBB, I);
 }
 

@@ -515,7 +515,7 @@ class SImmAsmOperandClass<int Bits, list<AsmOperandClass> Supers = []>
 class UImmAsmOperandClass<int Bits, list<AsmOperandClass> Supers = []>
     : AsmOperandClass {
   let Name = "UImm" # Bits;
-  let RenderMethod = "addUImmOperands<" # Bits # ">";
+  let RenderMethod = "addImmOperands<" # Bits # ">";
   let PredicateMethod = "isUImm<" # Bits # ">";
   let SuperClasses = Supers;
   let DiagnosticType = "UImm" # Bits;
@@ -1898,8 +1898,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 }
 let AdditionalPredicates = [NotInMicroMaxis] in {
   /// Arithmetic Instructions (3-Operand, R-Type)
+/*
   def ADDu  : MMRel, StdMMR6Rel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
               ADD_FM<0, 0x1d>;
+*/              
   def SUBu  : MMRel, StdMMR6Rel, ArithLogicR<"subu", GPR32Opnd, 0, II_SUBU, sub>,
               ADD_FM<0, 0x1d>;
 }
@@ -1915,7 +1917,7 @@ def REM   : MMRel, ArithLogicR<"rem", GPR32Opnd, 1, II_REM, srem>,
             ADD_FM<0x2, 0x2>, ISA_MAXIS32_NOT_32R6_64R6;
 def REMu  : MMRel, ArithLogicR<"remu", GPR32Opnd, 1, II_REM, urem>,
             ADD_FM<0x2, 0x6>, ISA_MAXIS32_NOT_32R6_64R6;
-def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD>, ADD_FM<0x4, 0x8>;
+def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD, add>, ADD_FM<0x4, 0x8>;
 def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0x4, 0x9>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SEQ   : MMRel, SetCC_R<"seq", seteq, GPR32Opnd>, ADD_FM<0x5, 0x10>;
@@ -2544,7 +2546,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"add", ADDi>, ISA_MAXIS1_NOT_32R6_64R6;
 
-  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDi>;
+//  defm : OneOrTwoOperandMacroImmediateAlias<"addu", ADDi>;
 
   defm : OneOrTwoOperandMacroImmediateAlias<"and", ANDi>, GPR_32;
 
@@ -2858,8 +2860,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(subc GPR32:$lhs, GPR32:$rhs),
                 (SUBu GPR32:$lhs, GPR32:$rhs)>;
 }
+/*
 def : MaxisPat<(addc GPR32:$lhs, GPR32:$rhs),
               (ADDu GPR32:$lhs, GPR32:$rhs)>, ASE_NOT_DSP;
+*/
 def : MaxisPat<(addc  GPR32:$src, immSExt16:$imm),
               (ADDi GPR32:$src, imm:$imm)>, ASE_NOT_DSP;
 

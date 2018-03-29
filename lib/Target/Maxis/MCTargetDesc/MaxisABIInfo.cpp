@@ -86,8 +86,8 @@ unsigned MaxisABIInfo::GetZeroReg() const {
   return AreGprs64bit() ? Maxis::ZERO_64 : Maxis::ZERO;
 }
 
-unsigned MaxisABIInfo::GetPtrAdduOp() const {
-  return ArePtrs64bit() ? Maxis::DADDu : Maxis::ADDu;
+unsigned MaxisABIInfo::GetPtrAddOp() const {
+  return ArePtrs64bit() ? Maxis::DADDu : Maxis::ADD;
 }
 
 unsigned MaxisABIInfo::GetPtrAddiOp() const {

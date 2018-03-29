@@ -296,7 +296,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //  bal $baltgt
       //  addi $at, $at, %lo($tgt - $baltgt)
       // $baltgt:
-      //  addu $at, $ra, $at
+      //  add $at, $ra, $at
       //  lw $ra, 0($sp)
       //  jr $at
       //  addi $sp, $sp, 8
@@ -311,7 +311,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //  addi $at, $at, %lo($tgt - $baltgt)
       //  balc $baltgt
       // $baltgt:
-      //  addu $at, $ra, $at
+      //  add $at, $ra, $at
       //  lw $ra, 0($sp)
       //  addi $sp, $sp, 8
       //  jic $at, 0
@@ -361,7 +361,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
 
       Pos = BalTgtMBB->begin();
 
-      BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADDu), Maxis::AT)
+      BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::ADD), Maxis::AT)
         .addReg(Maxis::RA).addReg(Maxis::AT);
       BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::LW), Maxis::RA)
         .addReg(Maxis::SP).addImm(0);

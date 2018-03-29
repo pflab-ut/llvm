@@ -24,7 +24,7 @@ def II_ABS              : InstrItinClass;
 def II_ADDI             : InstrItinClass;
 def II_ADDIPC          : InstrItinClass;
 def II_ADD              : InstrItinClass;
-def II_ADDU             : InstrItinClass;
+//def II_ADDU             : InstrItinClass;
 def II_ADD_D            : InstrItinClass;
 def II_ADD_S            : InstrItinClass;
 def II_ALIGN            : InstrItinClass;
@@ -370,7 +370,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_ADDI            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADDIPC          , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ADD             , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_ADDU            , [InstrStage<1,  [ALU]>]>,
+//  InstrItinData<II_ADDU            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_AUI             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_AND             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ALUIPC          , [InstrStage<1,  [ALU]>]>,

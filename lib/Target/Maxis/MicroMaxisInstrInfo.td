@@ -586,8 +586,10 @@ class UncondBranchMM16<string opstr> :
   let Defs = [AT];
 }
 
+/*
 def ADDU16_MM : ArithRMM16<"addu16", GPRMM16Opnd, 1, II_ADDU, add>,
     ARITH_FM_MM16<0>, ISA_MICROMAXIS_NOT_32R6;
+*/
 def AND16_MM : LogicRMM16<"and16", GPRMM16Opnd, II_AND, and>,
     LOGIC_FM_MM16<0x2>, ISA_MICROMAXIS_NOT_32R6;
 def ANDI16_MM : AndImmMM16<"andi16", GPRMM16Opnd, II_AND>, ANDI_FM_MM16<0x0b>,
@@ -699,8 +701,10 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                      LW_FM_MM<0xc>;
 
   /// Arithmetic Instructions (3-Operand, R-Type)
+/*
   def ADDu_MM  : MMRel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
                  ADD_FM_MM<0, 0x150>;
+*/
   def SUBu_MM  : MMRel, ArithLogicR<"subu", GPR32Opnd, 0, II_SUBU, sub>,
                  ADD_FM_MM<0, 0x1d0>;
   def MUL_MM   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL>,

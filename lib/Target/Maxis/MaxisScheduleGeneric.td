@@ -40,9 +40,9 @@ def GenericIssueALU : ProcResource<1> { let Super = GenericALU; }
 def GenericWriteALU : SchedWriteRes<[GenericIssueALU]>;
 
 // and, lui, nor, or, slti, sltiu, sub, subu, xor
-// add, addi, addu, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
+// add, addi, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
 // xori
-def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
+def : ItinRW<[GenericWriteALU], [II_ADD, /* II_ADDU, */ II_ADDI, II_ANDI,
                                  II_AND, II_ANDI, II_CLO, II_CLZ, II_EXT,
                                  II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,

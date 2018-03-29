@@ -192,11 +192,12 @@ def P5600WriteEitherALU : SchedWriteVariant<
    SchedVar<SchedPredicate<[{0}]>, [P5600WriteAL2]>
   ]>;
 
-// add, addi, addu, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
+// add, addi, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
 // xori
 def : ItinRW<[P5600WriteEitherALU],
              [II_ADD, II_ADDI, II_ANDI, II_ORI, II_ROTR, II_SEB, II_SEH,
-              II_SLT_SLTU, II_SLLI, II_SRAI, II_SRLI, II_XORI, II_ADDU, II_SLL,
+              II_SLT_SLTU, II_SLLI, II_SRAI, II_SRLI, II_XORI, /*
+              II_ADDU, */ II_SLL,
               II_SRA, II_SRL, II_LSA]>;
 def : InstRW<[], (instrs COPY)>;
 

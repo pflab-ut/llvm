@@ -246,7 +246,7 @@ void MaxisSERegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
               MBB.getParent()->getSubtarget().getInstrInfo());
       unsigned Reg = TII.loadImmediate(Offset, MBB, II, DL,
                                        OffsetBitSize == 16 ? &NewImm : nullptr);
-      BuildMI(MBB, II, DL, TII.get(ABI.GetPtrAdduOp()), Reg).addReg(FrameReg)
+      BuildMI(MBB, II, DL, TII.get(ABI.GetPtrAddOp()), Reg).addReg(FrameReg)
         .addReg(Reg, RegState::Kill);
 
       FrameReg = Reg;

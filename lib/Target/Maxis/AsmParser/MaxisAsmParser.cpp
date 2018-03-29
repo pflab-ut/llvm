@@ -1148,12 +1148,12 @@ public:
   }
 
   template <unsigned Bits>
-  void addUImmOperands(MCInst &Inst, unsigned N) const {
+  void addImmOperands(MCInst &Inst, signed N) const {
     if (isImm() && !isConstantImm()) {
       addExpr(Inst, getImm());
       return;
     }
-    addConstantUImmOperands<Bits, 0, 0>(Inst, N);
+    addConstantSImmOperands<Bits, 0, 0>(Inst, N);
   }
 
   template <unsigned Bits, int Offset = 0, int AdjustOffset = 0>
@@ -2629,7 +2629,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
   }
 
   unsigned ZeroReg = IsAddress ? ABI.GetNullPtr() : ABI.GetZeroReg();
-  unsigned AdduOp = !Is32BitImm ? Maxis::DADDu : Maxis::ADDu;
+  unsigned AddOp = !Is32BitImm ? Maxis::DADDu : Maxis::ADD;
 
   bool UseSrcReg = false;
   if (SrcReg != Maxis::NoRegister)
@@ -2672,7 +2672,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
 
     TOut.emitRRI(Maxis::ORi, TmpReg, ZeroReg, ImmValue, IDLoc, STI);
     if (UseSrcReg)
-      TOut.emitRRR(ABI.GetPtrAdduOp(), DstReg, TmpReg, SrcReg, IDLoc, STI);
+      TOut.emitRRR(ABI.GetPtrAddOp(), DstReg, TmpReg, SrcReg, IDLoc, STI);
     return false;
   }
 
@@ -2688,7 +2688,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
         TOut.emitRRI(Maxis::CATi, TmpReg, ZeroReg, ~0x0, IDLoc, STI);
         TOut.emitRRI(Maxis::DSRLi32, TmpReg, TmpReg, 0, IDLoc, STI);
         if (UseSrcReg)
-          TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
+          TOut.emitRRR(AddOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
         return false;
       }
 
@@ -2699,7 +2699,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       if (Bits15To0)
         TOut.emitRRI(Maxis::ORi, TmpReg, TmpReg, Bits15To0, IDLoc, STI);
       if (UseSrcReg)
-        TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
+        TOut.emitRRR(AddOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
       return false;
     }
 
@@ -2707,7 +2707,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     if (Bits15To0)
       TOut.emitRRI(Maxis::ORi, TmpReg, TmpReg, Bits15To0, IDLoc, STI);
     if (UseSrcReg)
-      TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
+      TOut.emitRRR(AddOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
     return false;
   }
 
@@ -2727,7 +2727,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     TOut.emitRRI(Maxis::DSLLi, TmpReg, TmpReg, ShiftAmount, IDLoc, STI);
 
     if (UseSrcReg)
-      TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
+      TOut.emitRRR(AddOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
 
     return false;
   }
@@ -2764,7 +2764,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
     TOut.emitDSLLi(TmpReg, TmpReg, ShiftCarriedForwards, IDLoc, STI);
 
   if (UseSrcReg)
-    TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
+    TOut.emitRRR(AddOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
 
   return false;
 }
@@ -2899,7 +2899,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
                    IDLoc, STI);
 
     if (UseSrcReg)
-      TOut.emitRRR(Maxis::ADDu, DstReg, TmpReg, SrcReg, IDLoc, STI);
+      TOut.emitRRR(Maxis::ADD, DstReg, TmpReg, SrcReg, IDLoc, STI);
 
     return false;
   }
@@ -3094,11 +3094,11 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
   // If $rs is the same as $rd:
   // (d)la $rd, sym($rd)     => lui   $at, %hi(sym)
   //                            ori   $at, $at, %lo(sym)
-  //                            addu  $rd, $at, $rd
+  //                            add  $rd, $at, $rd
   // Otherwise, if the $rs is different from $rd or if $rs isn't specified:
   // (d)la $rd, sym/sym($rs) => lui   $rd, %hi(sym)
   //                            ori   $rd, $rd, %lo(sym)
-  //                            (addu $rd, $rd, $rs)
+  //                            (add $rd, $rd, $rs)
   unsigned TmpReg = DstReg;
   if (UseSrcReg &&
       getContext().getRegisterInfo()->isSuperOrSubRegisterEq(DstReg, SrcReg)) {
@@ -3115,7 +3115,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
                IDLoc, STI);
 
   if (UseSrcReg)
-    TOut.emitRRR(Maxis::ADDu, DstReg, TmpReg, SrcReg, IDLoc, STI);
+    TOut.emitRRR(Maxis::ADD, DstReg, TmpReg, SrcReg, IDLoc, STI);
   else
     assert(
         getContext().getRegisterInfo()->isSuperOrSubRegisterEq(DstReg, TmpReg));
@@ -4701,7 +4701,7 @@ bool MaxisAsmParser::expandAbs(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   //  TOut.emitRI(Maxis::BGEZ, SecondRegOp, 8, IDLoc, STI);
   TOut.emitRI(Maxis::BGE, SecondRegOp, 8, IDLoc, STI);
   if (FirstRegOp != SecondRegOp)
-    TOut.emitRRR(Maxis::ADDu, FirstRegOp, SecondRegOp, Maxis::ZERO, IDLoc, STI);
+    TOut.emitRRR(Maxis::ADD, FirstRegOp, SecondRegOp, Maxis::ZERO, IDLoc, STI);
   else
     TOut.emitEmptyDelaySlot(false, IDLoc, STI);
   TOut.emitRRR(Maxis::SUB, FirstRegOp, Maxis::ZERO, SecondRegOp, IDLoc, STI);
@@ -4912,7 +4912,7 @@ bool MaxisAsmParser::expandSeqI(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
     if (Reg == Maxis::ZERO) {
       Warning(IDLoc, "comparison is always false");
-      TOut.emitRRR(isGP64bit() ? Maxis::DADDu : Maxis::ADDu,
+      TOut.emitRRR(isGP64bit() ? Maxis::DADDu : Maxis::ADD,
                    Inst.getOperand(0).getReg(), Reg, Reg, IDLoc, STI);
       return false;
     }

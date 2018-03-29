@@ -2081,7 +2081,7 @@ void MaxisFastISel::simplifyAddress(Address &Addr) {
     unsigned TempReg =
         materialize32BitInt(Addr.getOffset(), &Maxis::GPR32RegClass);
     unsigned DestReg = createResultReg(&Maxis::GPR32RegClass);
-    emitInst(Maxis::ADDu, DestReg).addReg(TempReg).addReg(Addr.getReg());
+    emitInst(Maxis::ADD, DestReg).addReg(TempReg).addReg(Addr.getReg());
     Addr.setReg(DestReg);
     Addr.setOffset(0);
   }

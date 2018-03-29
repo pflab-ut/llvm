@@ -209,10 +209,10 @@ void MaxisTargetStreamer::emitRRIII(unsigned Opcode, unsigned Reg0,
   getStreamer().EmitInstruction(TmpInst, *STI);
 }
 
-void MaxisTargetStreamer::emitAddu(unsigned DstReg, unsigned SrcReg,
+void MaxisTargetStreamer::emitAdd(unsigned DstReg, unsigned SrcReg,
                                   unsigned TrgReg, bool Is64Bit,
                                   const MCSubtargetInfo *STI) {
-  emitRRR(Is64Bit ? Maxis::DADDu : Maxis::ADDu, DstReg, SrcReg, TrgReg, SMLoc(),
+  emitRRR(Is64Bit ? Maxis::DADDu : Maxis::ADD, DstReg, SrcReg, TrgReg, SMLoc(),
           STI);
 }
 
@@ -275,7 +275,7 @@ void MaxisTargetStreamer::emitStoreWithImmOffset(
   // Generate the base address in ATReg.
   emitRRI(Maxis::CATi, ATReg, Maxis::ZERO, HiOffset, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
-    emitRRR(Maxis::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
+    emitRRR(Maxis::ADD, ATReg, ATReg, BaseReg, IDLoc, STI);
   // Emit the store with the adjusted base and offset.
   emitRRI(Opcode, SrcReg, ATReg, LoOffset, IDLoc, STI);
 }
@@ -292,7 +292,7 @@ void MaxisTargetStreamer::emitStoreWithSymOffset(
   // Generate the base address in ATReg.
   emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, HiOperand, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
-    emitRRR(Maxis::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
+    emitRRR(Maxis::ADD, ATReg, ATReg, BaseReg, IDLoc, STI);
   // Emit the store with the adjusted base and offset.
   emitRRX(Opcode, SrcReg, ATReg, LoOperand, IDLoc, STI);
 }
@@ -328,7 +328,7 @@ void MaxisTargetStreamer::emitLoadWithImmOffset(unsigned Opcode, unsigned DstReg
   // Generate the base address in TmpReg.
   emitRRI(Maxis::CATi, TmpReg, Maxis::ZERO, HiOffset, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
-    emitRRR(Maxis::ADDu, TmpReg, TmpReg, BaseReg, IDLoc, STI);
+    emitRRR(Maxis::ADD, TmpReg, TmpReg, BaseReg, IDLoc, STI);
   // Emit the load with the adjusted base and offset.
   emitRRI(Opcode, DstReg, TmpReg, LoOffset, IDLoc, STI);
 }
@@ -352,7 +352,7 @@ void MaxisTargetStreamer::emitLoadWithSymOffset(unsigned Opcode, unsigned DstReg
   // Generate the base address in TmpReg.
   emitRRX(Maxis::CATi, TmpReg, Maxis::ZERO, HiOperand, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
-    emitRRR(Maxis::ADDu, TmpReg, TmpReg, BaseReg, IDLoc, STI);
+    emitRRR(Maxis::ADD, TmpReg, TmpReg, BaseReg, IDLoc, STI);
   // Emit the load with the adjusted base and offset.
   emitRRX(Opcode, DstReg, TmpReg, LoOperand, IDLoc, STI);
 }
@@ -1043,8 +1043,8 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
   // .cpload $reg
   // This directive expands to:
   // cati  $gp, $0, %hi(_gp_disp)
-  // addui $gp, $gp, %lo(_gp_disp)
-  // addu  $gp, $gp, $reg
+  // addi $gp, $gp, %lo(_gp_disp)
+  // add  $gp, $gp, $reg
   // when support for position independent code is enabled.
   if (!Pic || (getABI().IsN32() || getABI().IsN64()))
     return;
@@ -1087,7 +1087,7 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
 
   TmpInst.clear();
 
-  TmpInst.setOpcode(Maxis::ADDu);
+  TmpInst.setOpcode(Maxis::ADD);
   TmpInst.addOperand(MCOperand::createReg(Maxis::GP));
   TmpInst.addOperand(MCOperand::createReg(Maxis::GP));
   TmpInst.addOperand(MCOperand::createReg(RegNo));

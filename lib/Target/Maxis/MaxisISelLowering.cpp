@@ -1305,11 +1305,11 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   default:
     llvm_unreachable("Unexpected instr type to insert");
   case Maxis::ATOMIC_LOAD_ADD_I8:
-    return emitAtomicBinaryPartword(MI, BB, 1, Maxis::ADDu);
+    return emitAtomicBinaryPartword(MI, BB, 1, Maxis::ADD);
   case Maxis::ATOMIC_LOAD_ADD_I16:
-    return emitAtomicBinaryPartword(MI, BB, 2, Maxis::ADDu);
+    return emitAtomicBinaryPartword(MI, BB, 2, Maxis::ADD);
   case Maxis::ATOMIC_LOAD_ADD_I32:
-    return emitAtomicBinary(MI, BB, 4, Maxis::ADDu);
+    return emitAtomicBinary(MI, BB, 4, Maxis::ADD);
   case Maxis::ATOMIC_LOAD_ADD_I64:
     return emitAtomicBinary(MI, BB, 8, Maxis::DADDu);
 

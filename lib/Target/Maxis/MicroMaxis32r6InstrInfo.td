@@ -48,7 +48,7 @@ def brtarget_lsl2_mm : Operand<OtherVT> {
 //===----------------------------------------------------------------------===//
 class ADD_MMR6_ENC : ARITH_FM_MMR6<"add", 0x110>;
 class ADDI_MMR6_ENC : ADDI_FM_MMR6<"addi", 0xc>;
-class ADDU_MMR6_ENC : ARITH_FM_MMR6<"addu", 0x150>;
+//class ADDU_MMR6_ENC : ARITH_FM_MMR6<"addu", 0x150>;
 class ADDIPC_MMR6_ENC : PCREL19_FM_MMR6<0b00>;
 class ALUIPC_MMR6_ENC : PCREL16_FM_MMR6<0b11111>;
 class AND_MMR6_ENC : ARITH_FM_MMR6<"and", 0x250>;
@@ -364,7 +364,7 @@ class BNEC_MMR6_DESC : CMP_CBR_2R_MMR6_DESC_BASE<"bnec", brtarget_lsl2_mm,
 
 class ADD_MMR6_DESC : ArithLogicR<"add", GPR32Opnd, 1, II_ADD>;
 class ADDI_MMR6_DESC : ArithLogicI<"addi", simm16, GPR32Opnd, II_ADDI, immSExt16, add>;
-class ADDU_MMR6_DESC : ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU>;
+//class ADDU_MMR6_DESC : ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU>;
 class MUL_MMR6_DESC : ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>;
 class MUH_MMR6_DESC : ArithLogicR<"muh", GPR32Opnd, 1, II_MUH, mulhs>;
 class MULU_MMR6_DESC : ArithLogicR<"mulu", GPR32Opnd, 1, II_MULU>;
@@ -1180,10 +1180,12 @@ class LOAD_WORD_EVA_MMR6_DESC_BASE<string instr_asm, RegisterOperand RO,
 }
 class LLE_MMR6_DESC : LOAD_WORD_EVA_MMR6_DESC_BASE<"lle", GPR32Opnd, II_LLE>;
 class LWE_MMR6_DESC : LOAD_WORD_EVA_MMR6_DESC_BASE<"lwe", GPR32Opnd, II_LWE>;
+/*
 class ADDU16_MMR6_DESC : ArithRMM16<"addu16", GPRMM16Opnd, 1, II_ADDU, add>,
       MMR6Arch<"addu16"> {
   int AddedComplexity = 1;
 }
+*/
 class AND16_MMR6_DESC : LogicRMM16<"and16", GPRMM16Opnd, II_AND, and>,
       MMR6Arch<"and16"> {
   int AddedComplexity = 1;
@@ -1433,7 +1435,7 @@ class BNVC_MMR6_DESC : BOVC_BNVC_MMR6_DESC_BASE<"bnvc", brtargetr6, GPR32Opnd>;
 let DecoderNamespace = "MicroMaxisR6" in {
 def ADD_MMR6 : StdMMR6Rel, ADD_MMR6_DESC, ADD_MMR6_ENC, ISA_MICROMAXIS32R6;
 def ADDI_MMR6 : StdMMR6Rel, ADDI_MMR6_DESC, ADDI_MMR6_ENC, ISA_MICROMAXIS32R6;
-def ADDU_MMR6 : StdMMR6Rel, ADDU_MMR6_DESC, ADDU_MMR6_ENC, ISA_MICROMAXIS32R6;
+//def ADDU_MMR6 : StdMMR6Rel, ADDU_MMR6_DESC, ADDU_MMR6_ENC, ISA_MICROMAXIS32R6;
 def ADDIPC_MMR6 : R6MMR6Rel, ADDIPC_MMR6_ENC, ADDIPC_MMR6_DESC,
                    ISA_MICROMAXIS32R6;
 def ALUIPC_MMR6 : R6MMR6Rel, ALUIPC_MMR6_ENC, ALUIPC_MMR6_DESC,
@@ -1663,8 +1665,10 @@ def LLE_MMR6 : StdMMR6Rel, LLE_MMR6_DESC, LLE_MMR6_ENC, ISA_MICROMAXIS32R6;
 def LWE_MMR6 : StdMMR6Rel, LWE_MMR6_DESC, LWE_MMR6_ENC, ISA_MICROMAXIS32R6;
 def LW_MMR6 : StdMMR6Rel, LW_MMR6_DESC, LW_MMR6_ENC, ISA_MICROMAXIS32R6;
 def LUI_MMR6 : R6MMR6Rel, LUI_MMR6_DESC, LUI_MMR6_ENC, ISA_MICROMAXIS32R6;
+/*
 def ADDU16_MMR6 : StdMMR6Rel, ADDU16_MMR6_DESC, ADDU16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
+*/
 def AND16_MMR6 : StdMMR6Rel, AND16_MMR6_DESC, AND16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def ANDI16_MMR6 : StdMMR6Rel, ANDI16_MMR6_DESC, ANDI16_MMR6_ENC,
