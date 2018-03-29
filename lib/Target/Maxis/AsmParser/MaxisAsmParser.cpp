@@ -1813,9 +1813,9 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
                             1LL << (inMicroMaxisMode() ? 1 : 2)))
         return Error(IDLoc, "branch to misaligned address");
       break;
-    case Maxis::BGEZ:
+      //    case Maxis::BGEZ:
       //    case Maxis::BGTZ:
-    case Maxis::BLEZ:
+      //    case Maxis::BLEZ:
       //    case Maxis::BLTZ:
     case Maxis::BGEZAL:
     case Maxis::BLTZAL:
@@ -2360,7 +2360,7 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   case Maxis::BNELImmMacro:
     return expandBranchImm(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
     //  case Maxis::BLT:
-  case Maxis::BLE:
+    //  case Maxis::BLE:
     //  case Maxis::BGE:
     //  case Maxis::BGT:
     //  case Maxis::BLTU:
@@ -3676,9 +3676,11 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     case Maxis::BLTImmMacro:
       PseudoOpcode = Maxis::BLT;
       break;
+      /*
     case Maxis::BLEImmMacro:
       PseudoOpcode = Maxis::BLE;
       break;
+      */
     case Maxis::BGEImmMacro:
       PseudoOpcode = Maxis::BGE;
       break;
@@ -3746,7 +3748,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     //    ZeroTrgOpcode = Maxis::BLTZ;
     ZeroTrgOpcode = Maxis::BLT;
     break;
-  case Maxis::BLE:
+    //  case Maxis::BLE:
   case Maxis::BLEU:
   case Maxis::BLEL:
   case Maxis::BLEUL:
@@ -3754,8 +3756,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ReverseOrderSLT = true;
     IsUnsigned = ((PseudoOpcode == Maxis::BLEU) || (PseudoOpcode == Maxis::BLEUL));
     IsLikely = ((PseudoOpcode == Maxis::BLEL) || (PseudoOpcode == Maxis::BLEUL));
-    ZeroSrcOpcode = Maxis::BGEZ;
-    ZeroTrgOpcode = Maxis::BLEZ;
+    //    ZeroSrcOpcode = Maxis::BGEZ;
+    ZeroSrcOpcode = Maxis::BGE;
+    //    ZeroTrgOpcode = Maxis::BLEZ;
+    ZeroTrgOpcode = Maxis::BGE;
     break;
     //  case Maxis::BGE:
     //  case Maxis::BGEU:
@@ -3765,8 +3769,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ReverseOrderSLT = false;
     IsUnsigned = ((PseudoOpcode == Maxis::BGEU) || (PseudoOpcode == Maxis::BGEUL));
     IsLikely = ((PseudoOpcode == Maxis::BGEL) || (PseudoOpcode == Maxis::BGEUL));
-    ZeroSrcOpcode = Maxis::BLEZ;
-    ZeroTrgOpcode = Maxis::BGEZ;
+    //    ZeroSrcOpcode = Maxis::BLEZ;
+    ZeroSrcOpcode = Maxis::BGE;
+    //    ZeroTrgOpcode = Maxis::BGEZ;
+    ZeroTrgOpcode = Maxis::BGE;
     break;
     //  case Maxis::BGT:
     //  case Maxis::BGTU:
@@ -3799,12 +3805,14 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       return false;
     }
     */
+    /*
     if (PseudoOpcode == Maxis::BLE) {
       TOut.emitRX(Maxis::BLEZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
       Warning(IDLoc, "branch is always taken");
       return false;
     }
+    */
     /*
     if (PseudoOpcode == Maxis::BGE) {
       TOut.emitRX(Maxis::BGEZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
@@ -4672,7 +4680,8 @@ bool MaxisAsmParser::expandAbs(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   unsigned FirstRegOp = Inst.getOperand(0).getReg();
   unsigned SecondRegOp = Inst.getOperand(1).getReg();
 
-  TOut.emitRI(Maxis::BGEZ, SecondRegOp, 8, IDLoc, STI);
+  //  TOut.emitRI(Maxis::BGEZ, SecondRegOp, 8, IDLoc, STI);
+  TOut.emitRI(Maxis::BGE, SecondRegOp, 8, IDLoc, STI);
   if (FirstRegOp != SecondRegOp)
     TOut.emitRRR(Maxis::ADDu, FirstRegOp, SecondRegOp, Maxis::ZERO, IDLoc, STI);
   else

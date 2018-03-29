@@ -537,9 +537,9 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
 unsigned MaxisSEInstrInfo::getAnalyzableBrOpc(unsigned Opc) const {
   return (Opc == Maxis::BEQ    || Opc == Maxis::BEQ_MM || Opc == Maxis::BNE    ||
-          Opc == Maxis::BNE_MM || /* Opc == Maxis::BGTZ   || */ Opc == Maxis::BGEZ   ||
+          Opc == Maxis::BNE_MM || /* Opc == Maxis::BGTZ   || Opc == Maxis::BGEZ   || */
           Opc == Maxis::BLT    || Opc == Maxis::BGE  ||
-          /* Opc == Maxis::BLTZ   || */ Opc == Maxis::BLEZ   || Opc == Maxis::BEQ64  ||
+          /* Opc == Maxis::BLTZ   || Opc == Maxis::BLEZ || */ Opc == Maxis::BEQ64  ||
           Opc == Maxis::BNE64  || Opc == Maxis::BGTZ64 || Opc == Maxis::BGEZ64 ||
           Opc == Maxis::BLTZ64 || Opc == Maxis::BLEZ64 || Opc == Maxis::BC1T   ||
           Opc == Maxis::BC1F   || /* Opc == Maxis::B      || */ Opc == Maxis::J      ||

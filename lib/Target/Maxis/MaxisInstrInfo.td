@@ -2081,8 +2081,10 @@ def BEQL    : MMRel, CBranchLikely<"beql", brtarget, GPR32Opnd>,
               BEQ_FM<20>, ISA_MAXIS2_NOT_32R6_64R6;
 def BNEL    : MMRel, CBranchLikely<"bnel", brtarget, GPR32Opnd>,
               BEQ_FM<21>, ISA_MAXIS2_NOT_32R6_64R6;
+/*
 def BGEZ    : MMRel, CBranchZero<"bgez", brtarget, setge, GPR32Opnd>,
               BGEZ_FM<1, 1>;
+*/
 def BGEZL   : MMRel, CBranchZeroLikely<"bgezl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 3>, ISA_MAXIS2_NOT_32R6_64R6;
 /*
@@ -2091,8 +2093,10 @@ def BGTZ    : MMRel, CBranchZero<"bgtz", brtarget, setgt, GPR32Opnd>,
 */
 def BGTZL   : MMRel, CBranchZeroLikely<"bgtzl", brtarget, GPR32Opnd>,
               BGEZ_FM<23, 0>, ISA_MAXIS2_NOT_32R6_64R6;
+/*
 def BLEZ    : MMRel, CBranchZero<"blez", brtarget, setle, GPR32Opnd>,
               BGEZ_FM<6, 0>;
+*/
 def BLEZL   : MMRel, CBranchZeroLikely<"blezl", brtarget, GPR32Opnd>,
               BGEZ_FM<22, 0>, ISA_MAXIS2_NOT_32R6_64R6;
 /*
@@ -2484,6 +2488,14 @@ def : MaxisInstAlias<"bgtz $rt, $offset", (BLT ZERO, GPR32Opnd:$rt, brtarget:$of
 def : MaxisInstAlias<"bgtu $rs, $rt, $offset", (BLTU GPR32Opnd:$rt,
                     GPR32Opnd:$rs, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"bgez $rs, $offset", (BGE GPR32Opnd:$rs, ZERO,
+                    brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"ble $rs, $rt, $offset", (BGE GPR32Opnd:$rt,
+                    GPR32Opnd:$rs, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"blez $rs, $offset", (BGE ZERO, GPR32Opnd:$rs, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
 
 def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;
 let Predicates = [NotInMicroMaxis] in {
@@ -2678,7 +2690,7 @@ class CondBranchPseudo<string instr_asm> :
 }
 
 //def BLT : CondBranchPseudo<"blt">;
-def BLE : CondBranchPseudo<"ble">;
+//def BLE : CondBranchPseudo<"ble">;
 //def BGE : CondBranchPseudo<"bge">;
 //def BGT : CondBranchPseudo<"bgt">;
 //def BLTU : CondBranchPseudo<"bltu">;
@@ -2960,10 +2972,12 @@ def : MaxisPat<(brcond RC:$cond, bb:$dst),
 let AdditionalPredicates = [NotInMicroMaxis] in {
   defm : BrcondPats<GPR32, BEQ, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 }
+/*
 def : MaxisPat<(brcond (i32 (setlt i32:$lhs, 1)), bb:$dst),
               (BLEZ i32:$lhs, bb:$dst)>;
 def : MaxisPat<(brcond (i32 (setgt i32:$lhs, -1)), bb:$dst),
               (BGEZ i32:$lhs, bb:$dst)>;
+*/
 
 // setcc patterns
 multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
