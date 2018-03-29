@@ -424,6 +424,8 @@ unsigned MaxisSEInstrInfo::getOppositeBranchOpc(unsigned Opc) const {
   case Maxis::BGTZ:   return Maxis::BLEZ;
   case Maxis::BGEZ:   return Maxis::BLTZ;
   case Maxis::BLTZ:   return Maxis::BGEZ;
+  case Maxis::BLT:    return Maxis::BGE;
+  case Maxis::BGE:    return Maxis::BLT;
   case Maxis::BLEZ:   return Maxis::BGTZ;
   case Maxis::BEQ64:  return Maxis::BNE64;
   case Maxis::BNE64:  return Maxis::BEQ64;
@@ -536,6 +538,7 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 unsigned MaxisSEInstrInfo::getAnalyzableBrOpc(unsigned Opc) const {
   return (Opc == Maxis::BEQ    || Opc == Maxis::BEQ_MM || Opc == Maxis::BNE    ||
           Opc == Maxis::BNE_MM || Opc == Maxis::BGTZ   || Opc == Maxis::BGEZ   ||
+          Opc == Maxis::BLT    || Opc == Maxis::BGE  ||
           Opc == Maxis::BLTZ   || Opc == Maxis::BLEZ   || Opc == Maxis::BEQ64  ||
           Opc == Maxis::BNE64  || Opc == Maxis::BGTZ64 || Opc == Maxis::BGEZ64 ||
           Opc == Maxis::BLTZ64 || Opc == Maxis::BLEZ64 || Opc == Maxis::BC1T   ||

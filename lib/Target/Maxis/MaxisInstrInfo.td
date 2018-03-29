@@ -2070,9 +2070,11 @@ def J       : MMRel, JumpFJ<jmptarget, "j", br, bb, "j">, FJ<2>,
               AdditionalRequires<[RelocNotPIC, NotInMicroMaxis]>, IsBranch;
 def JR      : MMRel, IndirectBranch<"jr", GPR32Opnd>, MTLO_FM<8>, ISA_MAXIS1_NOT_32R6_64R6; 
 def BEQ     : MMRel, CBranch<"beq", brtarget, seteq, GPR32Opnd>, BEQ_FM<0x8>;
+def BNE     : MMRel, CBranch<"bne", brtarget, setne, GPR32Opnd>, BEQ_FM<0x9>;
+def BLT     : MMRel, CBranch<"blt", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xa>;
+def BGE     : MMRel, CBranch<"bge", brtarget, setge, GPR32Opnd>, BEQ_FM<0xd>;
 def BEQL    : MMRel, CBranchLikely<"beql", brtarget, GPR32Opnd>,
               BEQ_FM<20>, ISA_MAXIS2_NOT_32R6_64R6;
-def BNE     : MMRel, CBranch<"bne", brtarget, setne, GPR32Opnd>, BEQ_FM<0x9>;
 def BNEL    : MMRel, CBranchLikely<"bnel", brtarget, GPR32Opnd>,
               BEQ_FM<21>, ISA_MAXIS2_NOT_32R6_64R6;
 def BGEZ    : MMRel, CBranchZero<"bgez", brtarget, setge, GPR32Opnd>,
@@ -2641,9 +2643,9 @@ class CondBranchPseudo<string instr_asm> :
                     !strconcat(instr_asm, "\t$rs, $rt, $offset")>;
 }
 
-def BLT : CondBranchPseudo<"blt">;
+//def BLT : CondBranchPseudo<"blt">;
 def BLE : CondBranchPseudo<"ble">;
-def BGE : CondBranchPseudo<"bge">;
+//def BGE : CondBranchPseudo<"bge">;
 def BGT : CondBranchPseudo<"bgt">;
 def BLTU : CondBranchPseudo<"bltu">;
 def BLEU : CondBranchPseudo<"bleu">;

@@ -151,6 +151,7 @@ def GenericWriteJumpAndLink : SchedWriteRes<[GenericIssueCTISTD]> {
 }
 
 // b, beq, beql, bg[et]z, bl[et]z, bne, bnel, j, syscall, jal, bltzal, jalx,
+// blt, bge
 // jalr, jr.hb, jr, jalr.hb, jarlc, jialc
 def : ItinRW<[GenericWriteJump], [II_B, II_BCC, II_BCCZ, II_BCCZAL, II_J,
                                   II_JR, II_JR_HB, II_ERET, II_ERETNC,

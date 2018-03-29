@@ -2359,9 +2359,9 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   case Maxis::BEQLImmMacro:
   case Maxis::BNELImmMacro:
     return expandBranchImm(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
-  case Maxis::BLT:
+    //  case Maxis::BLT:
   case Maxis::BLE:
-  case Maxis::BGE:
+    //  case Maxis::BGE:
   case Maxis::BGT:
   case Maxis::BLTU:
   case Maxis::BLEU:
@@ -3729,7 +3729,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
   }
 
   switch (PseudoOpcode) {
-  case Maxis::BLT:
+    //  case Maxis::BLT:
   case Maxis::BLTU:
   case Maxis::BLTL:
   case Maxis::BLTUL:
@@ -3751,7 +3751,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ZeroSrcOpcode = Maxis::BGEZ;
     ZeroTrgOpcode = Maxis::BLEZ;
     break;
-  case Maxis::BGE:
+    //  case Maxis::BGE:
   case Maxis::BGEU:
   case Maxis::BGEL:
   case Maxis::BGEUL:
@@ -3783,23 +3783,27 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     // FIXME: All of these Opcode-specific if's are needed for compatibility
     // with GAS' behaviour. However, they may not generate the most efficient
     // code in some circumstances.
+    /*
     if (PseudoOpcode == Maxis::BLT) {
       TOut.emitRX(Maxis::BLTZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
       return false;
     }
+    */
     if (PseudoOpcode == Maxis::BLE) {
       TOut.emitRX(Maxis::BLEZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
       Warning(IDLoc, "branch is always taken");
       return false;
     }
+    /*
     if (PseudoOpcode == Maxis::BGE) {
       TOut.emitRX(Maxis::BGEZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
       Warning(IDLoc, "branch is always taken");
       return false;
     }
+    */
     if (PseudoOpcode == Maxis::BGT) {
       TOut.emitRX(Maxis::BGTZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
