@@ -2314,8 +2314,10 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   switch (Inst.getOpcode()) {
   default:
     return MER_NotAMacro;
+    /*
   case Maxis::LoadImm32:
     return expandLoadImm(Inst, true, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    */
   case Maxis::LoadImm64:
     return expandLoadImm(Inst, false, IDLoc, Out, STI) ? MER_Fail : MER_Success;
   case Maxis::LoadAddrImm32:

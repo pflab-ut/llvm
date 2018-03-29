@@ -2600,6 +2600,8 @@ def : MaxisInstAlias<"subu, $rd, $rs, $imm",
                            InvertedImOperand:$imm), 0>;
 def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
                                              InvertedImOperand:$imm), 0>;
+def : MaxisInstAlias<"li $rs, $imm",
+                    (ADDi GPR32Opnd:$rs, ZERO, uimm16:$imm), 0>;
 def : MaxisInstAlias<"liu $rd, $imm", (ORi GPR32Opnd:$rd, ZERO,
                                              uimm16:$imm), 0>;
 def : MaxisInstAlias<"seqz $rd, $rs", (SEQ GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 0>;
@@ -2655,7 +2657,7 @@ def : MaxisInstAlias<"mulou $rs, $rt",
 class LoadImmediate32<string instr_asm, Operand Od, RegisterOperand RO> :
   MaxisAsmPseudoInst<(outs RO:$rt), (ins Od:$imm32),
                      !strconcat(instr_asm, "\t$rt, $imm32")> ;
-def LoadImm32 : LoadImmediate32<"li", uimm32_coerced, GPR32Opnd>;
+//def LoadImm32 : LoadImmediate32<"li", uimm32_coerced, GPR32Opnd>;
 
 class LoadAddressFromReg32<string instr_asm, Operand MemOpnd,
                            RegisterOperand RO> :
