@@ -65,7 +65,8 @@ def P5600WriteJumpAndLink : SchedWriteRes<[P5600IssueCTISTD, P5600CTISTD]> {
 // jalr, jr.hb, jr
 def : ItinRW<[P5600WriteJump], [II_B, II_BCC, II_BCCZ, II_BCCZAL, II_J, II_JR,
                                 II_JR_HB, II_DERET, II_ERET, II_ERETNC, 
-                                II_SYSCALL, II_BREAK, II_SDBBP, II_SSNOP,
+                                II_SYSCALL, II_BREAK, II_SDBBP,
+                                /* II_SSNOP, */
                                 II_TEQ, II_TEQI, II_TGE, II_TGEI, II_TGEIU,
                                 II_TGEU, II_TLT, II_TLTI, II_TLTU, II_TNE,
                                 II_TNEI, II_TRAP, II_TTLTIU, II_WAIT,

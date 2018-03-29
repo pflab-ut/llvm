@@ -48,7 +48,7 @@ def : ItinRW<[GenericWriteALU], [II_ADD, II_ADDU, II_ADDI, II_ANDI,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
                                  II_SEH, II_SLTI_SLTIU, II_SLT_SLTU, II_SLLI,
                                  II_SRAI, II_SRLI, II_SLL, II_SRA, II_SRL,
-                                 II_SSNOP, II_SUB, II_SUBU, II_WSBH, II_XOR,
+                                 /* II_SSNOP, */ II_SUB, II_SUBU, II_WSBH, II_XOR,
                                  II_XORI]>;
 
 def : InstRW<[GenericWriteALU], (instrs COPY)>;

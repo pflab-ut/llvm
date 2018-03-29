@@ -985,7 +985,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
     def CACHEE_MM : MMRel, CacheOp<"cachee", mem_mm_9, II_CACHEE>,
                     CACHE_PREFE_FM_MM<0x18, 0x3>;
   }
-  def SSNOP_MM : MMRel, Barrier<"ssnop", II_SSNOP>, BARRIER_FM_MM<0x1>;
+//  def SSNOP_MM : MMRel, Barrier<"ssnop", II_SSNOP>, BARRIER_FM_MM<0x1>;
   def EHB_MM   : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM_MM<0x3>;
   def PAUSE_MM : MMRel, Barrier<"pause", II_PAUSE>, BARRIER_FM_MM<0x5>;
 
