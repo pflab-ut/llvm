@@ -2363,9 +2363,9 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   case Maxis::BLE:
     //  case Maxis::BGE:
   case Maxis::BGT:
-  case Maxis::BLTU:
+    //  case Maxis::BLTU:
   case Maxis::BLEU:
-  case Maxis::BGEU:
+    //  case Maxis::BGEU:
   case Maxis::BGTU:
   case Maxis::BLTL:
   case Maxis::BLEL:
@@ -3730,7 +3730,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
 
   switch (PseudoOpcode) {
     //  case Maxis::BLT:
-  case Maxis::BLTU:
+    //  case Maxis::BLTU:
   case Maxis::BLTL:
   case Maxis::BLTUL:
     AcceptsEquality = false;
@@ -3752,7 +3752,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ZeroTrgOpcode = Maxis::BLEZ;
     break;
     //  case Maxis::BGE:
-  case Maxis::BGEU:
+    //  case Maxis::BGEU:
   case Maxis::BGEL:
   case Maxis::BGEUL:
     AcceptsEquality = true;
@@ -3827,16 +3827,22 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     return false;
   }
   if (IsSrcRegZero || IsTrgRegZero) {
-    if ((IsSrcRegZero && PseudoOpcode == Maxis::BGTU) ||
-        (IsTrgRegZero && PseudoOpcode == Maxis::BLTU)) {
+    if ((IsSrcRegZero && PseudoOpcode == Maxis::BGTU)
+        /* ||
+        (IsTrgRegZero && PseudoOpcode == Maxis::BLTU)
+        */
+        ) {
       // If the $rs is $0 and the pseudo-branch is BGTU (0 > x) or
       // if the $rt is $0 and the pseudo-branch is BLTU (x < 0),
       // the pseudo-branch will never be taken, so we don't emit anything.
       // This only applies to unsigned pseudo-branches.
       return false;
     }
-    if ((IsSrcRegZero && PseudoOpcode == Maxis::BLEU) ||
-        (IsTrgRegZero && PseudoOpcode == Maxis::BGEU)) {
+    if ((IsSrcRegZero && PseudoOpcode == Maxis::BLEU)
+        /* ||
+        (IsTrgRegZero && PseudoOpcode == Maxis::BGEU)
+        */
+        ) {
       // If the $rs is $0 and the pseudo-branch is BLEU (0 <= x) or
       // if the $rt is $0 and the pseudo-branch is BGEU (x >= 0),
       // the pseudo-branch will always be taken, so we emit an unconditional

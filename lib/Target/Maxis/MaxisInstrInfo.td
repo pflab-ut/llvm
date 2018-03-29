@@ -2072,7 +2072,9 @@ def JR      : MMRel, IndirectBranch<"jr", GPR32Opnd>, MTLO_FM<8>, ISA_MAXIS1_NOT
 def BEQ     : MMRel, CBranch<"beq", brtarget, seteq, GPR32Opnd>, BEQ_FM<0x8>;
 def BNE     : MMRel, CBranch<"bne", brtarget, setne, GPR32Opnd>, BEQ_FM<0x9>;
 def BLT     : MMRel, CBranch<"blt", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xa>;
+def BLTU    : MMRel, CBranch<"bltu", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xe>;
 def BGE     : MMRel, CBranch<"bge", brtarget, setge, GPR32Opnd>, BEQ_FM<0xd>;
+def BGEU    : MMRel, CBranch<"bgeu", brtarget, setge, GPR32Opnd>, BEQ_FM<0xf>;
 def BEQL    : MMRel, CBranchLikely<"beql", brtarget, GPR32Opnd>,
               BEQ_FM<20>, ISA_MAXIS2_NOT_32R6_64R6;
 def BNEL    : MMRel, CBranchLikely<"bnel", brtarget, GPR32Opnd>,
@@ -2647,9 +2649,9 @@ class CondBranchPseudo<string instr_asm> :
 def BLE : CondBranchPseudo<"ble">;
 //def BGE : CondBranchPseudo<"bge">;
 def BGT : CondBranchPseudo<"bgt">;
-def BLTU : CondBranchPseudo<"bltu">;
+//def BLTU : CondBranchPseudo<"bltu">;
 def BLEU : CondBranchPseudo<"bleu">;
-def BGEU : CondBranchPseudo<"bgeu">;
+//def BGEU : CondBranchPseudo<"bgeu">;
 def BGTU : CondBranchPseudo<"bgtu">;
 def BLTL : CondBranchPseudo<"bltl">, ISA_MAXIS2_NOT_32R6_64R6;
 def BLEL : CondBranchPseudo<"blel">, ISA_MAXIS2_NOT_32R6_64R6;
