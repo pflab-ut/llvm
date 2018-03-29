@@ -1279,7 +1279,7 @@ RuntimeDyldELF::processRelocationRef(
     uint8_t *Placeholder = reinterpret_cast<uint8_t *>(
         computePlaceholderAddress(SectionID, Offset));
     uint32_t Opcode = readBytesUnaligned(Placeholder, 4);
-    if (RelType == ELF::R_MAXIS_26) {
+    if (RelType == ELF::R_MAXIS_21) {
       // This is an Maxis branch relocation, need to use a stub function.
       DEBUG(dbgs() << "\t\tThis is a Maxis branch relocation.");
       SectionEntry &Section = Sections[SectionID];
@@ -1382,7 +1382,7 @@ RuntimeDyldELF::processRelocationRef(
         addRelocationForSymbol(RE, Value.SymbolName);
       else
         addRelocationForSection(RE, Value.SectionID);
-    } else if (RelType == ELF::R_MAXIS_26) {
+    } else if (RelType == ELF::R_MAXIS_21) {
       // This is an Maxis branch relocation, need to use a stub function.
       DEBUG(dbgs() << "\t\tThis is a Maxis branch relocation.");
       SectionEntry &Section = Sections[SectionID];

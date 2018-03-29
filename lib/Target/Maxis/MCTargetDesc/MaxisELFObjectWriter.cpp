@@ -292,8 +292,8 @@ unsigned MaxisELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_MAXIS_GPREL32;
   case Maxis::fixup_Maxis_GPREL16:
     return ELF::R_MAXIS_GPREL16;
-  case Maxis::fixup_Maxis_26:
-    return ELF::R_MAXIS_26;
+  case Maxis::fixup_Maxis_21:
+    return ELF::R_MAXIS_21;
   case Maxis::fixup_Maxis_CALL16:
     return ELF::R_MAXIS_CALL16;
   case Maxis::fixup_Maxis_GOT:
@@ -553,7 +553,7 @@ bool MaxisELFObjectWriter::needsRelocateWithSymbol(const MCSymbol &Sym,
     if (cast<MCSymbolELF>(Sym).getOther() & ELF::STO_MAXIS_MICROMAXIS)
       return true;
     LLVM_FALLTHROUGH;
-  case ELF::R_MAXIS_26:
+  case ELF::R_MAXIS_21:
   case ELF::R_MAXIS_64:
   case ELF::R_MAXIS_GPREL16:
   case ELF::R_MAXIS_PC16:

@@ -90,7 +90,7 @@ RelExpr MAXIS<ELFT>::getRelExpr(RelType Type, const Symbol &S,
   case R_MICROMAXIS_GPREL16:
   case R_MICROMAXIS_GPREL7_S2:
     return R_MAXIS_GOTREL;
-  case R_MAXIS_26:
+  case R_MAXIS_21:
   case R_MICROMAXIS_26_S1:
     return R_PLT;
   case R_MICROMAXIS_PC26_S1:
@@ -347,7 +347,7 @@ bool MAXIS<ELFT>::needsThunk(RelExpr Expr, RelType Type, const InputFile *File,
   // we cannot make the jump directly and need to create a small stubs
   // to save the target function address.
   // See page 3-38 ftp://www.linux-maxis.org/pub/linux/maxis/doc/ABI/maxisabi.pdf
-  if (Type != R_MAXIS_26 && Type != R_MICROMAXIS_26_S1 &&
+  if (Type != R_MAXIS_21 && Type != R_MICROMAXIS_26_S1 &&
       Type != R_MICROMAXIS_PC26_S1)
     return false;
   auto *F = dyn_cast_or_null<ELFFileBase<ELFT>>(File);
@@ -371,11 +371,14 @@ int64_t MAXIS<ELFT>::getImplicitAddend(const uint8_t *Buf, RelType Type) const {
   case R_MAXIS_TLS_DTPREL32:
   case R_MAXIS_TLS_TPREL32:
     return SignExtend64<32>(read32<E>(Buf));
-  case R_MAXIS_26:
+  case R_MAXIS_21:
     // FIXME (simon): If the relocation target symbol is not a PLT entry
     // we should use another expression for calculation:
     // ((A << 2) | (P & 0xf0000000)) >> 2
-    return SignExtend64<28>(read32<E>(Buf) << 2);
+    //    return SignExtend64<28>(read32<E>(Buf) << 2);
+    return SignExtend64<23>(
+        (((read32<E>(Buf) & 0x3e00000) >> 5)
+         | (read32<E>(Buf) & 0xffff)) << 2);
   case R_MAXIS_GOT16:
   case R_MAXIS_HI16:
   case R_MAXIS_PCHI16:
@@ -496,8 +499,13 @@ void MAXIS<ELFT>::relocateOne(uint8_t *Loc, RelType Type, uint64_t Val) const {
   case R_MAXIS_TLS_TPREL64:
     write64<E>(Loc, Val);
     break;
-  case R_MAXIS_26:
-    writeRelocation<E>(Loc, Val, 26, 2);
+  case R_MAXIS_21:
+    {
+      //    write32<E>(Loc, (read32<E>(Loc) & ~0x3ffffff) | ((Val >> 2) & 0x3ffffff));
+      unsigned tmp = ((Val >> 2) & 0xffff) | ((Val << 3) & 0x3e00000);
+      tmp |= read32<E>(Loc) & 0xfc1f0000;
+      write32<E>(Loc, tmp);
+    }
     break;
   case R_MAXIS_GOT16:
     // The R_MAXIS_GOT16 relocation's value in "relocatable" linking mode

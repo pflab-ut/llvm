@@ -68,7 +68,7 @@ RuntimeDyldELFMaxis::evaluateMAXIS32Relocation(const SectionEntry &Section,
     return Value;
   case ELF::R_MAXIS_32:
     return Value;
-  case ELF::R_MAXIS_26:
+  case ELF::R_MAXIS_21:
     return Value >> 2;
   case ELF::R_MAXIS_HI16:
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
@@ -130,7 +130,7 @@ int64_t RuntimeDyldELFMaxis::evaluateMAXIS64Relocation(
   case ELF::R_MAXIS_32:
   case ELF::R_MAXIS_64:
     return Value + Addend;
-  case ELF::R_MAXIS_26:
+  case ELF::R_MAXIS_21:
     return ((Value + Addend) >> 2) & 0x3ffffff;
   case ELF::R_MAXIS_GPREL16: {
     uint64_t GOTAddr = getSectionLoadAddress(SectionToGOTMap[SectionID]);
@@ -245,7 +245,7 @@ void RuntimeDyldELFMaxis::applyMAXISRelocation(uint8_t *TargetPtr, int64_t Value
     Insn = (Insn & 0xffe00000) | (Value & 0x001fffff);
     writeBytesUnaligned(Insn, TargetPtr, 4);
     break;
-  case ELF::R_MAXIS_26:
+  case ELF::R_MAXIS_21:
   case ELF::R_MAXIS_PC26_S2:
     Insn = (Insn & 0xfc000000) | (Value & 0x03ffffff);
     writeBytesUnaligned(Insn, TargetPtr, 4);

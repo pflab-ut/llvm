@@ -90,7 +90,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
       return 0;
     }
     break;
-  case Maxis::fixup_Maxis_26:
+  case Maxis::fixup_Maxis_21:
     // So far we are only using this type for jumps.
     // The displacement is then divided by 4 to give us an 28 bit
     // address range.
@@ -312,7 +312,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_Maxis_16",           0,     16,   0 },
     { "fixup_Maxis_32",           0,     32,   0 },
     { "fixup_Maxis_REL32",        0,     32,   0 },
-    { "fixup_Maxis_26",           0,     26,   0 },
+    { "fixup_Maxis_21",           0,     21,   0 },
     { "fixup_Maxis_HI16",         0,     16,   0 },
     { "fixup_Maxis_LO16",         0,     16,   0 },
     { "fixup_Maxis_GPREL16",      0,     16,   0 },
@@ -384,7 +384,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_Maxis_16",          16,     16,   0 },
     { "fixup_Maxis_32",           0,     32,   0 },
     { "fixup_Maxis_REL32",        0,     32,   0 },
-    { "fixup_Maxis_26",           6,     26,   0 },
+    { "fixup_Maxis_21",           6,     21,   0 },
     { "fixup_Maxis_HI16",        16,     16,   0 },
     { "fixup_Maxis_LO16",        16,     16,   0 },
     { "fixup_Maxis_GPREL16",     16,     16,   0 },

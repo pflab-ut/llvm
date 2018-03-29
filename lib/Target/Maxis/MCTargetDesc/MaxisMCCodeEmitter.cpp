@@ -501,7 +501,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
 
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::create(0, Expr,
-                                   MCFixupKind(Maxis::fixup_Maxis_26)));
+                                   MCFixupKind(Maxis::fixup_Maxis_21)));
   return 0;
 }
 

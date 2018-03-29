@@ -35,8 +35,8 @@ namespace Maxis {
     // Full 32 bit data relative data fixup resulting in - R_MAXIS_REL32.
     fixup_Maxis_REL32,
 
-    // Jump 26 bit fixup resulting in - R_MAXIS_26.
-    fixup_Maxis_26,
+    // Jump 26 bit fixup resulting in - R_MAXIS_21.
+    fixup_Maxis_21,
 
     // Pure upper 16 bit fixup resulting in - R_MAXIS_HI16.
     fixup_Maxis_HI16,
