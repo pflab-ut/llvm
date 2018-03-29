@@ -649,12 +649,16 @@ def MAXIS_BRANCH_F  : PatLeaf<(i32 0)>;
 def MAXIS_BRANCH_T  : PatLeaf<(i32 1)>;
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
+    /*
   def BC1F : MMRel, BC1F_FT<"bc1f", brtarget, II_BC1F, MAXIS_BRANCH_F>,
              BC1F_FM<0, 0>, ISA_MAXIS1_NOT_32R6_64R6;
+             */
   def BC1FL : MMRel, BC1XL_FT<"bc1fl", brtarget, II_BC1FL>,
               BC1F_FM<1, 0>, ISA_MAXIS2_NOT_32R6_64R6;
+/*
   def BC1T : MMRel, BC1F_FT<"bc1t", brtarget, II_BC1T, MAXIS_BRANCH_T>,
              BC1F_FM<0, 1>, ISA_MAXIS1_NOT_32R6_64R6;
+*/
   def BC1TL : MMRel, BC1XL_FT<"bc1tl", brtarget, II_BC1TL>,
               BC1F_FM<1, 1>, ISA_MAXIS2_NOT_32R6_64R6;
 
@@ -839,11 +843,12 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
              ISA_MAXIS1_NOT_32R6_64R6, FGR_32;
   defm D64 : C_COND_ALIASES<"d", FGR64Opnd>, HARDFLOAT,
              ISA_MAXIS1_NOT_32R6_64R6, FGR_64;
-
+/*
   defm : BC1_ALIASES<BC1T, "bc1t", BC1F, "bc1f">, ISA_MAXIS1_NOT_32R6_64R6,
          HARDFLOAT;
   defm : BC1_ALIASES<BC1TL, "bc1tl", BC1FL, "bc1fl">, ISA_MAXIS2_NOT_32R6_64R6,
          HARDFLOAT;
+*/         
 }
 //===----------------------------------------------------------------------===//
 // Floating Point Patterns

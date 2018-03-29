@@ -225,19 +225,22 @@ bool MaxisInstPrinter::printAlias(const char *Str, const MCInst &MI,
 bool MaxisInstPrinter::printAlias(const MCInst &MI, raw_ostream &OS) {
   switch (MI.getOpcode()) {
   case Maxis::BEQ:
-  case Maxis::BEQ_MM:
+    //  case Maxis::BEQ_MM:
     // beq $zero, $zero, $L2 => b $L2
     // beq $r0, $zero, $L2 => beqz $r0, $L2
     return (isReg<Maxis::ZERO>(MI, 0) && isReg<Maxis::ZERO>(MI, 1) &&
             printAlias("b", MI, 2, OS)) ||
            (isReg<Maxis::ZERO>(MI, 1) && printAlias("beqz", MI, 0, 2, OS));
+    /*
   case Maxis::BEQ64:
     // beq $r0, $zero, $L2 => beqz $r0, $L2
     return isReg<Maxis::ZERO_64>(MI, 1) && printAlias("beqz", MI, 0, 2, OS);
+    */
   case Maxis::BNE:
-  case Maxis::BNE_MM:
+    //  case Maxis::BNE_MM:
     // bne $r0, $zero, $L2 => bnez $r0, $L2
     return isReg<Maxis::ZERO>(MI, 1) && printAlias("bnez", MI, 0, 2, OS);
+    /*
   case Maxis::BNE64:
     // bne $r0, $zero, $L2 => bnez $r0, $L2
     return isReg<Maxis::ZERO_64>(MI, 1) && printAlias("bnez", MI, 0, 2, OS);
@@ -250,21 +253,24 @@ bool MaxisInstPrinter::printAlias(const MCInst &MI, raw_ostream &OS) {
   case Maxis::BC1F:
     // bc1f $fcc0, $L1 => bc1f $L1
     return isReg<Maxis::FCC0>(MI, 0) && printAlias("bc1f", MI, 1, OS);
+    */
   case Maxis::JALR:
     // jalr $ra, $r1 => jalr $r1
     return isReg<Maxis::RA>(MI, 0) && printAlias("jalr", MI, 1, OS);
+    /*
   case Maxis::JALR64:
     // jalr $ra, $r1 => jalr $r1
     return isReg<Maxis::RA_64>(MI, 0) && printAlias("jalr", MI, 1, OS);
+    */
   case Maxis::NOR:
-  case Maxis::NOR_MM:
-  case Maxis::NOR_MMR6:
+    //  case Maxis::NOR_MM:
+    //  case Maxis::NOR_MMR6:
     // nor $r0, $r1, $zero => not $r0, $r1
     return isReg<Maxis::ZERO>(MI, 2) && printAlias("not", MI, 0, 1, OS);
+    /*
   case Maxis::NOR64:
     // nor $r0, $r1, $zero => not $r0, $r1
     return isReg<Maxis::ZERO_64>(MI, 2) && printAlias("not", MI, 0, 1, OS);
-    /*
   case Maxis::OR:
     // or $r0, $r1, $zero => move $r0, $r1
     return isReg<Maxis::ZERO>(MI, 2) && printAlias("move", MI, 0, 1, OS);

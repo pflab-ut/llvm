@@ -1819,8 +1819,8 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
       //    case Maxis::BLTZ:
     case Maxis::BGEZAL:
     case Maxis::BLTZAL:
-    case Maxis::BC1F:
-    case Maxis::BC1T:
+      //    case Maxis::BC1F:
+      //    case Maxis::BC1T:
     case Maxis::BGEZ_MM:
     case Maxis::BGTZ_MM:
     case Maxis::BLEZ_MM:

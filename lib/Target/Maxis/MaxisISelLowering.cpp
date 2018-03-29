@@ -1406,6 +1406,7 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   case Maxis::PseudoSELECT_D32:
   case Maxis::PseudoSELECT_D64:
     return emitPseudoSELECT(MI, BB, false, Maxis::BNE);
+    /*
   case Maxis::PseudoSELECTFP_F_I:
   case Maxis::PseudoSELECTFP_F_I64:
   case Maxis::PseudoSELECTFP_F_S:
@@ -1418,6 +1419,7 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   case Maxis::PseudoSELECTFP_T_D32:
   case Maxis::PseudoSELECTFP_T_D64:
     return emitPseudoSELECT(MI, BB, true, Maxis::BC1T);
+    */
   }
 }
 
