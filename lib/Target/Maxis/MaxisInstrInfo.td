@@ -1417,7 +1417,7 @@ class CBranch<string opstr, DAGOperand opnd, PatFrag cond_op,
          FrmI, opstr> {
   let isBranch = 1;
   let isTerminator = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let Defs = [AT];
   bit isCTI = 1;
 }
@@ -1427,7 +1427,7 @@ class CBranchLikely<string opstr, DAGOperand opnd, RegisterOperand RO> :
          !strconcat(opstr, "\t$rs, $rt, $offset"), [], II_BCC, FrmI, opstr> {
   let isBranch = 1;
   let isTerminator = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let Defs = [AT];
   bit isCTI = 1;
 }
@@ -1440,7 +1440,7 @@ class CBranchZero<string opstr, DAGOperand opnd, PatFrag cond_op,
          FrmI, opstr> {
   let isBranch = 1;
   let isTerminator = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let Defs = [AT];
   bit isCTI = 1;
 }
@@ -1450,7 +1450,7 @@ class CBranchZeroLikely<string opstr, DAGOperand opnd, RegisterOperand RO> :
          !strconcat(opstr, "\t$rs, $offset"), [], II_BCCZ, FrmI, opstr> {
   let isBranch = 1;
   let isTerminator = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let Defs = [AT];
   bit isCTI = 1;
 }
@@ -1476,7 +1476,7 @@ class JumpFJ<DAGOperand opnd, string opstr, SDPatternOperator operator,
          [(operator targetoperator:$target)], II_J, FrmJ, bopstr> {
   let isTerminator=1;
   let isBarrier=1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let DecoderMethod = "DecodeJumpTarget";
   let Defs = [AT];
   bit isCTI = 1;
@@ -1489,14 +1489,14 @@ class UncondBranch<Instruction BEQInst, DAGOperand opnd> :
   let isBranch = 1;
   let isTerminator = 1;
   let isBarrier = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let AdditionalPredicates = [RelocPIC];
   let Defs = [AT];
   bit isCTI = 1;
 }
 
 // Base class for indirect branch and return instruction classes.
-let isTerminator=1, isBarrier=1, hasDelaySlot = 1, isCTI = 1 in
+let isTerminator=1, isBarrier=1, hasDelaySlot = 0, isCTI = 1 in
 class JumpFR<string opstr, RegisterOperand RO,
              SDPatternOperator operator = null_frag>:
   InstSE<(outs), (ins RO:$rs), "jr\t$rs", [(operator RO:$rs)], II_JR,
@@ -1509,7 +1509,7 @@ class IndirectBranch<string opstr, RegisterOperand RO> : JumpFR<opstr, RO> {
 }
 
 // Jump and Link (Call)
-let isCall=1, hasDelaySlot=1, isCTI=1, Defs = [RA] in {
+let isCall=1, hasDelaySlot=0, isCTI=1, Defs = [RA] in {
   class JumpLink<string opstr, DAGOperand opnd> :
     InstSE<(outs), (ins opnd:$target), !strconcat(opstr, "\t$target"),
            [(MaxisJmpLink tglobaladdr:$target)], II_JAL, FrmJ, opstr> {
@@ -1529,12 +1529,12 @@ let isCall=1, hasDelaySlot=1, isCTI=1, Defs = [RA] in {
                   RegisterOperand RO> :
     InstSE<(outs), (ins RO:$rs, opnd:$offset),
            !strconcat(opstr, "\t$rs, $offset"), [], II_BCCZAL, FrmI, opstr> {
-    let hasDelaySlot = 1;
+    let hasDelaySlot = 0;
   }
 
 }
 
-let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1, hasDelaySlot = 1,
+let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1, hasDelaySlot = 0,
     hasExtraSrcRegAllocReq = 1, isCTI = 1, Defs = [AT] in {
   class TailCall<Instruction JumpInst, DAGOperand Opnd> :
     PseudoSE<(outs), (ins calltarget:$target), [], II_J>,
@@ -1550,7 +1550,7 @@ class BAL_BR_Pseudo<Instruction RealInst> :
   let isBranch = 1;
   let isTerminator = 1;
   let isBarrier = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let Defs = [RA];
   bit isCTI = 1;
 }
@@ -1795,7 +1795,7 @@ class TrapBase<Instruction RealInst>
 
 // Return RA.
 let isReturn=1, isTerminator=1, isBarrier=1, hasCtrlDep=1, isCTI=1 in {
-  let hasDelaySlot=1 in
+  let hasDelaySlot=0 in
   def RetRA : PseudoSE<(outs), (ins), [(MaxisRet)]>;
 
   let hasSideEffects=1 in
@@ -2139,7 +2139,7 @@ class PseudoIndirectBranchBase<RegisterOperand RO> :
                II_IndirectBranchPseudo> {
   let isTerminator=1;
   let isBarrier=1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let isBranch = 1;
   let isIndirectBranch = 1;
   bit isCTI = 1;
@@ -2156,7 +2156,7 @@ class PseudoReturnBase<RegisterOperand RO> : MaxisPseudo<(outs), (ins RO:$rs),
                                                         [], II_ReturnPseudo> {
   let isTerminator = 1;
   let isBarrier = 1;
-  let hasDelaySlot = 1;
+  let hasDelaySlot = 0;
   let isReturn = 1;
   let isCodeGenOnly = 1;
   let hasCtrlDep = 1;
@@ -2330,7 +2330,7 @@ class JR_HB_DESC : InstSE<(outs), (ins), "", [], II_JR_HB, FrmJ>,
                    JR_HB_DESC_BASE<"jr.hb", GPR32Opnd> {
   let isBranch=1;
   let isIndirectBranch=1;
-  let hasDelaySlot=1;
+  let hasDelaySlot=0;
   let isTerminator=1;
   let isBarrier=1;
   bit isCTI = 1;
@@ -2339,7 +2339,7 @@ class JR_HB_DESC : InstSE<(outs), (ins), "", [], II_JR_HB, FrmJ>,
 class JALR_HB_DESC : InstSE<(outs), (ins), "", [], II_JALR_HB, FrmJ>,
                      JALR_HB_DESC_BASE<"jalr.hb", GPR32Opnd> {
   let isIndirectBranch=1;
-  let hasDelaySlot=1;
+  let hasDelaySlot=0;
   bit isCTI = 1;
 }
 
@@ -2682,7 +2682,7 @@ def NORImm : NORIMM_DESC_BASE<GPR32Opnd, simm32_relaxed>, GPR_32;
 def : MaxisInstAlias<"nor\t$rs, $imm", (NORImm GPR32Opnd:$rs, GPR32Opnd:$rs,
                                               simm32_relaxed:$imm)>, GPR_32;
 
-let hasDelaySlot = 1, isCTI = 1 in {
+let hasDelaySlot = 0, isCTI = 1 in {
 def BneImm : MaxisAsmPseudoInst<(outs GPR32Opnd:$rt),
                                (ins imm64:$imm64, brtarget:$offset),
                                "bne\t$rt, $imm64, $offset">;
