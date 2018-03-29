@@ -158,7 +158,7 @@ def P5600WriteAL2MAdd: SchedWriteRes<[P5600IssueAL2, P5600CTISTD]> {
 def : ItinRW<[P5600WriteAL2], [II_CLO, II_CLZ, II_DI, II_EI, II_MFHI_MFLO]>;
 
 // ehb, rdhwr, rdpgpr, wrpgpr, wsbh
-def : ItinRW<[P5600WriteAL2ShadowMov], [II_EHB, II_RDHWR, II_WSBH]>;
+//def : ItinRW<[P5600WriteAL2ShadowMov], [II_EHB, II_RDHWR, II_WSBH]>;
 
 // mov[nz]
 def : ItinRW<[P5600WriteAL2CondMov], [II_MOVN, II_MOVZ]>;

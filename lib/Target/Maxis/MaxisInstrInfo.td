@@ -2312,7 +2312,7 @@ def NOP : MMRel, StdMMR6Rel, Barrier<"nop", II_NOP>, BARRIER_FM<0>;
 def SYNC : MMRel, StdMMR6Rel, Barrier<"sync", II_SYNC>, BARRIER_FM<1>;
 def WI : MMRel, StdMMR6Rel, Barrier<"wi", II_WI>, BARRIER_FM<2>;
 def ERT : MMRel, StdMMR6Rel, Barrier<"ert", II_ERT>, BARRIER_FM<4>;
-def EHB : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM<3>;
+//def EHB : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM<3>;
 
 let isCTI = 1 in
 def PAUSE : MMRel, StdMMR6Rel, Barrier<"pause", II_PAUSE>, BARRIER_FM<5>,

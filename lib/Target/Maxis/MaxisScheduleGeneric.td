@@ -217,7 +217,7 @@ def : ItinRW<[GenericWriteCOP0], [II_RDPGPR, II_WRPGPR]>;
 
 def : ItinRW<[GenericWriteCOP0], [II_DI, II_EI]>;
 
-def : ItinRW<[GenericWriteCOP0], [II_EHB, II_PAUSE, II_WAIT]>;
+//def : ItinRW<[GenericWriteCOP0], [II_EHB, II_PAUSE, II_WAIT]>;
 
 def GenericCOP2 : ProcResource<1> { let BufferSize = 1; }
 def GenericWriteCOPOther : SchedWriteRes<[GenericCOP2]>;

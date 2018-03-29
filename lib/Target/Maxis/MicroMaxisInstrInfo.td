@@ -986,7 +986,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                     CACHE_PREFE_FM_MM<0x18, 0x3>;
   }
 //  def SSNOP_MM : MMRel, Barrier<"ssnop", II_SSNOP>, BARRIER_FM_MM<0x1>;
-  def EHB_MM   : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM_MM<0x3>;
+//  def EHB_MM   : MMRel, Barrier<"ehb", II_EHB>, BARRIER_FM_MM<0x3>;
   def PAUSE_MM : MMRel, Barrier<"pause", II_PAUSE>, BARRIER_FM_MM<0x5>;
 
   def TLBP_MM : MMRel, TLB<"tlbp", II_TLBP>, COP0_TLB_FM_MM<0x0d>;

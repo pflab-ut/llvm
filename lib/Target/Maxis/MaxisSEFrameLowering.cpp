@@ -750,7 +750,7 @@ void MaxisSEFrameLowering::emitInterruptEpilogueStub(
 
   // Disable Interrupts.
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::DI), Maxis::ZERO);
-  BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::EHB));
+  //  BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::EHB));
 
   // Restore EPC
   STI.getInstrInfo()->loadRegFromStackSlot(MBB, MBBI, Maxis::K1,
