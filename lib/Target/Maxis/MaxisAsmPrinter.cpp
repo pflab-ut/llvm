@@ -131,8 +131,10 @@ void MaxisAsmPrinter::emitPseudoIndirectBranch(MCStreamer &OutStreamer,
     // microMAXIS should use (JR_MM $rs)
     TmpInst0.setOpcode(Maxis::JR_MM);
   else {
-    // Everything else should use (JR $rs)
-    TmpInst0.setOpcode(Maxis::JR);
+    // Everything else should use (JALR $rs)
+    // TmpInst0.setOpcode(Maxis::JR);
+    TmpInst0.setOpcode(Maxis::JALR);
+    HasLinkReg = true;
   }
 
   MCOperand MCOp;
@@ -1039,7 +1041,8 @@ void MaxisAsmPrinter::EmitFPCallStub(
   // if (Signature->RetSig == NoFPRet)
   //  llvm_unreachable("should not be any stubs here with no return value");
   // else
-  EmitInstrReg(*STI, Maxis::JR, Maxis::S2);
+  //  EmitInstrReg(*STI, Maxis::JR, Maxis::S2);
+  EmitInstrReg(*STI, Maxis::JALR, Maxis::S2);
 
   MCSymbol *Tmp = OutContext.createTempSymbol();
   OutStreamer->EmitLabel(Tmp);

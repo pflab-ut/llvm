@@ -295,7 +295,7 @@ unsigned MaxisInstrInfo::getEquivalentCompactForm(
       break;
     // For microMAXIS the PseudoReturn and PseudoIndirectBranch are always
     // expanded to JR_MM, so they can be replaced with JRC16_MM.
-    case Maxis::JR:
+      //    case Maxis::JR:
     case Maxis::PseudoReturn:
     case Maxis::PseudoIndirectBranch:
     case Maxis::TAILCALLREG:

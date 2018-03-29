@@ -2070,7 +2070,7 @@ def SC : SCBase<"sc", GPR32Opnd>, LW_FM<0x28>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
 /// Jump and Branch Instructions
 def J       : MMRel, JumpFJ<jmptarget, "j", br, bb, "j">, FJ<2>,
               AdditionalRequires<[RelocNotPIC, NotInMicroMaxis]>, IsBranch;
-def JR      : MMRel, IndirectBranch<"jr", GPR32Opnd>, MTLO_FM<8>, ISA_MAXIS1_NOT_32R6_64R6; 
+//def JR      : MMRel, IndirectBranch<"jr", GPR32Opnd>, MTLO_FM<8>, ISA_MAXIS1_NOT_32R6_64R6; 
 def BEQ     : MMRel, CBranch<"beq", brtarget, seteq, GPR32Opnd>, BEQ_FM<0x8>;
 def BNE     : MMRel, CBranch<"bne", brtarget, setne, GPR32Opnd>, BEQ_FM<0x9>;
 def BLT     : MMRel, CBranch<"blt", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xa>;
@@ -2502,11 +2502,12 @@ def : MaxisInstAlias<"bleu $rs, $rt, $offset", (BGEU GPR32Opnd:$rt,
                     GPR32Opnd:$rs, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
 
-def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;
+//def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;
 let Predicates = [NotInMicroMaxis] in {
 def : MaxisInstAlias<"jalr $rs", (JALR RA, GPR32Opnd:$rs), 0>;
 }
 def : MaxisInstAlias<"jalr.hb $rs", (JALR_HB RA, GPR32Opnd:$rs), 1>, ISA_MAXIS32;
+def : MaxisInstAlias<"jr $rs", (JALR ZERO, GPR32Opnd:$rs), 0>;
 def : MaxisInstAlias<"neg $rt, $rs",
                     (SUB GPR32Opnd:$rt, ZERO, GPR32Opnd:$rs), 1>;
 def : MaxisInstAlias<"neg $rt",

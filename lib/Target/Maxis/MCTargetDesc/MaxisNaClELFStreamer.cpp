@@ -61,7 +61,8 @@ private:
       assert(MI.getOperand(0).isReg());
       return MI.getOperand(0).getReg() == Maxis::ZERO;
     }
-    return MI.getOpcode() == Maxis::JR;
+    //    return MI.getOpcode() == Maxis::JR;
+    return false;
   }
 
   bool isStackPointerFirstOperand(const MCInst &MI) {

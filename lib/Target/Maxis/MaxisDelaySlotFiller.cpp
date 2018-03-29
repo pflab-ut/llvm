@@ -717,7 +717,7 @@ bool Filler::searchRange(MachineBasicBlock &MBB, IterTy Begin, IterTy End,
     // It's entirely possible that the target function is reachable with b16
     // but we don't have enough information to make that decision.
      if (InMicroMaxisMode && TII->getInstSizeInBytes(*CurrI) == 2 &&
-        (Opcode == Maxis::JR || Opcode == Maxis::PseudoIndirectBranch ||
+         (/* Opcode == Maxis::JR || */ Opcode == Maxis::PseudoIndirectBranch ||
          Opcode == Maxis::PseudoReturn || Opcode == Maxis::TAILCALL))
       continue;
 

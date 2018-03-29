@@ -383,8 +383,9 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
             .addImm(0);
 
       } else {
-        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::JR)).addReg(Maxis::AT);
-
+        //        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::JR)).addReg(Maxis::AT);
+        BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::JALR)).addReg(Maxis::AT);
+        
         if (Subtarget.isTargetNaCl()) {
           BuildMI(*BalTgtMBB, Pos, DL, TII->get(Maxis::NOP));
         } else
