@@ -81,13 +81,13 @@ void MaxisAnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
-// Replace a ADDi & SLLi pair with a LUi.
+// Replace a ADDi & SLLi pair with a CATi.
 // e.g. the following two instructions
 //  ADDi 0x0111
 //  SLLi 18
 // are replaced with
-//  LUi 0x444
-void MaxisAnalyzeImmediate::ReplaceADDiSLLiWithLUi(InstSeq &Seq) {
+//  CATi 0x444
+void MaxisAnalyzeImmediate::ReplaceADDiSLLiWithCATi(InstSeq &Seq) {
   // Check if the first two instructions are ADDi and SLLi and the shift amount
   // is at least 16.
   if ((Seq.size() < 2) || (Seq[0].Opc != ADDi) ||
@@ -102,7 +102,7 @@ void MaxisAnalyzeImmediate::ReplaceADDiSLLiWithLUi(InstSeq &Seq) {
     return;
 
   // Replace the first instruction and erase the second.
-  Seq[0].Opc = LUi;
+  Seq[0].Opc = CATi;
   Seq[0].ImmOpnd = (unsigned)(ShiftedImm & 0xffff);
   Seq.erase(Seq.begin() + 1);
 }
@@ -113,7 +113,7 @@ void MaxisAnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
   unsigned ShortestLength = 8;
 
   for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
-    ReplaceADDiSLLiWithLUi(*S);
+    ReplaceADDiSLLiWithCATi(*S);
     assert(S->size() <= 7);
 
     if (S->size() < ShortestLength) {
@@ -135,12 +135,12 @@ const MaxisAnalyzeImmediate::InstSeq
     ADDi = Maxis::ADDi;
     ORi = Maxis::ORi;
     SLLi = Maxis::SLLi;
-    LUi = Maxis::LUi;
+    CATi = Maxis::CATi;
   } else {
     ADDi = Maxis::DADDi;
     ORi = Maxis::ORi64;
     SLLi = Maxis::DSLLi;
-    LUi = Maxis::LUi64;
+    CATi = Maxis::CATi64;
   }
 
   InstSeqLs SeqLs;

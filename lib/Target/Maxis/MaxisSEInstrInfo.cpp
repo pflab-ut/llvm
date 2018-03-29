@@ -501,8 +501,8 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
   const MaxisSubtarget &STI = Subtarget;
   MachineRegisterInfo &RegInfo = MBB.getParent()->getRegInfo();
   unsigned Size = STI.isABI_N64() ? 64 : 32;
-  unsigned LUi = STI.isABI_N64() ? Maxis::LUi64 : Maxis::LUi;
-  unsigned ZEROReg = STI.isABI_N64() ? Maxis::ZERO_64 : Maxis::ZERO;
+  unsigned CATi = STI.isABI_N64() ? Maxis::CATi64 : Maxis::CATi;
+  unsigned ZeroReg = STI.isABI_N64() ? Maxis::ZERO_64 : Maxis::ZERO;
   const TargetRegisterClass *RC = STI.isABI_N64() ?
     &Maxis::GPR64RegClass : &Maxis::GPR32RegClass;
   bool LastInstrIsADDi = NewImm;
@@ -513,15 +513,15 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
   assert(Seq.size() && (!LastInstrIsADDi || (Seq.size() > 1)));
 
-  // The first instruction can be a LUi, which is different from other
+  // The first instruction can be a CATi, which is different from other
   // instructions (ADDi, ORI and SLLi) in that it does not have a register
   // operand.
   unsigned Reg = RegInfo.createVirtualRegister(RC);
 
-  if (Inst->Opc == LUi)
-    BuildMI(MBB, II, DL, get(LUi), Reg).addImm(SignExtend64<16>(Inst->ImmOpnd));
+  if (Inst->Opc == CATi)
+    BuildMI(MBB, II, DL, get(CATi), Reg).addReg(ZeroReg).addImm(SignExtend64<16>(Inst->ImmOpnd));
   else
-    BuildMI(MBB, II, DL, get(Inst->Opc), Reg).addReg(ZEROReg)
+    BuildMI(MBB, II, DL, get(Inst->Opc), Reg).addReg(ZeroReg)
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   // Build the remaining instructions in Seq.

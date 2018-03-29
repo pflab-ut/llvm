@@ -43,7 +43,7 @@ private:
                                MachineOperandType MOTy, unsigned Offset) const;
   MCOperand createSub(MachineBasicBlock *BB1, MachineBasicBlock *BB2,
                       MaxisMCExpr::MaxisExprKind Kind) const;
-  void lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const;
+  void lowerLongBranchCATi(const MachineInstr *MI, MCInst &OutMI) const;
   void lowerLongBranchADDi(const MachineInstr *MI, MCInst &OutMI, int Opcode,
                             MaxisMCExpr::MaxisExprKind Kind) const;
   bool lowerLongBranch(const MachineInstr *MI, MCInst &OutMI) const;

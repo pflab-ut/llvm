@@ -292,7 +292,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       // $longbr:
       //  addi $sp, $sp, -8
       //  sw $ra, 0($sp)
-      //  lui $at, %hi($tgt - $baltgt)
+      //  cati $at, $0, %hi($tgt - $baltgt)
       //  bal $baltgt
       //  addi $at, $at, %lo($tgt - $baltgt)
       // $baltgt:
@@ -307,7 +307,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       // $longbr:
       //  addi $sp, $sp, -8
       //  sw $ra, 0($sp)
-      //  lui $at, %hi($tgt - $baltgt)
+      //  cati $at, $0, %hi($tgt - $baltgt)
       //  addi $at, $at, %lo($tgt - $baltgt)
       //  balc $baltgt
       // $baltgt:
@@ -324,7 +324,7 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::SW)).addReg(Maxis::RA)
         .addReg(Maxis::SP).addImm(0);
 
-      // LUi and ADDi instructions create 32-bit offset of the target basic
+      // CATi and ADDi instructions create 32-bit offset of the target basic
       // block from the target of BAL(C) instruction.  We cannot use immediate
       // value for this offset because it cannot be determined accurately when
       // the program has inline assembly statements.  We therefore use the
@@ -333,14 +333,14 @@ void MaxisLongBranch::expandToLongBranch(MBBInfo &I) {
       //
       // Since we cannot create %hi($tgt-$baltgt) and %lo($tgt-$baltgt)
       // expressions at this point (it is possible only at the MC layer),
-      // we replace LUi and ADDi with pseudo instructions
-      // LONG_BRANCH_LUi and LONG_BRANCH_ADDi, and add both basic
+      // we replace CATi and ADDi with pseudo instructions
+      // LONG_BRANCH_CATi and LONG_BRANCH_ADDi, and add both basic
       // blocks as operands to these instructions.  When lowering these pseudo
-      // instructions to LUi and ADDi in the MC layer, we will create
+      // instructions to CATi and ADDi in the MC layer, we will create
       // %hi($tgt-$baltgt) and %lo($tgt-$baltgt) expressions and add them as
       // operands to lowered instructions.
 
-      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::LONG_BRANCH_LUi), Maxis::AT)
+      BuildMI(*LongBrMBB, Pos, DL, TII->get(Maxis::LONG_BRANCH_CATi), Maxis::AT).addReg(Maxis::ZERO)
         .addMBB(TgtMBB).addMBB(BalTgtMBB);
 
       MachineInstrBuilder BalInstr =
@@ -527,7 +527,7 @@ static void emitGPDisp(MachineFunction &F, const MaxisInstrInfo *TII) {
   MachineBasicBlock &MBB = F.front();
   MachineBasicBlock::iterator I = MBB.begin();
   DebugLoc DL = MBB.findDebugLoc(MBB.begin());
-  BuildMI(MBB, I, DL, TII->get(Maxis::LUi), Maxis::V0)
+  BuildMI(MBB, I, DL, TII->get(Maxis::CATi), Maxis::V0).addReg(Maxis::ZERO)
     .addExternalSymbol("_gp_disp", MaxisII::MO_ABS_HI);
   BuildMI(MBB, I, DL, TII->get(Maxis::ADDi), Maxis::V0)
     .addReg(Maxis::V0).addExternalSymbol("_gp_disp", MaxisII::MO_ABS_LO);

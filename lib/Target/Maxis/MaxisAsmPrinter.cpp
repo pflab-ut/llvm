@@ -1086,9 +1086,9 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   NOP
   //   SW       RA, 4(SP)
   //   SW       T9, 0(SP)
-  //   LUI      T9, %hi(__xray_FunctionEntry/Exit)
+  //   CATI     T9, ZERO, %hi(__xray_FunctionEntry/Exit)
   //   ORI      T9, T9, %lo(__xray_FunctionEntry/Exit)
-  //   LUI      T0, %hi(function_id)
+  //   CATI     T0, ZERO, %hi(function_id)
   //   JALR     T9
   //   ORI      T0, T0, %lo(function_id)
   //   LW       T9, 0(SP)
@@ -1119,13 +1119,13 @@ void MaxisAsmPrinter::EmitSled(const MachineInstr &MI, SledKind Kind) {
   //   NOP
   //   SD       RA, 8(SP)
   //   SD       T9, 0(SP)
-  //   LUI      T9, %highest(__xray_FunctionEntry/Exit)
+  //   CATI     T9, ZERO, %highest(__xray_FunctionEntry/Exit)
   //   ORI      T9, T9, %higher(__xray_FunctionEntry/Exit)
   //   DSLLI     T9, T9, 16
   //   ORI      T9, T9, %hi(__xray_FunctionEntry/Exit)
   //   DSLLI     T9, T9, 16
   //   ORI      T9, T9, %lo(__xray_FunctionEntry/Exit)
-  //   LUI      T0, %hi(function_id)
+  //   CATI     T0, ZERO, %hi(function_id)
   //   JALR     T9
   //   ADDI     T0, T0, %lo(function_id)
   //   LD       T9, 0(SP)
@@ -1220,7 +1220,7 @@ void MaxisAsmPrinter::NaClAlignIndirectJumpTargets(MachineFunction &MF) {
 }
 
 bool MaxisAsmPrinter::isLongBranchPseudo(int Opcode) const {
-  return (Opcode == Maxis::LONG_BRANCH_LUi
+  return (Opcode == Maxis::LONG_BRANCH_CATi
           || Opcode == Maxis::LONG_BRANCH_ADDi
           || Opcode == Maxis::LONG_BRANCH_DADDi);
 }

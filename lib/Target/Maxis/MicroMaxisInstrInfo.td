@@ -693,7 +693,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                                     or>, ADDI_FM_MM<0x14>;
   def XORi_MM  : MMRel, ArithLogicI<"xori", uimm16, GPR32Opnd, II_XORI,
                                     immZExt16, xor>, ADDI_FM_MM<0x1c>;
-  def LUi_MM   : MMRel, LoadUpper<"lui", GPR32Opnd, uimm16_relaxed>, LUI_FM_MM;
+//  def CATi_MM   : MMRel, LoadUpper<"cati", GPR32Opnd, uimm16_relaxed>, CATI_FM_MM;
 
   def LEA_ADDi_MM : MMRel, EffectiveAddress<"addi", GPR32Opnd>,
                      LW_FM_MM<0xc>;
@@ -1017,7 +1017,7 @@ let AdditionalPredicates = [InMicroMaxis] in {
   def : MaxisPat<(i32 immLi16:$imm),
                 (LI16_MM immLi16:$imm)>;
 
-  defm :  MaterializeImms<i32, ZERO, ADDi_MM, LUi_MM, ORi_MM>;
+//  defm :  MaterializeImms<i32, ZERO, ADDi_MM, CATi_MM, ORi_MM>;
 }
 
 let Predicates = [InMicroMaxis] in {

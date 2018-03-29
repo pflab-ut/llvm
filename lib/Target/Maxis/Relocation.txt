@@ -52,9 +52,9 @@ Here the instantiation of MaxisHiLoRelocs in MaxisInstrInfo.td is used
 to MAXIS32 to compute addresses for the static relocation model.
 
   // lib/Target/Maxis/MaxisInstrInfo.td
-  multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addi,
+  multiclass MaxisHiLoRelocs<Instruction CATi, Instruction Addi,
                             Register ZeroReg, RegisterOperand GPROpnd> {
-    def : MaxisPat<(MaxisHi tglobaladdr:$in), (Lui tglobaladdr:$in)>;
+    def : MaxisPat<(MaxisHi tglobaladdr:$in), (CATi ZeroReg, tglobaladdr:$in)>;
     ...
     def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addi ZeroReg, tglobaladdr:$in)>;
     ...
@@ -62,10 +62,10 @@ to MAXIS32 to compute addresses for the static relocation model.
                 (Addi GPROpnd:$hi, tglobaladdr:$lo)>;
     ...
   }
-  defm : MaxisHiLoRelocs<LUi, ADDi, ZERO, GPR32Opnd>;
+  defm : MaxisHiLoRelocs<CATi, ADDi, ZERO, GPR32Opnd>;
 
   // lib/Target/Maxis/Maxis64InstrInfo.td
-  defm : MaxisHiLoRelocs<LUi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
+  defm : MaxisHiLoRelocs<CATi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
 
 The instantiation in Maxis64InstrInfo.td is used for MAXIS64 in ILP32
 mode, as guarded by the predicate "SYM_32" and also for a submode of
@@ -82,11 +82,14 @@ for the difference in the results of instruction execution. On MAXIS32,
 value from memory and sign extends the value to 64 bits.
 
   // lib/Target/Maxis/MaxisInstrInfo.td
-  def LUi   : MMRel, LoadUpper<"lui", GPR32Opnd, uimm16_relaxed>, LUI_FM;
+  def CATi : MMRel, StdMMR6Rel,
+             ArithLogicI<"cati", uimm16, GPR32Opnd, II_CATI, immZExt16, cati>,
+             ADDI_FM<0x1f>;
   // lib/Target/Maxis/Maxis64InstrInfo.td
-  def LUi64   : LoadUpper<"lui", GPR64Opnd, uimm16_64_relaxed>, LUI_FM;
+  def CATi64  : ArithLogicI<"cati", uimm16_64, GPR64Opnd, II_CATI, immZExt16, cati>,
+                ADDI_FM<0xf>;
 
-defines two names "LUi" and "LUi64" with two different register
-classes, but with the same encoding---"LUI_FM". These instructions load a
+defines two names "CATi" and "CATi64" with two different register
+classes, but with the same encoding---"ADDI_FM". These instructions load a
 16-bit immediate into bits 31-16 and clear the lower 15 bits. On MAXIS64,
 the result is sign-extended to 64 bits.

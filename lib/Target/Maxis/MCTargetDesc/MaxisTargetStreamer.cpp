@@ -256,7 +256,7 @@ void MaxisTargetStreamer::emitStoreWithImmOffset(
     return;
   }
 
-  // sw $8, offset($8) => lui $at, %hi(offset)
+  // sw $8, offset($8) => cati $at, $0, %hi(offset)
   //                      add $at, $at, $8
   //                      sw $8, %lo(offset)($at)
 
@@ -273,7 +273,7 @@ void MaxisTargetStreamer::emitStoreWithImmOffset(
     HiOffset++;
 
   // Generate the base address in ATReg.
-  emitRI(Maxis::LUi, ATReg, HiOffset, IDLoc, STI);
+  emitRRI(Maxis::CATi, ATReg, Maxis::ZERO, HiOffset, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
     emitRRR(Maxis::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
   // Emit the store with the adjusted base and offset.
@@ -286,11 +286,11 @@ void MaxisTargetStreamer::emitStoreWithSymOffset(
     unsigned Opcode, unsigned SrcReg, unsigned BaseReg, MCOperand &HiOperand,
     MCOperand &LoOperand, unsigned ATReg, SMLoc IDLoc,
     const MCSubtargetInfo *STI) {
-  // sw $8, sym => lui $at, %hi(sym)
+  // sw $8, sym => cati $at, $0, %hi(sym)
   //               sw $8, %lo(sym)($at)
 
   // Generate the base address in ATReg.
-  emitRX(Maxis::LUi, ATReg, HiOperand, IDLoc, STI);
+  emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, HiOperand, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
     emitRRR(Maxis::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
   // Emit the store with the adjusted base and offset.
@@ -310,10 +310,10 @@ void MaxisTargetStreamer::emitLoadWithImmOffset(unsigned Opcode, unsigned DstReg
     return;
   }
 
-  // 1) lw $8, offset($9) => lui $8, %hi(offset)
+  // 1) lw $8, offset($9) => cati $8, $0, %hi(offset)
   //                         add $8, $8, $9
   //                         lw $8, %lo(offset)($9)
-  // 2) lw $8, offset($8) => lui $at, %hi(offset)
+  // 2) lw $8, offset($8) => cati $at, $0, %hi(offset)
   //                         add $at, $at, $8
   //                         lw $8, %lo(offset)($at)
 
@@ -326,7 +326,7 @@ void MaxisTargetStreamer::emitLoadWithImmOffset(unsigned Opcode, unsigned DstReg
     HiOffset++;
 
   // Generate the base address in TmpReg.
-  emitRI(Maxis::LUi, TmpReg, HiOffset, IDLoc, STI);
+  emitRRI(Maxis::CATi, TmpReg, Maxis::ZERO, HiOffset, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
     emitRRR(Maxis::ADDu, TmpReg, TmpReg, BaseReg, IDLoc, STI);
   // Emit the load with the adjusted base and offset.
@@ -344,13 +344,13 @@ void MaxisTargetStreamer::emitLoadWithSymOffset(unsigned Opcode, unsigned DstReg
                                                MCOperand &LoOperand,
                                                unsigned TmpReg, SMLoc IDLoc,
                                                const MCSubtargetInfo *STI) {
-  // 1) lw $8, sym        => lui $8, %hi(sym)
+  // 1) lw $8, sym        => cati $8, $0, %hi(sym)
   //                         lw $8, %lo(sym)($8)
-  // 2) ldc1 $f0, sym     => lui $at, %hi(sym)
+  // 2) ldc1 $f0, sym     => cati $at, $0, %hi(sym)
   //                         ldc1 $f0, %lo(sym)($at)
 
   // Generate the base address in TmpReg.
-  emitRX(Maxis::LUi, TmpReg, HiOperand, IDLoc, STI);
+  emitRRX(Maxis::CATi, TmpReg, Maxis::ZERO, HiOperand, IDLoc, STI);
   if (BaseReg != Maxis::ZERO)
     emitRRR(Maxis::ADDu, TmpReg, TmpReg, BaseReg, IDLoc, STI);
   // Emit the load with the adjusted base and offset.
@@ -1042,7 +1042,7 @@ void MaxisTargetELFStreamer::emitFMask(unsigned FPUBitmask,
 void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
   // .cpload $reg
   // This directive expands to:
-  // lui   $gp, %hi(_gp_disp)
+  // cati  $gp, $0, %hi(_gp_disp)
   // addui $gp, $gp, %lo(_gp_disp)
   // addu  $gp, $gp, $reg
   // when support for position independent code is enabled.
@@ -1053,7 +1053,7 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
   // locally-binding symbols to be accessed using absolute addresses.
   // This is currently not supported. When supported -mno-shared makes
   // .cpload expand to:
-  //   lui     $gp, %hi(__gnu_local_gp)
+  //   cati   $gp, $0, %hi(__gnu_local_gp)
   //   addi   $gp, $gp, %lo(__gnu_local_gp)
 
   StringRef SymName("_gp_disp");
@@ -1062,7 +1062,7 @@ void MaxisTargetELFStreamer::emitDirectiveCpLoad(unsigned RegNo) {
   MCA.registerSymbol(*GP_Disp);
 
   MCInst TmpInst;
-  TmpInst.setOpcode(Maxis::LUi);
+  TmpInst.setOpcode(Maxis::CATi);
   TmpInst.addOperand(MCOperand::createReg(Maxis::GP));
   const MCExpr *HiSym = MaxisMCExpr::create(
       MaxisMCExpr::MEK_HI,
@@ -1148,8 +1148,8 @@ void MaxisTargetELFStreamer::emitDirectiveCpsetup(unsigned RegNo,
         MaxisMCExpr::MEK_LO, MCSymbolRefExpr::create(GPSym, MCA.getContext()),
         MCA.getContext());
 
-    // lui $gp, %hi(__gnu_local_gp)
-    emitRX(Maxis::LUi, Maxis::GP, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
+    // cati $gp, $0, %hi(__gnu_local_gp)
+    emitRRX(Maxis::CATi, Maxis::GP, Maxis::ZERO, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
 
     // addi  $gp, $gp, %lo(__gnu_local_gp)
     emitRRX(Maxis::ADDi, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),
@@ -1165,8 +1165,8 @@ void MaxisTargetELFStreamer::emitDirectiveCpsetup(unsigned RegNo,
       MaxisMCExpr::MEK_LO, MCSymbolRefExpr::create(&Sym, MCA.getContext()),
       MCA.getContext());
 
-  // lui $gp, %hi(%neg(%gp_rel(funcSym)))
-  emitRX(Maxis::LUi, Maxis::GP, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
+  // cati $gp, $0, %hi(%neg(%gp_rel(funcSym)))
+  emitRRX(Maxis::CATi, Maxis::GP, Maxis::ZERO, MCOperand::createExpr(HiExpr), SMLoc(), &STI);
 
   // addi  $gp, $gp, %lo(%neg(%gp_rel(funcSym)))
   emitRRX(Maxis::ADDi, Maxis::GP, Maxis::GP, MCOperand::createExpr(LoExpr),

@@ -50,15 +50,15 @@ namespace llvm {
     /// GetInstSeqLs - Get instruction sequences to load immediate Imm.
     void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
-    /// ReplaceADDiSLLiWithLUi - Replace an ADDi & SLLi pair with a LUi.
-    void ReplaceADDiSLLiWithLUi(InstSeq &Seq);
+    /// ReplaceADDiSLLiWithCATi - Replace an ADDi & SLLi pair with a CATi.
+    void ReplaceADDiSLLiWithCATi(InstSeq &Seq);
 
     /// GetShortestSeq - Find the shortest instruction sequence in SeqLs and
     /// return it in Insts.
     void GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts);
 
     unsigned Size;
-    unsigned ADDi, ORi, SLLi, LUi;
+    unsigned ADDi, ORi, SLLi, CATi;
     InstSeq Insts;
   };
 

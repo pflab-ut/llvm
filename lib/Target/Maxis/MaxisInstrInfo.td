@@ -61,7 +61,7 @@ def MaxisTailCall : SDNode<"MaxisISD::TailCall", SDT_MaxisJmpLink,
 // static model. (nothing to do with Maxis Registers Hi and Lo)
 
 // Hi is the odd node out, on MAXIS64 it can expand to either daddi when
-// using static relocations with 64 bit symbols, or lui when using 32 bit
+// using static relocations with 64 bit symbols, or cati when using 32 bit
 // symbols.
 def MaxisHigher : SDNode<"MaxisISD::Higher", SDTIntUnaryOp>;
 def MaxisHighest : SDNode<"MaxisISD::Highest", SDTIntUnaryOp>;
@@ -1174,7 +1174,7 @@ def immZExt16  : PatLeaf<(imm), [{
     return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
 }], LO16>;
 
-// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+// Immediate can be loaded with CATi (32-bit int with lower 16-bit cleared).
 def immSExt32Low16Zero : PatLeaf<(imm), [{
   int64_t Val = N->getSExtValue();
   return isInt<32>(Val) && !(Val & 0xffff);
@@ -1223,12 +1223,12 @@ def ORiPred  : PatLeaf<(imm), [{
   return isUInt<16>(N->getZExtValue()) && !isInt<16>(N->getSExtValue());
 }], LO16>;
 
-def LUiPred : PatLeaf<(imm), [{
+def CATiPred : PatLeaf<(imm), [{
   int64_t Val = N->getSExtValue();
   return !isInt<16>(Val) && isInt<32>(Val) && !(Val & 0xffff);
 }]>;
 
-def LUiORiPred  : PatLeaf<(imm), [{
+def CATiORiPred  : PatLeaf<(imm), [{
   int64_t SVal = N->getSExtValue();
   return isInt<32>(SVal) && (SVal & 0xffff);
 }]>;
@@ -1319,7 +1319,7 @@ class shift_rotate_reg<string opstr, RegisterOperand RO, InstrItinClass itin,
 // Load Upper Immediate
 class LoadUpper<string opstr, RegisterOperand RO, Operand Imm>:
   InstSE<(outs RO:$rt), (ins Imm:$imm16), !strconcat(opstr, "\t$rt, $imm16"),
-         [], II_LUI, FrmI, opstr>, IsAsCheapAsAMove {
+         [], II_CATI, FrmI, opstr>, IsAsCheapAsAMove {
   let hasSideEffects = 0;
   let isReMaterializable = 1;
 }
@@ -1848,8 +1848,8 @@ let isPseudo = 1, isCodeGenOnly = 1, hasNoSchedulingInfo = 1 in {
 // branches.  See the comment in file MaxisLongBranch.cpp for detailed
 // explanation.
 
-// Expands to: lui $dst, %hi($tgt - $baltgt)
-def LONG_BRANCH_LUi : PseudoSE<(outs GPR32Opnd:$dst),
+// Expands to: cati $dst, %hi($tgt - $baltgt)
+def LONG_BRANCH_CATi : PseudoSE<(outs GPR32Opnd:$dst),
   (ins brtarget:$tgt, brtarget:$baltgt), []>;
 
 // Expands to: addi $dst, $src, %lo($tgt - $baltgt)
@@ -1894,7 +1894,6 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def SLTiu : MMRel, SetCC_I<"sltiu", setult, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0xb>;
 }
-def LUi   : MMRel, LoadUpper<"lui", GPR32Opnd, uimm16_relaxed>, LUI_FM;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   /// Arithmetic Instructions (3-Operand, R-Type)
   def ADDu  : MMRel, StdMMR6Rel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
@@ -2570,6 +2569,22 @@ def : MaxisInstAlias<"subu, $rd, $rs, $imm",
                            InvertedImOperand:$imm), 0>;
 def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
                                              InvertedImOperand:$imm), 0>;
+def : MaxisInstAlias<"liu $rd, $imm", (ORi GPR32Opnd:$rd, ZERO,
+                                             uimm16:$imm), 0>;
+def : MaxisInstAlias<"seqz $rd, $rs", (SEQ GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 0>;
+def : MaxisInstAlias<"snez $rd, $rs", (SNE GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 0>;
+def : MaxisInstAlias<"sltz $rd, $rs", (SLT GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 0>;
+def : MaxisInstAlias<"sgt $rd, $rs, $rt", (SLT GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+def : MaxisInstAlias<"sgtz $rd, $rt", (SLT GPR32Opnd:$rd, ZERO, GPR32Opnd:$rt), 0>;
+def : MaxisInstAlias<"sgtu $rd, $rs, $rt", (SLTu GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+def : MaxisInstAlias<"sgez $rd, $rs", (SGE GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 0>;
+def : MaxisInstAlias<"sle $rd, $rs, $rt", (SGE GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+def : MaxisInstAlias<"slez $rd, $rt", (SGE GPR32Opnd:$rd, ZERO, GPR32Opnd:$rt), 0>;
+def : MaxisInstAlias<"sleu $rd, $rs, $rt", (SGEu GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
+def : MaxisInstAlias<"cati $rd, $imm", (CATi GPR32Opnd:$rd, ZERO, uimm16:$imm), 0>;
+
+
+
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"slli $rd, $rt, $rs",
                       (SLL GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
@@ -2771,7 +2786,7 @@ class StoreRegImmPat<Instruction StoreInst, ValueType ValTy> :
 
 // Materialize constants.
 multiclass MaterializeImms<ValueType VT, Register ZEROReg,
-                           Instruction ADDiOp, Instruction LUiOp,
+                           Instruction ADDiOp, Instruction CATiOp,
                            Instruction ORiOp> {
 
 // Constant synthesis previously relied on the ordering of the patterns below.
@@ -2780,10 +2795,10 @@ multiclass MaterializeImms<ValueType VT, Register ZEROReg,
 // observed.
 
 // Arbitrary immediates
-def : MaxisPat<(VT LUiORiPred:$imm), (ORiOp (LUiOp (HI16 imm:$imm)), (LO16 imm:$imm))>;
+def : MaxisPat<(VT CATiORiPred:$imm), (ORiOp (CATiOp ZEROReg, (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 // Bits 32-16 set, sign/zero extended.
-def : MaxisPat<(VT LUiPred:$imm), (LUiOp (HI16 imm:$imm))>;
+def : MaxisPat<(VT CATiPred:$imm), (CATiOp ZEROReg, (HI16 imm:$imm))>;
 
 // Small immediates
 def : MaxisPat<(VT ORiPred:$imm), (ORiOp ZEROReg, imm:$imm)>;
@@ -2791,7 +2806,7 @@ def : MaxisPat<(VT immSExt16:$imm), (ADDiOp ZEROReg, imm:$imm)>;
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in
-  defm : MaterializeImms<i32, ZERO, ADDi, LUi, ORi>;
+  defm : MaterializeImms<i32, ZERO, ADDi, CATi, ORi>;
 
 // Carry MaxisPatterns
 let AdditionalPredicates = [NotInMicroMaxis] in {
@@ -2828,14 +2843,14 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
                 (TAILCALL texternalsym:$dst)>;
 }
 // hi/lo relocs
-multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addi,
+multiclass MaxisHiLoRelocs<Instruction Cati, Instruction Addi,
                           Register ZeroReg, RegisterOperand GPROpnd> {
-  def : MaxisPat<(MaxisHi tglobaladdr:$in), (Lui tglobaladdr:$in)>;
-  def : MaxisPat<(MaxisHi tblockaddress:$in), (Lui tblockaddress:$in)>;
-  def : MaxisPat<(MaxisHi tjumptable:$in), (Lui tjumptable:$in)>;
-  def : MaxisPat<(MaxisHi tconstpool:$in), (Lui tconstpool:$in)>;
-  def : MaxisPat<(MaxisHi tglobaltlsaddr:$in), (Lui tglobaltlsaddr:$in)>;
-  def : MaxisPat<(MaxisHi texternalsym:$in), (Lui texternalsym:$in)>;
+  def : MaxisPat<(MaxisHi tglobaladdr:$in), (Cati tglobaladdr:$in, ZeroReg)>;
+  def : MaxisPat<(MaxisHi tblockaddress:$in), (Cati tblockaddress:$in, ZeroReg)>;
+  def : MaxisPat<(MaxisHi tjumptable:$in), (Cati tjumptable:$in, ZeroReg)>;
+  def : MaxisPat<(MaxisHi tconstpool:$in), (Cati tconstpool:$in, ZeroReg)>;
+  def : MaxisPat<(MaxisHi tglobaltlsaddr:$in), (Cati tglobaltlsaddr:$in, ZeroReg)>;
+  def : MaxisPat<(MaxisHi texternalsym:$in), (Cati texternalsym:$in, ZeroReg)>;
 
   def : MaxisPat<(MaxisLo tglobaladdr:$in), (Addi ZeroReg, tglobaladdr:$in)>;
   def : MaxisPat<(MaxisLo tblockaddress:$in),
@@ -2858,10 +2873,10 @@ multiclass MaxisHiLoRelocs<Instruction Lui, Instruction Addi,
               (Addi GPROpnd:$hi, tglobaltlsaddr:$lo)>;
 }
 
-defm : MaxisHiLoRelocs<LUi, ADDi, ZERO, GPR32Opnd>;
+defm : MaxisHiLoRelocs<CATi, ADDi, ZERO, GPR32Opnd>;
 
-def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
-def : MaxisPat<(MaxisGotHi texternalsym:$in), (LUi texternalsym:$in)>;
+def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (CATi tglobaladdr:$in, ZERO)>;
+def : MaxisPat<(MaxisGotHi texternalsym:$in), (CATi texternalsym:$in, ZERO)>;
 
 // gp_rel relocs
 def : MaxisPat<(add GPR32:$gp, (MaxisGPRel tglobaladdr:$in)),

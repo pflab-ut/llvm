@@ -158,11 +158,11 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     MF.getRegInfo().addLiveIn(Maxis::T9_64);
     MBB.addLiveIn(Maxis::T9_64);
 
-    // lui $v0, %hi(%neg(%gp_rel(fname)))
+    // cati $v0, $0, %hi(%neg(%gp_rel(fname)))
     // daddu $v1, $v0, $t9
     // daddi $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
     const GlobalValue *FName = &MF.getFunction();
-    BuildMI(MBB, I, DL, TII.get(Maxis::LUi64), V0)
+    BuildMI(MBB, I, DL, TII.get(Maxis::CATi64), V0)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_HI);
     BuildMI(MBB, I, DL, TII.get(Maxis::DADDu), V1).addReg(V0)
       .addReg(Maxis::T9_64);
@@ -174,9 +174,9 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   if (!MF.getTarget().isPositionIndependent()) {
     // Set global register to __gnu_local_gp.
     //
-    // lui   $v0, %hi(__gnu_local_gp)
+    // cati   $v0, $0, %hi(__gnu_local_gp)
     // addi $globalbasereg, $v0, %lo(__gnu_local_gp)
-    BuildMI(MBB, I, DL, TII.get(Maxis::LUi), V0)
+    BuildMI(MBB, I, DL, TII.get(Maxis::CATi), V0)
       .addExternalSymbol("__gnu_local_gp", MaxisII::MO_ABS_HI);
     BuildMI(MBB, I, DL, TII.get(Maxis::ADDi), GlobalBaseReg).addReg(V0)
       .addExternalSymbol("__gnu_local_gp", MaxisII::MO_ABS_LO);
@@ -187,11 +187,11 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   MBB.addLiveIn(Maxis::T9);
 
   if (ABI.IsN32()) {
-    // lui $v0, %hi(%neg(%gp_rel(fname)))
+    // cati $v0, $0, %hi(%neg(%gp_rel(fname)))
     // addu $v1, $v0, $t9
     // addi $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
     const GlobalValue *FName = &MF.getFunction();
-    BuildMI(MBB, I, DL, TII.get(Maxis::LUi), V0)
+    BuildMI(MBB, I, DL, TII.get(Maxis::CATi), V0)
       .addGlobalAddress(FName, 0, MaxisII::MO_GPOFF_HI);
     BuildMI(MBB, I, DL, TII.get(Maxis::ADDu), V1).addReg(V0).addReg(Maxis::T9);
     BuildMI(MBB, I, DL, TII.get(Maxis::ADDi), GlobalBaseReg).addReg(V1)
@@ -204,7 +204,7 @@ void MaxisSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
   // For O32 ABI, the following instruction sequence is emitted to initialize
   // the global base register:
   //
-  //  0. lui   $2, %hi(_gp_disp)
+  //  0. cati  $2, $0, %hi(_gp_disp)
   //  1. addi $2, $2, %lo(_gp_disp)
   //  2. addu  $globalbasereg, $2, $t9
   //
@@ -376,11 +376,11 @@ bool MaxisSEDAGToDAGISel::selectAddrRegImm(SDValue Addr, SDValue &Base,
   if (Addr.getOpcode() == ISD::ADD) {
     // When loading from constant pools, load the lower address part in
     // the instruction itself. Example, instead of:
-    //  lui $2, %hi($CPI1_0)
+    //  cati $2, $0, %hi($CPI1_0)
     //  addi $2, $2, %lo($CPI1_0)
     //  lwc1 $f0, 0($2)
     // Generate:
-    //  lui $2, %hi($CPI1_0)
+    //  cati $2, $0, %hi($CPI1_0)
     //  lwc1 $f0, %lo($CPI1_0)($2)
     if (Addr.getOperand(1).getOpcode() == MaxisISD::Lo ||
         Addr.getOperand(1).getOpcode() == MaxisISD::GPRel) {
@@ -831,10 +831,10 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
     SDValue ImmOpnd = CurDAG->getTargetConstant(SignExtend64<16>(Inst->ImmOpnd),
                                                 DL, MVT::i64);
 
-    // The first instruction can be a LUi which is different from other
+    // The first instruction can be a CATi which is different from other
     // instructions (ADDi, ORI and SLLi) in that it does not have a register
     // operand.
-    if (Inst->Opc == Maxis::LUi64)
+    if (Inst->Opc == Maxis::CATi64)
       RegOpnd = CurDAG->getMachineNode(Inst->Opc, DL, MVT::i64, ImmOpnd);
     else
       RegOpnd =
@@ -1091,7 +1091,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       SDValue HiVal = CurDAG->getTargetConstant(Hi, DL, MVT::i32);
 
       if (Hi)
-        Res = CurDAG->getMachineNode(Maxis::LUi, DL, MVT::i32, HiVal);
+        Res = CurDAG->getMachineNode(Maxis::CATi, DL, MVT::i32, HiVal);
 
       if (Lo)
         Res = CurDAG->getMachineNode(Maxis::ORi, DL, MVT::i32,
@@ -1103,7 +1103,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
     } else if (SplatValue.isSignedIntN(32) && SplatBitSize == 64 &&
                (ABI.IsN32() || ABI.IsN64())) {
       // N32 and N64 can perform some tricks that O32 can't for signed 32 bit
-      // integers due to having 64bit registers. lui will cause the necessary
+      // integers due to having 64bit registers. cati will cause the necessary
       // zero/sign extension.
       const unsigned Lo = SplatValue.getLoBits(16).getZExtValue();
       const unsigned Hi = SplatValue.lshr(16).getLoBits(16).getZExtValue();
@@ -1113,7 +1113,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       SDValue HiVal = CurDAG->getTargetConstant(Hi, DL, MVT::i32);
 
       if (Hi)
-        Res = CurDAG->getMachineNode(Maxis::LUi, DL, MVT::i32, HiVal);
+        Res = CurDAG->getMachineNode(Maxis::CATi, DL, MVT::i32, HiVal);
 
       if (Lo)
         Res = CurDAG->getMachineNode(Maxis::ORi, DL, MVT::i32,
@@ -1133,9 +1133,9 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       // above:
       //
       // MAXIS32:                            MAXIS64:
-      //   lui $res, %highest(val)            lui $res, %highest(val)
+      //   cati $res, $0, %highest(val)       cati $res, $0, %highest(val)
       //   ori $res, $res, %higher(val)       ori $res, $res, %higher(val)
-      //   lui $res2, %hi(val)                lui $res2, %hi(val)
+      //   cati $res2, $0, %hi(val)           cati $res2, $0, %hi(val)
       //   ori $res2, %res2, %lo(val)         ori $res2, %res2, %lo(val)
       //   $res3 = fill $res2                 dinsu $res, $res2, 0, 32
       //   $res4 = insert.w $res3[1], $res    fill.d $res
@@ -1178,11 +1178,11 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
       // FIXME: This is the general constant synthesis problem. This code
       //        should be factored out into a class shared between all the
       //        classes that need it. Specifically, for a splat size of 64
-      //        bits that's a negative number we can do better than LUi/ORi
+      //        bits that's a negative number we can do better than CATi/ORi
       //        for the upper 32bits.
 
       if (Hi)
-        Res = CurDAG->getMachineNode(Maxis::LUi, DL, MVT::i32, HiVal);
+        Res = CurDAG->getMachineNode(Maxis::CATi, DL, MVT::i32, HiVal);
 
       if (Lo)
         Res = CurDAG->getMachineNode(Maxis::ORi, DL, MVT::i32,
@@ -1190,7 +1190,7 @@ bool MaxisSEDAGToDAGISel::trySelect(SDNode *Node) {
 
       SDNode *HiRes;
       if (Highest)
-        HiRes = CurDAG->getMachineNode(Maxis::LUi, DL, MVT::i32, HighestVal);
+        HiRes = CurDAG->getMachineNode(Maxis::CATi, DL, MVT::i32, HighestVal);
 
       if (Higher)
         HiRes = CurDAG->getMachineNode(Maxis::ORi, DL, MVT::i32,

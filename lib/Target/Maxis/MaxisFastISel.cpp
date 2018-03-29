@@ -375,10 +375,10 @@ unsigned MaxisFastISel::materialize32BitInt(int64_t Imm,
   if (Lo) {
     // Both Lo and Hi have nonzero bits.
     unsigned TmpReg = createResultReg(RC);
-    emitInst(Maxis::LUi, TmpReg).addImm(Hi);
+    emitInst(Maxis::CATi, TmpReg).addReg(Maxis::ZERO).addImm(Hi);
     emitInst(Maxis::ORi, ResultReg).addReg(TmpReg).addImm(Lo);
   } else {
-    emitInst(Maxis::LUi, ResultReg).addImm(Hi);
+    emitInst(Maxis::CATi, ResultReg).addReg(Maxis::ZERO).addImm(Hi);
   }
   return ResultReg;
 }

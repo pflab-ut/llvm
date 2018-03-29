@@ -321,7 +321,7 @@ class SLTI_FM_MM<bits<6> op> : MMArch {
   let Inst{15-0}  = imm16;
 }
 
-class LUI_FM_MM : MMArch {
+class CATI_FM_MM : MMArch {
   bits<5> rt;
   bits<16> imm16;
 

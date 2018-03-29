@@ -2677,14 +2677,14 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       // Traditional behaviour seems to special case this particular value. It's
       // not clear why other masks are handled differently.
       if (ImmValue == 0xffffffff) {
-        TOut.emitRI(Maxis::LUi, TmpReg, 0xffff, IDLoc, STI);
+        TOut.emitRRI(Maxis::CATi, TmpReg, ZeroReg, 0xffff, IDLoc, STI);
         TOut.emitRRI(Maxis::DSRLi32, TmpReg, TmpReg, 0, IDLoc, STI);
         if (UseSrcReg)
           TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
         return false;
       }
 
-      // Expand to an ORi instead of a LUi to avoid sign-extending into the
+      // Expand to an ORi instead of a CATi to avoid sign-extending into the
       // upper 32 bits.
       TOut.emitRRI(Maxis::ORi, TmpReg, ZeroReg, Bits31To16, IDLoc, STI);
       TOut.emitRRI(Maxis::DSLLi, TmpReg, TmpReg, 16, IDLoc, STI);
@@ -2695,7 +2695,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       return false;
     }
 
-    TOut.emitRI(Maxis::LUi, TmpReg, Bits31To16, IDLoc, STI);
+    TOut.emitRRI(Maxis::CATi, TmpReg, ZeroReg, Bits31To16, IDLoc, STI);
     if (Bits15To0)
       TOut.emitRRI(Maxis::ORi, TmpReg, TmpReg, Bits15To0, IDLoc, STI);
     if (UseSrcReg)
@@ -3008,7 +3008,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       //                        dslli   $at, $at, 16
       //                        daddi $at, $at, %lo(sym)
       //                        daddu  $rd, $at, $rd
-      TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HighestExpr), IDLoc,
+      TOut.emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
@@ -3035,9 +3035,9 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       //                            (daddu  $rd, $rd, $rs)
       //
       // Which is preferred for superscalar issue.
-      TOut.emitRX(Maxis::LUi, DstReg, MCOperand::createExpr(HighestExpr), IDLoc,
+      TOut.emitRRX(Maxis::CATi, DstReg, Maxis::ZERO, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
-      TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HiExpr), IDLoc, STI);
+      TOut.emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, MCOperand::createExpr(HiExpr), IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg, MCOperand::createExpr(LoExpr),
@@ -3057,7 +3057,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       //                            daddi $rd, $rd, %hi(sym)
       //                            dslli   $rd, $rd, 16
       //                            daddi $rd, $rd, %lo(sym)
-      TOut.emitRX(Maxis::LUi, DstReg, MCOperand::createExpr(HighestExpr), IDLoc,
+      TOut.emitRRX(Maxis::CATi, DstReg, Maxis::ZERO, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, DstReg, DstReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
@@ -3102,7 +3102,7 @@ bool MaxisAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
     TmpReg = ATReg;
   }
 
-  TOut.emitRX(Maxis::LUi, TmpReg, MCOperand::createExpr(HiExpr), IDLoc, STI);
+  TOut.emitRRX(Maxis::CATi, TmpReg, Maxis::ZERO, MCOperand::createExpr(HiExpr), IDLoc, STI);
   TOut.emitRRX(Maxis::ADDi, TmpReg, TmpReg, MCOperand::createExpr(LoExpr),
                IDLoc, STI);
 
@@ -3212,7 +3212,7 @@ bool MaxisAsmParser::emitPartialAddress(MaxisTargetStreamer &TOut, SMLoc IDLoc,
     // use the O32 / N32 case. It's safe to use the 64 address expansion as the
     // symbol's value is considered sign extended.
     if(isABI_O32() || isABI_N32()) {
-      TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HiExpr), IDLoc, STI);
+      TOut.emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, MCOperand::createExpr(HiExpr), IDLoc, STI);
     } else { //isABI_N64()
       const MCExpr *HighestSym =
           MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
@@ -3223,7 +3223,7 @@ bool MaxisAsmParser::emitPartialAddress(MaxisTargetStreamer &TOut, SMLoc IDLoc,
       const MaxisMCExpr *HigherExpr =
           MaxisMCExpr::create(MaxisMCExpr::MEK_HIGHER, HigherSym, getContext());
 
-      TOut.emitRX(Maxis::LUi, ATReg, MCOperand::createExpr(HighestExpr), IDLoc,
+      TOut.emitRRX(Maxis::CATi, ATReg, Maxis::ZERO, MCOperand::createExpr(HighestExpr), IDLoc,
                   STI);
       TOut.emitRRX(Maxis::DADDi, ATReg, ATReg,
                    MCOperand::createExpr(HigherExpr), IDLoc, STI);
@@ -4056,7 +4056,7 @@ bool MaxisAsmParser::expandDiv(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     TOut.emitRRI(Maxis::ADDi, ATReg, ZeroReg, 1, IDLoc, STI);
     TOut.emitRRI(Maxis::DSLLi32, ATReg, ATReg, 0x1f, IDLoc, STI);
   } else {
-    TOut.emitRI(Maxis::LUi, ATReg, (uint16_t)0x8000, IDLoc, STI);
+    TOut.emitRRI(Maxis::CATi, ATReg, ZeroReg, (uint16_t)0x8000, IDLoc, STI);
   }
 
   if (UseTraps)

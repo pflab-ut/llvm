@@ -213,8 +213,8 @@ MCOperand MaxisMCInstLower::createSub(MachineBasicBlock *BB1,
 }
 
 void MaxisMCInstLower::
-lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const {
-  OutMI.setOpcode(Maxis::LUi);
+lowerLongBranchCATi(const MachineInstr *MI, MCInst &OutMI) const {
+  OutMI.setOpcode(Maxis::CATi);
 
   // Lower register operand.
   OutMI.addOperand(LowerOperand(MI->getOperand(0)));
@@ -246,8 +246,8 @@ bool MaxisMCInstLower::lowerLongBranch(const MachineInstr *MI,
   switch (MI->getOpcode()) {
   default:
     return false;
-  case Maxis::LONG_BRANCH_LUi:
-    lowerLongBranchLUi(MI, OutMI);
+  case Maxis::LONG_BRANCH_CATi:
+    lowerLongBranchCATi(MI, OutMI);
     return true;
   case Maxis::LONG_BRANCH_ADDi:
     lowerLongBranchADDi(MI, OutMI, Maxis::ADDi, MaxisMCExpr::MEK_LO);

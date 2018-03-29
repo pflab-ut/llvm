@@ -110,7 +110,8 @@ def ORi64   : ArithLogicI<"ori", uimm16_64, GPR64Opnd, II_OR, immZExt16, or>,
               ADDI_FM<0xd>;
 def XORi64  : ArithLogicI<"xori", uimm16_64, GPR64Opnd, II_XOR, immZExt16, xor>,
               ADDI_FM<0xe>;
-def LUi64   : LoadUpper<"lui", GPR64Opnd, uimm16_64_relaxed>, LUI_FM;
+def CATi64  : ArithLogicI<"cati", uimm16_64, GPR64Opnd, II_CATI, immZExt16, cati>,
+              ADDI_FM<0xf>;
 }
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -538,7 +539,7 @@ def DMTC2 : MTC3OP<"dmtc2", COP2Opnd, GPR64Opnd, II_DMTC2>, MFC3OP_FM<0x12, 5>,
 //===----------------------------------------------------------------------===//
 
 // Materialize i64 constants.
-defm : MaterializeImms<i64, ZERO_64, DADDi, LUi64, ORi64>;
+defm : MaterializeImms<i64, ZERO_64, DADDi, CATi64, ORi64>;
 
 def : MaxisPat<(i64 immZExt32Low16Zero:$imm),
               (DSLLi (ORi64 ZERO_64, (HI16 imm:$imm)), 16)>;
@@ -555,28 +556,29 @@ def : MaxisPat<(i64 (extloadi32 addr:$src)), (LW64 addr:$src)>;
 
 // hi/lo relocs
 let AdditionalPredicates = [NotInMicroMaxis] in
-defm : MaxisHiLoRelocs<LUi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
+defm : MaxisHiLoRelocs<CATi64, DADDi, ZERO_64, GPR64Opnd>, SYM_32;
 
-def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (LUi64 tglobaladdr:$in)>;
-def : MaxisPat<(MaxisGotHi texternalsym:$in), (LUi64 texternalsym:$in)>;
+def : MaxisPat<(MaxisGotHi tglobaladdr:$in), (CATi64 ZERO_64, tglobaladdr:$in)>;
+def : MaxisPat<(MaxisGotHi texternalsym:$in), (CATi64 ZERO_64, texternalsym:$in)>;
 
 // highest/higher/hi/lo relocs
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(MaxisJmpLink (i64 texternalsym:$dst)),
                 (JAL texternalsym:$dst)>, SYM_64;
+/*                
   def : MaxisPat<(MaxisHighest (i64 tglobaladdr:$in)),
-                (LUi64 tglobaladdr:$in)>, SYM_64;
+                (CATi64 tglobaladdr:$in)>, SYM_64;
   def : MaxisPat<(MaxisHighest (i64 tblockaddress:$in)),
-                (LUi64 tblockaddress:$in)>, SYM_64;
+                (CATi64 tblockaddress:$in)>, SYM_64;
   def : MaxisPat<(MaxisHighest (i64 tjumptable:$in)),
-                (LUi64 tjumptable:$in)>, SYM_64;
+                (CATi64 tjumptable:$in)>, SYM_64;
   def : MaxisPat<(MaxisHighest (i64 tconstpool:$in)),
-                (LUi64 tconstpool:$in)>, SYM_64;
+                (CATi64 tconstpool:$in)>, SYM_64;
   def : MaxisPat<(MaxisHighest (i64 tglobaltlsaddr:$in)),
-                (LUi64 tglobaltlsaddr:$in)>, SYM_64;
+                (CATi64 tglobaltlsaddr:$in)>, SYM_64;
   def : MaxisPat<(MaxisHighest (i64 texternalsym:$in)),
-                (LUi64 texternalsym:$in)>, SYM_64;
-
+                (CATi64 texternalsym:$in)>, SYM_64;
+*/
   def : MaxisPat<(MaxisHigher (i64 tglobaladdr:$in)),
                 (DADDi ZERO_64, tglobaladdr:$in)>, SYM_64;
   def : MaxisPat<(MaxisHigher (i64 tblockaddress:$in)),
