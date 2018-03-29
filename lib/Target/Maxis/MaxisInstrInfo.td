@@ -109,10 +109,12 @@ def MaxisMult  : SDNode<"MaxisISD::Mult", SDT_MaxisMultDiv>;
 def MaxisMultu : SDNode<"MaxisISD::Multu", SDT_MaxisMultDiv>;
 
 // MAdd*/MSub* nodes
+/*
 def MaxisMAdd  : SDNode<"MaxisISD::MAdd", SDT_MaxisMAddMSub>;
 def MaxisMAddu : SDNode<"MaxisISD::MAddu", SDT_MaxisMAddMSub>;
 def MaxisMSub  : SDNode<"MaxisISD::MSub", SDT_MaxisMAddMSub>;
 def MaxisMSubu : SDNode<"MaxisISD::MSubu", SDT_MaxisMAddMSub>;
+*/
 
 // DivRem(u) nodes
 def MaxisDivRem    : SDNode<"MaxisISD::DivRem", SDT_MaxisMultDiv>;
@@ -2243,6 +2245,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 def LEA_ADDi : MMRel, EffectiveAddress<"addi", GPR32Opnd>, LW_FM<9>;
 
 // MADD*/MSUB*
+/*
 def MADD  : MMRel, MArithR<"madd", II_MADD, 1>, MULT_FM<0x1c, 0>,
             ISA_MAXIS32_NOT_32R6_64R6;
 def MADDU : MMRel, MArithR<"maddu", II_MADDU, 1>, MULT_FM<0x1c, 1>,
@@ -2251,6 +2254,7 @@ def MSUB  : MMRel, MArithR<"msub", II_MSUB>, MULT_FM<0x1c, 4>,
             ISA_MAXIS32_NOT_32R6_64R6;
 def MSUBU : MMRel, MArithR<"msubu", II_MSUBU>, MULT_FM<0x1c, 5>,
             ISA_MAXIS32_NOT_32R6_64R6;
+*/
 
 let AdditionalPredicates = [NotDSP] in {
 def PseudoMULT  : MultDivPseudo<MULT, ACC64, GPR32Opnd, MaxisMult, II_MULT>,
@@ -2260,6 +2264,7 @@ def PseudoMULTu : MultDivPseudo<MULTu, ACC64, GPR32Opnd, MaxisMultu, II_MULTU>,
 def PseudoMFHI : PseudoMFLOHI<GPR32, ACC64, MaxisMFHI>, ISA_MAXIS1_NOT_32R6_64R6;
 def PseudoMFLO : PseudoMFLOHI<GPR32, ACC64, MaxisMFLO>, ISA_MAXIS1_NOT_32R6_64R6;
 def PseudoMTLOHI : PseudoMTLOHI<ACC64, GPR32>, ISA_MAXIS1_NOT_32R6_64R6;
+/*
 def PseudoMADD  : MAddSubPseudo<MADD, MaxisMAdd, II_MADD>,
                   ISA_MAXIS32_NOT_32R6_64R6;
 def PseudoMADDU : MAddSubPseudo<MADDU, MaxisMAddu, II_MADDU>,
@@ -2268,6 +2273,7 @@ def PseudoMSUB  : MAddSubPseudo<MSUB, MaxisMSub, II_MSUB>,
                   ISA_MAXIS32_NOT_32R6_64R6;
 def PseudoMSUBU : MAddSubPseudo<MSUBU, MaxisMSubu, II_MSUBU>,
                   ISA_MAXIS32_NOT_32R6_64R6;
+*/
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {

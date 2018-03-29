@@ -74,10 +74,12 @@ def MaxisMULSA_W_PH : MaxisDSPBase<"MULSA_W_PH", SDT_MaxisDPA>;
 
 def MaxisMULT : MaxisDSPBase<"MULT", SDT_MaxisDPA>;
 def MaxisMULTU : MaxisDSPBase<"MULTU", SDT_MaxisDPA>;
+/*
 def MaxisMADD_DSP : MaxisDSPBase<"MADD_DSP", SDT_MaxisDPA>;
 def MaxisMADDU_DSP : MaxisDSPBase<"MADDU_DSP", SDT_MaxisDPA>;
 def MaxisMSUB_DSP : MaxisDSPBase<"MSUB_DSP", SDT_MaxisDPA>;
 def MaxisMSUBU_DSP : MaxisDSPBase<"MSUBU_DSP", SDT_MaxisDPA>;
+*/
 def MaxisSHLL_DSP : MaxisDSPBase<"SHLL_DSP", SDT_MaxisSHIFT_DSP>;
 def MaxisSHRA_DSP : MaxisDSPBase<"SHRA_DSP", SDT_MaxisSHIFT_DSP>;
 def MaxisSHRL_DSP : MaxisDSPBase<"SHRL_DSP", SDT_MaxisSHIFT_DSP>;
@@ -798,10 +800,12 @@ class DPSQ_SA_L_W_DESC : DPA_W_PH_DESC_BASE<"dpsq_sa.l.w", MaxisDPSQ_SA_L_W>,
 
 class MULT_DSP_DESC  : MULT_DESC_BASE<"mult", MaxisMult, NoItinerary>;
 class MULTU_DSP_DESC : MULT_DESC_BASE<"multu", MaxisMultu, NoItinerary>;
+/*
 class MADD_DSP_DESC  : MADD_DESC_BASE<"madd", MaxisMAdd, NoItinerary>;
 class MADDU_DSP_DESC : MADD_DESC_BASE<"maddu", MaxisMAddu, NoItinerary>;
 class MSUB_DSP_DESC  : MADD_DESC_BASE<"msub", MaxisMSub, NoItinerary>;
 class MSUBU_DSP_DESC : MADD_DESC_BASE<"msubu", MaxisMSubu, NoItinerary>;
+*/
 
 // Comparison
 class CMPU_EQ_QB_DESC : CMP_EQ_QB_R2_DESC_BASE<"cmpu.eq.qb",
@@ -1177,10 +1181,12 @@ def DPAQ_SA_L_W : DspMMRel, DPAQ_SA_L_W_ENC, DPAQ_SA_L_W_DESC;
 def DPSQ_SA_L_W : DspMMRel, DPSQ_SA_L_W_ENC, DPSQ_SA_L_W_DESC;
 def MULT_DSP : DspMMRel, MULT_DSP_ENC, MULT_DSP_DESC;
 def MULTU_DSP : DspMMRel, MULTU_DSP_ENC, MULTU_DSP_DESC;
+/*
 def MADD_DSP : DspMMRel, MADD_DSP_ENC, MADD_DSP_DESC;
 def MADDU_DSP : DspMMRel, MADDU_DSP_ENC, MADDU_DSP_DESC;
 def MSUB_DSP : DspMMRel, MSUB_DSP_ENC, MSUB_DSP_DESC;
 def MSUBU_DSP : DspMMRel, MSUBU_DSP_ENC, MSUBU_DSP_DESC;
+*/
 def CMPU_EQ_QB : DspMMRel, CMPU_EQ_QB_ENC, CMPU_EQ_QB_DESC;
 def CMPU_LT_QB : DspMMRel, CMPU_LT_QB_ENC, CMPU_LT_QB_DESC;
 def CMPU_LE_QB : DspMMRel, CMPU_LE_QB_ENC, CMPU_LE_QB_DESC;
