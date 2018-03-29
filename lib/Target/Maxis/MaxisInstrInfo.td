@@ -2581,7 +2581,7 @@ def : MaxisInstAlias<"sgez $rd, $rs", (SGE GPR32Opnd:$rd, GPR32Opnd:$rs, ZERO), 
 def : MaxisInstAlias<"sle $rd, $rs, $rt", (SGE GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
 def : MaxisInstAlias<"slez $rd, $rt", (SGE GPR32Opnd:$rd, ZERO, GPR32Opnd:$rt), 0>;
 def : MaxisInstAlias<"sleu $rd, $rs, $rt", (SGEu GPR32Opnd:$rd, GPR32Opnd:$rt, GPR32Opnd:$rs), 0>;
-def : MaxisInstAlias<"cati $rd, $imm", (CATi GPR32Opnd:$rd, ZERO, uimm16:$imm), 0>;
+def : MaxisInstAlias<"lui $rd, $imm", (CATi GPR32Opnd:$rd, ZERO, uimm16:$imm), 0>;
 
 
 
