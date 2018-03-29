@@ -4430,7 +4430,7 @@ bool MaxisAsmParser::expandRotation(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     }
 
     if (Inst.getOpcode() == Maxis::ROL) {
-      TOut.emitRRR(Maxis::SUBu, TmpReg, Maxis::ZERO, TReg, Inst.getLoc(), STI);
+      TOut.emitRRR(Maxis::SUB, TmpReg, Maxis::ZERO, TReg, Inst.getLoc(), STI);
       TOut.emitRRR(Maxis::ROTRV, DReg, SReg, TmpReg, Inst.getLoc(), STI);
       return false;
     }
@@ -4461,7 +4461,7 @@ bool MaxisAsmParser::expandRotation(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     if (!ATReg)
       return true;
 
-    TOut.emitRRR(Maxis::SUBu, ATReg, Maxis::ZERO, TReg, Inst.getLoc(), STI);
+    TOut.emitRRR(Maxis::SUB, ATReg, Maxis::ZERO, TReg, Inst.getLoc(), STI);
     TOut.emitRRR(FirstShift, ATReg, SReg, ATReg, Inst.getLoc(), STI);
     TOut.emitRRR(SecondShift, DReg, SReg, TReg, Inst.getLoc(), STI);
     TOut.emitRRR(Maxis::OR, DReg, DReg, ATReg, Inst.getLoc(), STI);

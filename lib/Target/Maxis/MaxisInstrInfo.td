@@ -1901,9 +1901,9 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 /*
   def ADDu  : MMRel, StdMMR6Rel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
               ADD_FM<0, 0x1d>;
-*/              
   def SUBu  : MMRel, StdMMR6Rel, ArithLogicR<"subu", GPR32Opnd, 0, II_SUBU, sub>,
               ADD_FM<0, 0x1d>;
+*/              
 }
 let Defs = [HI0, LO0] in
 def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
@@ -1918,7 +1918,7 @@ def REM   : MMRel, ArithLogicR<"rem", GPR32Opnd, 1, II_REM, srem>,
 def REMu  : MMRel, ArithLogicR<"remu", GPR32Opnd, 1, II_REM, urem>,
             ADD_FM<0x2, 0x6>, ISA_MAXIS32_NOT_32R6_64R6;
 def ADD   : MMRel, StdMMR6Rel, ArithLogicR<"add", GPR32Opnd, 1, II_ADD, add>, ADD_FM<0x4, 0x8>;
-def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB>, ADD_FM<0x4, 0x9>;
+def SUB   : MMRel, StdMMR6Rel, ArithLogicR<"sub", GPR32Opnd, 0, II_SUB, sub>, ADD_FM<0x4, 0x9>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SEQ   : MMRel, SetCC_R<"seq", seteq, GPR32Opnd>, ADD_FM<0x5, 0x10>;
   def SNE   : MMRel, SetCC_R<"sne", seteq, GPR32Opnd>, ADD_FM<0x5, 0x11>;
@@ -2519,10 +2519,12 @@ def : MaxisInstAlias<"neg $rt, $rs",
                     (SUB GPR32Opnd:$rt, ZERO, GPR32Opnd:$rs), 1>;
 def : MaxisInstAlias<"neg $rt",
                     (SUB GPR32Opnd:$rt, ZERO, GPR32Opnd:$rt), 1>;
+/*
 def : MaxisInstAlias<"negu $rt, $rs",
                     (SUBu GPR32Opnd:$rt, ZERO, GPR32Opnd:$rs), 1>;
 def : MaxisInstAlias<"negu $rt",
                     (SUBu GPR32Opnd:$rt, ZERO, GPR32Opnd:$rt), 1>;
+*/
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<
           "sgt $rd, $rs, $rt",
@@ -2607,11 +2609,13 @@ def : MaxisInstAlias<"sub, $rd, $rs, $imm",
 def : MaxisInstAlias<"sub $rs, $imm",
                     (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs, InvertedImOperand:$imm),
                     0>, ISA_MAXIS1_NOT_32R6_64R6;
+/*
 def : MaxisInstAlias<"subu, $rd, $rs, $imm",
                     (ADDi GPR32Opnd:$rd, GPR32Opnd:$rs,
                            InvertedImOperand:$imm), 0>;
 def : MaxisInstAlias<"subu $rs, $imm", (ADDi GPR32Opnd:$rs, GPR32Opnd:$rs,
                                              InvertedImOperand:$imm), 0>;
+*/
 def : MaxisInstAlias<"li $rs, $imm",
                     (ADDi GPR32Opnd:$rs, ZERO, uimm16:$imm), 0>;
 def : MaxisInstAlias<"liu $rd, $imm", (ORi GPR32Opnd:$rd, ZERO,
@@ -2856,11 +2860,11 @@ let AdditionalPredicates = [NotInMicroMaxis] in
   defm : MaterializeImms<i32, ZERO, ADDi, CATi, ORi>;
 
 // Carry MaxisPatterns
+/*
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisPat<(subc GPR32:$lhs, GPR32:$rhs),
                 (SUBu GPR32:$lhs, GPR32:$rhs)>;
 }
-/*
 def : MaxisPat<(addc GPR32:$lhs, GPR32:$rhs),
               (ADDu GPR32:$lhs, GPR32:$rhs)>, ASE_NOT_DSP;
 */

@@ -1350,11 +1350,11 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
     return emitAtomicBinary(MI, BB, 8, 0, true);
 
   case Maxis::ATOMIC_LOAD_SUB_I8:
-    return emitAtomicBinaryPartword(MI, BB, 1, Maxis::SUBu);
+    return emitAtomicBinaryPartword(MI, BB, 1, Maxis::SUB);
   case Maxis::ATOMIC_LOAD_SUB_I16:
-    return emitAtomicBinaryPartword(MI, BB, 2, Maxis::SUBu);
+    return emitAtomicBinaryPartword(MI, BB, 2, Maxis::SUB);
   case Maxis::ATOMIC_LOAD_SUB_I32:
-    return emitAtomicBinary(MI, BB, 4, Maxis::SUBu);
+    return emitAtomicBinary(MI, BB, 4, Maxis::SUB);
   case Maxis::ATOMIC_LOAD_SUB_I64:
     return emitAtomicBinary(MI, BB, 8, Maxis::DSUBu);
 

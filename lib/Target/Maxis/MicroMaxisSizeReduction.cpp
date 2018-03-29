@@ -218,7 +218,7 @@ llvm::SmallVector<ReduceEntry, 16> MicroMaxisSizeReduce::ReduceTable = {
      OpInfo(OT_OperandsAll), ImmField(1, 0, 16, 2)},
     {RT_OneInstr, OpCodes(Maxis::SH_MM, Maxis::SH16_MM), ReduceSXtoSX16,
      OpInfo(OT_OperandsAll), ImmField(1, 0, 16, 2)},
-    {RT_OneInstr, OpCodes(Maxis::SUBu, Maxis::SUBU16_MM),
+    {RT_OneInstr, OpCodes(Maxis::SUB, Maxis::SUBU16_MM),
      ReduceArithmeticInstructions, OpInfo(OT_OperandsAll),
      ImmField(0, 0, 0, -1)},
     {RT_OneInstr, OpCodes(Maxis::SUBu_MM, Maxis::SUBU16_MM),

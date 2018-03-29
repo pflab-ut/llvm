@@ -69,7 +69,7 @@ public:
   unsigned GetZeroReg() const;
   unsigned GetPtrAddOp() const;
   unsigned GetPtrAddiOp() const;
-  unsigned GetPtrSubuOp() const;
+  unsigned GetPtrSubOp() const;
   unsigned GetPtrAndOp() const;
   unsigned GetGPRMoveOp() const;
   inline bool ArePtrs64bit() const { return IsN64(); }

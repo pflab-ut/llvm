@@ -483,7 +483,7 @@ void MaxisSEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
     // then add or subtract it from sp.
     unsigned Opc = ABI.GetPtrAddOp();
     if (Amount < 0) {
-      Opc = ABI.GetPtrSubuOp();
+      Opc = ABI.GetPtrSubOp();
       Amount = -Amount;
     }
     unsigned Reg = loadImmediate(Amount, MBB, I, DL, nullptr);
