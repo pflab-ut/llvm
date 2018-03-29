@@ -2366,7 +2366,7 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     //  case Maxis::BLTU:
   case Maxis::BLEU:
     //  case Maxis::BGEU:
-  case Maxis::BGTU:
+    //  case Maxis::BGTU:
   case Maxis::BLTL:
   case Maxis::BLEL:
   case Maxis::BGEL:
@@ -3696,9 +3696,11 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     case Maxis::BGEUImmMacro:
       PseudoOpcode = Maxis::BGEU;
       break;
+      /*
     case Maxis::BGTUImmMacro:
       PseudoOpcode = Maxis::BGTU;
       break;
+      */
     case Maxis::BLTLImmMacro:
       PseudoOpcode = Maxis::BLTL;
       break;
@@ -3767,12 +3769,13 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ZeroTrgOpcode = Maxis::BGEZ;
     break;
     //  case Maxis::BGT:
-  case Maxis::BGTU:
+    //  case Maxis::BGTU:
   case Maxis::BGTL:
   case Maxis::BGTUL:
     AcceptsEquality = false;
     ReverseOrderSLT = true;
-    IsUnsigned = ((PseudoOpcode == Maxis::BGTU) || (PseudoOpcode == Maxis::BGTUL));
+    //    IsUnsigned = ((PseudoOpcode == Maxis::BGTU) || (PseudoOpcode == Maxis::BGTUL));
+    IsUnsigned = false;
     IsLikely = ((PseudoOpcode == Maxis::BGTL) || (PseudoOpcode == Maxis::BGTUL));
     //    ZeroSrcOpcode = Maxis::BLTZ;
     ZeroSrcOpcode = Maxis::BLT;
@@ -3817,11 +3820,13 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       return false;
     }
     */
+    /*
     if (PseudoOpcode == Maxis::BGTU) {
       TOut.emitRRX(Maxis::BNE, Maxis::ZERO, Maxis::ZERO,
                    MCOperand::createExpr(OffsetExpr), IDLoc, STI);
       return false;
     }
+    */
     if (AcceptsEquality) {
       // If both registers are $0 and the pseudo-branch accepts equality, it
       // will always be taken, so we emit an unconditional branch.
@@ -3835,10 +3840,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     return false;
   }
   if (IsSrcRegZero || IsTrgRegZero) {
+    /*
     if ((IsSrcRegZero && PseudoOpcode == Maxis::BGTU)
-        /* ||
-        (IsTrgRegZero && PseudoOpcode == Maxis::BLTU)
-        */
+         ||
+         (IsTrgRegZero && PseudoOpcode == Maxis::BLTU)
         ) {
       // If the $rs is $0 and the pseudo-branch is BGTU (0 > x) or
       // if the $rt is $0 and the pseudo-branch is BLTU (x < 0),
@@ -3846,6 +3851,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       // This only applies to unsigned pseudo-branches.
       return false;
     }
+    */
     if ((IsSrcRegZero && PseudoOpcode == Maxis::BLEU)
         /* ||
         (IsTrgRegZero && PseudoOpcode == Maxis::BGEU)
