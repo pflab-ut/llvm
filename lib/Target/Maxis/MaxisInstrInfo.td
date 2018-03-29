@@ -1479,7 +1479,8 @@ class JumpFJ<DAGOperand opnd, string opstr, SDPatternOperator operator,
   let isTerminator=1;
   let isBarrier=1;
   let hasDelaySlot = 0;
-  let DecoderMethod = "DecodeJumpTarget";
+//  let DecoderMethod = "DecodeJumpTarget";
+  let DecoderMethod = "DecodeJumpAndLinkTarget";
   let Defs = [AT];
   bit isCTI = 1;
 }
@@ -1515,7 +1516,8 @@ let isCall=1, hasDelaySlot=0, isCTI=1, Defs = [RA] in {
   class JumpLink<string opstr, DAGOperand opnd> :
     InstSE<(outs), (ins opnd:$target), !strconcat(opstr, "\t$target"),
            [(MaxisJmpLink tglobaladdr:$target)], II_JAL, FrmJ, opstr> {
-    let DecoderMethod = "DecodeJumpTarget";
+//    let DecoderMethod = "DecodeJumpTarget";
+    let DecoderMethod = "DecodeJumpAndLinkTarget";
   }
 
   class JumpLinkRegPseudo<RegisterOperand RO, Instruction JALRInst,

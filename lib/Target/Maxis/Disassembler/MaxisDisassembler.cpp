@@ -217,6 +217,11 @@ static DecodeStatus DecodeJumpTarget(MCInst &Inst,
                                      uint64_t Address,
                                      const void *Decoder);
 
+static DecodeStatus DecodeJumpAndLinkTarget(MCInst &Inst,
+                                            unsigned Insn,
+                                            uint64_t Address,
+                                            const void *Decoder);
+
 static DecodeStatus DecodeBranchTarget21(MCInst &Inst,
                                          unsigned Offset,
                                          uint64_t Address,
@@ -2221,6 +2226,16 @@ static DecodeStatus DecodeJumpTarget(MCInst &Inst,
                                      uint64_t Address,
                                      const void *Decoder) {
   unsigned JumpOffset = fieldFromInstruction(Insn, 0, 26) << 2;
+  Inst.addOperand(MCOperand::createImm(JumpOffset));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeJumpAndLinkTarget(MCInst &Inst,
+                                            unsigned Insn,
+                                            uint64_t Address,
+                                            const void *Decoder) {
+  unsigned JumpOffset = (fieldFromInstruction(Insn, 0, 16)
+                         | (fieldFromInstruction(Insn, 21, 5) << 16)) << 2;
   Inst.addOperand(MCOperand::createImm(JumpOffset));
   return MCDisassembler::Success;
 }
