@@ -2289,10 +2289,12 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 }
 /// Move Control Registers From/To CPU Registers
 let AdditionalPredicates = [NotInMicroMaxis] in {
+/*
   def MTC0 : MTC3OP<"mtc0", COP0Opnd, GPR32Opnd, II_MTC0>, MFC3OP_FM<0x10, 4>,
              ISA_MAXIS32;
   def MFC0 : MFC3OP<"mfc0", GPR32Opnd, COP0Opnd, II_MFC0>, MFC3OP_FM<0x10, 0>,
              ISA_MAXIS32;
+*/
   def MTS  : MTS2OP<"mts", GPR32Opnd, COP0Opnd, II_MTC0>, MTS_FM<0x3, 0x2>,
              ISA_MAXIS32;
   def MFS  : MFS2OP<"mfs", GPR32Opnd, COP0Opnd, II_MFC0>, MFS_FM<0x3, 0x3>,
@@ -2560,10 +2562,12 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"sltu", SLTiu>, GPR_32;
 }
+/*
 def : MaxisInstAlias<"mfc0 $rt, $rd", (MFC0 GPR32Opnd:$rt, COP0Opnd:$rd, 0), 0>;
 def : MaxisInstAlias<"mtc0 $rt, $rd", (MTC0 COP0Opnd:$rd, GPR32Opnd:$rt, 0), 0>;
 def : MaxisInstAlias<"mfc2 $rt, $rd", (MFC2 GPR32Opnd:$rt, COP2Opnd:$rd, 0), 0>;
 def : MaxisInstAlias<"mtc2 $rt, $rd", (MTC2 COP2Opnd:$rd, GPR32Opnd:$rt, 0), 0>;
+*/
 let AdditionalPredicates = [NotInMicroMaxis] in {
 def : MaxisInstAlias<"b $offset", (BEQ ZERO, ZERO, brtarget:$offset), 0>;
 }

@@ -472,14 +472,18 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def CFC1 : MMRel, MFC1_FT<"cfc1", GPR32Opnd, CCROpnd, II_CFC1>, MFC1_FM<2>;
   def CTC1 : MMRel, MTC1_FT<"ctc1", CCROpnd, GPR32Opnd, II_CTC1>, MFC1_FM<6>;
 }
+/*
 def MFC1 : MMRel, MFC1_FT<"mfc1", GPR32Opnd, FGR32Opnd, II_MFC1,
                           bitconvert>, MFC1_FM<0>;
+*/
 def MFC1_D64 : MFC1_FT<"mfc1", GPR32Opnd, FGR64Opnd, II_MFC1>, MFC1_FM<0>,
                FGR_64 {
   let DecoderNamespace = "MaxisFP64";
 }
+/*
 def MTC1 : MMRel, MTC1_FT<"mtc1", FGR32Opnd, GPR32Opnd, II_MTC1,
                           bitconvert>, MFC1_FM<4>;
+*/
 def MTC1_D64 : MTC1_FT<"mtc1", FGR64Opnd, GPR32Opnd, II_MTC1>, MFC1_FM<4>,
                FGR_64 {
   let DecoderNamespace = "MaxisFP64";
@@ -844,8 +848,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 //===----------------------------------------------------------------------===//
 // Floating Point Patterns
 //===----------------------------------------------------------------------===//
+/*
 def : MaxisPat<(f32 fpimm0), (MTC1 ZERO)>;
 def : MaxisPat<(f32 fpimm0neg), (FNEG_S (MTC1 ZERO))>;
+*/
 
 def : MaxisPat<(f32 (sint_to_fp GPR32Opnd:$src)),
               (PseudoCVT_S_W GPR32Opnd:$src)>;

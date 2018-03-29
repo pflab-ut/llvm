@@ -391,7 +391,7 @@ unsigned MaxisFastISel::materializeFP(const ConstantFP *CFP, MVT VT) {
     const TargetRegisterClass *RC = &Maxis::FGR32RegClass;
     unsigned DestReg = createResultReg(RC);
     unsigned TempReg = materialize32BitInt(Imm, &Maxis::GPR32RegClass);
-    emitInst(Maxis::MTC1, DestReg).addReg(TempReg);
+    //    emitInst(Maxis::MTC1, DestReg).addReg(TempReg);
     return DestReg;
   } else if (VT == MVT::f64) {
     const TargetRegisterClass *RC = &Maxis::AFGR64RegClass;
@@ -1112,7 +1112,7 @@ bool MaxisFastISel::selectFPToInt(const Instruction *I, bool IsSigned) {
 
   // Generate the convert.
   emitInst(Opc, TempReg).addReg(SrcReg);
-  emitInst(Maxis::MFC1, DestReg).addReg(TempReg);
+  //  emitInst(Maxis::MFC1, DestReg).addReg(TempReg);
 
   updateValueMap(I, DestReg);
   return true;

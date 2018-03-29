@@ -590,11 +590,12 @@ void MaxisSEFrameLowering::emitInterruptPrologueStub(
   if (IntKind == "eic") {
     // Coprocessor registers are always live per se.
     MBB.addLiveIn(Maxis::COP013);
+    /*
     BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MFC0), Maxis::K0)
         .addReg(Maxis::COP013)
         .addImm(0)
         .setMIFlag(MachineInstr::FrameSetup);
-
+    */
     BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::EXT), Maxis::K0)
         .addReg(Maxis::K0)
         .addImm(10)
@@ -604,22 +605,24 @@ void MaxisSEFrameLowering::emitInterruptPrologueStub(
 
   // Fetch and spill EPC
   MBB.addLiveIn(Maxis::COP014);
+  /*
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MFC0), Maxis::K1)
       .addReg(Maxis::COP014)
       .addImm(0)
       .setMIFlag(MachineInstr::FrameSetup);
-
+  */
   STI.getInstrInfo()->storeRegToStack(MBB, MBBI, Maxis::K1, false,
                                       MaxisFI->getISRRegFI(0), PtrRC,
                                       STI.getRegisterInfo(), 0);
 
   // Fetch and Spill Status
   MBB.addLiveIn(Maxis::COP012);
+  /*
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MFC0), Maxis::K1)
       .addReg(Maxis::COP012)
       .addImm(0)
       .setMIFlag(MachineInstr::FrameSetup);
-
+  */
   STI.getInstrInfo()->storeRegToStack(MBB, MBBI, Maxis::K1, false,
                                       MaxisFI->getISRRegFI(1), PtrRC,
                                       STI.getRegisterInfo(), 0);
@@ -674,10 +677,12 @@ void MaxisSEFrameLowering::emitInterruptPrologueStub(
         .setMIFlag(MachineInstr::FrameSetup);
 
   // Set the new status
+  /*
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MTC0), Maxis::COP012)
       .addReg(Maxis::K1)
       .addImm(0)
       .setMIFlag(MachineInstr::FrameSetup);
+  */
 }
 
 void MaxisSEFrameLowering::emitEpilogue(MachineFunction &MF,
@@ -756,17 +761,20 @@ void MaxisSEFrameLowering::emitInterruptEpilogueStub(
   STI.getInstrInfo()->loadRegFromStackSlot(MBB, MBBI, Maxis::K1,
                                            MaxisFI->getISRRegFI(0), PtrRC,
                                            STI.getRegisterInfo());
+  /*
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MTC0), Maxis::COP014)
       .addReg(Maxis::K1)
       .addImm(0);
-
+  */
   // Restore Status
   STI.getInstrInfo()->loadRegFromStackSlot(MBB, MBBI, Maxis::K1,
                                            MaxisFI->getISRRegFI(1), PtrRC,
                                            STI.getRegisterInfo());
+  /*
   BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(Maxis::MTC0), Maxis::COP012)
       .addReg(Maxis::K1)
       .addImm(0);
+  */
 }
 
 int MaxisSEFrameLowering::getFrameIndexReference(const MachineFunction &MF,

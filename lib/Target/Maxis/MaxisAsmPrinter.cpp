@@ -811,11 +811,13 @@ void MaxisAsmPrinter::EmitInstrRegReg(const MCSubtargetInfo &STI,
   // appear backwards from their normal assembly order. It's not a trivial
   // change to fix this in the td file so we adjust for it here.
   //
+  /*
   if (Opcode == Maxis::MTC1) {
     unsigned Temp = Reg1;
     Reg1 = Reg2;
     Reg2 = Temp;
   }
+  */
   I.setOpcode(Opcode);
   I.addOperand(MCOperand::createReg(Reg1));
   I.addOperand(MCOperand::createReg(Reg2));
@@ -849,6 +851,7 @@ void MaxisAsmPrinter::EmitMovFPIntPair(const MCSubtargetInfo &STI,
 void MaxisAsmPrinter::EmitSwapFPIntParams(const MCSubtargetInfo &STI,
                                          Maxis16HardFloatInfo::FPParamVariant PV,
                                          bool LE, bool ToFP) {
+  /*
   using namespace Maxis16HardFloatInfo;
 
   unsigned MovOpc = ToFP ? Maxis::MTC1 : Maxis::MFC1;
@@ -877,11 +880,13 @@ void MaxisAsmPrinter::EmitSwapFPIntParams(const MCSubtargetInfo &STI,
   case NoSig:
     return;
   }
+  */
 }
 
 void MaxisAsmPrinter::EmitSwapFPIntRetval(
     const MCSubtargetInfo &STI, Maxis16HardFloatInfo::FPReturnVariant RV,
     bool LE) {
+  /*
   using namespace Maxis16HardFloatInfo;
 
   unsigned MovOpc = Maxis::MFC1;
@@ -902,6 +907,7 @@ void MaxisAsmPrinter::EmitSwapFPIntRetval(
   case NoFPRet:
     break;
   }
+  */
 }
 
 void MaxisAsmPrinter::EmitFPCallStub(

@@ -3288,7 +3288,7 @@ bool MaxisAsmParser::expandLoadImmReal(MCInst &Inst, bool IsSingle, bool IsGPR,
         if (loadImmediate(ImmOp32, ATReg, Maxis::NoRegister, true, true, IDLoc,
                           Out, STI))
           return true;
-        TOut.emitRR(Maxis::MTC1, FirstReg, ATReg, IDLoc, STI);
+        //        TOut.emitRR(Maxis::MTC1, FirstReg, ATReg, IDLoc, STI);
         return false;
       }
 
@@ -3384,11 +3384,11 @@ bool MaxisAsmParser::expandLoadImmReal(MCInst &Inst, bool IsSingle, bool IsGPR,
       if (isABI_N32() || isABI_N64())
         TOut.emitRR(Maxis::DMTC1, FirstReg, ATReg, IDLoc, STI);
       else if (hasMaxis32r2()) {
-        TOut.emitRR(Maxis::MTC1, FirstReg, Maxis::ZERO, IDLoc, STI);
+        // TOut.emitRR(Maxis::MTC1, FirstReg, Maxis::ZERO, IDLoc, STI);
         TOut.emitRRR(Maxis::MTHC1_D32, FirstReg, FirstReg, ATReg, IDLoc, STI);
       } else {
-        TOut.emitRR(Maxis::MTC1, nextReg(FirstReg), ATReg, IDLoc, STI);
-        TOut.emitRR(Maxis::MTC1, FirstReg, Maxis::ZERO, IDLoc, STI);
+        // TOut.emitRR(Maxis::MTC1, nextReg(FirstReg), ATReg, IDLoc, STI);
+        // TOut.emitRR(Maxis::MTC1, FirstReg, Maxis::ZERO, IDLoc, STI);
       }
       return false;
     }

@@ -91,8 +91,10 @@ void MaxisSEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
         Opc = Maxis::OR, ZeroReg = Maxis::ZERO;
     } else if (Maxis::CCRRegClass.contains(SrcReg))
       Opc = Maxis::CFC1;
+    /*
     else if (Maxis::FGR32RegClass.contains(SrcReg))
       Opc = Maxis::MFC1;
+    */
     else if (Maxis::HI32RegClass.contains(SrcReg)) {
       Opc = isMicroMaxis ? Maxis::MFHI16_MM : Maxis::MFHI;
       SrcReg = 0;
@@ -114,8 +116,10 @@ void MaxisSEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   else if (Maxis::GPR32RegClass.contains(SrcReg)) { // Copy from CPU Reg.
     if (Maxis::CCRRegClass.contains(DestReg))
       Opc = Maxis::CTC1;
+    /*
     else if (Maxis::FGR32RegClass.contains(DestReg))
       Opc = Maxis::MTC1;
+    */
     else if (Maxis::HI32RegClass.contains(DestReg))
       Opc = Maxis::MTHI, DestReg = 0;
     else if (Maxis::LO32RegClass.contains(DestReg))
@@ -375,18 +379,22 @@ bool MaxisSEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   case Maxis::PseudoMTLOHI_DSP:
     expandPseudoMTLoHi(MBB, MI, Maxis::MTLO_DSP, Maxis::MTHI_DSP, true);
     break;
+    /*
   case Maxis::PseudoCVT_S_W:
     expandCvtFPInt(MBB, MI, Maxis::CVT_S_W, Maxis::MTC1, false);
     break;
   case Maxis::PseudoCVT_D32_W:
     expandCvtFPInt(MBB, MI, Maxis::CVT_D32_W, Maxis::MTC1, false);
     break;
+    */
   case Maxis::PseudoCVT_S_L:
     expandCvtFPInt(MBB, MI, Maxis::CVT_S_L, Maxis::DMTC1, true);
     break;
+    /*
   case Maxis::PseudoCVT_D64_W:
     expandCvtFPInt(MBB, MI, Maxis::CVT_D64_W, Maxis::MTC1, true);
     break;
+    */
   case Maxis::PseudoCVT_D64_L:
     expandCvtFPInt(MBB, MI, Maxis::CVT_D64_L, Maxis::DMTC1, true);
     break;
@@ -687,13 +695,15 @@ void MaxisSEInstrInfo::expandExtractElementF64(MachineBasicBlock &MBB,
     //        changing the behaviour of the code.
     BuildMI(MBB, I, dl, get(FP64 ? Maxis::MFHC1_D64 : Maxis::MFHC1_D32), DstReg)
         .addReg(SrcReg);
-  } else
-    BuildMI(MBB, I, dl, get(Maxis::MFC1), DstReg).addReg(SubReg);
+  } else {
+    //    BuildMI(MBB, I, dl, get(Maxis::MFC1), DstReg).addReg(SubReg);
+  }
 }
 
 void MaxisSEInstrInfo::expandBuildPairF64(MachineBasicBlock &MBB,
                                          MachineBasicBlock::iterator I,
                                          bool FP64) const {
+  /*
   unsigned DstReg = I->getOperand(0).getReg();
   unsigned LoReg = I->getOperand(1).getReg(), HiReg = I->getOperand(2).getReg();
   const MCInstrDesc& Mtc1Tdd = get(Maxis::MTC1);
@@ -746,6 +756,7 @@ void MaxisSEInstrInfo::expandBuildPairF64(MachineBasicBlock &MBB,
   else
     BuildMI(MBB, I, dl, Mtc1Tdd, TRI.getSubReg(DstReg, Maxis::sub_hi))
       .addReg(HiReg);
+  */
 }
 
 void MaxisSEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,

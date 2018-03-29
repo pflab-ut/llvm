@@ -3591,6 +3591,7 @@ MaxisSETargetLowering::emitFPROUND_PSEUDO(MachineInstr &MI,
   // Strictly speaking, we need MAXIS32R5 to support MSA. We'll be generous
   // here. It's technically doable to support MAXIS32 here, but the ISA forbids
   // it.
+  /*
   assert(Subtarget.hasMSA() && Subtarget.hasMaxis32r2());
 
   bool IsFGR64onMaxis64 = Subtarget.hasMaxis64() && IsFGR64;
@@ -3643,6 +3644,7 @@ MaxisSETargetLowering::emitFPROUND_PSEUDO(MachineInstr &MI,
   BuildMI(*BB, MI, DL, TII->get(Maxis::FEXDO_H), Wd).addReg(WPHI).addReg(WPHI);
 
   MI.eraseFromParent();
+  */
   return BB;
 }
 
@@ -3696,6 +3698,7 @@ MaxisSETargetLowering::emitFPEXTEND_PSEUDO(MachineInstr &MI,
   // Strictly speaking, we need MAXIS32R5 to support MSA. We'll be generous
   // here. It's technically doable to support MAXIS32 here, but the ISA forbids
   // it.
+  /*
   assert(Subtarget.hasMSA() && Subtarget.hasMaxis32r2());
 
   bool IsFGR64onMaxis64 = Subtarget.hasMaxis64() && IsFGR64;
@@ -3742,6 +3745,7 @@ MaxisSETargetLowering::emitFPEXTEND_PSEUDO(MachineInstr &MI,
   }
 
   MI.eraseFromParent();
+  */
   return BB;
 }
 
