@@ -78,6 +78,7 @@ def II_DCLZ             : InstrItinClass;
 def II_DDIV             : InstrItinClass;
 def II_DDIVU            : InstrItinClass;
 def II_DIV              : InstrItinClass;
+def II_DIVI             : InstrItinClass;
 def II_DIVU             : InstrItinClass;
 def II_DIV_D            : InstrItinClass;
 def II_DIV_S            : InstrItinClass;
@@ -590,6 +591,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_MSUB            , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_MSUBU           , [InstrStage<17, [IMULDIV]>]>,
   InstrItinData<II_DIV             , [InstrStage<38, [IMULDIV]>]>,
+  InstrItinData<II_DIVI            , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_DIVU            , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_REM             , [InstrStage<38, [IMULDIV]>]>,
   InstrItinData<II_REMU            , [InstrStage<38, [IMULDIV]>]>,

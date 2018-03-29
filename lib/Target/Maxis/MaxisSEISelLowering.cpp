@@ -190,8 +190,10 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
     setOperationAction(ISD::UMUL_LOHI,        MVT::i64, Custom);
     setOperationAction(ISD::MULHS,            MVT::i64, Custom);
     setOperationAction(ISD::MULHU,            MVT::i64, Custom);
+    /*
     setOperationAction(ISD::SDIVREM,          MVT::i64, Custom);
     setOperationAction(ISD::UDIVREM,          MVT::i64, Custom);
+    */
   }
 
   setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::i64, Custom);
@@ -227,11 +229,13 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
     // three register division and remainder instructions.
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+#if 0
     setOperationAction(ISD::SDIV, MVT::i32, Legal);
     setOperationAction(ISD::UDIV, MVT::i32, Legal);
     setOperationAction(ISD::SREM, MVT::i32, Legal);
     setOperationAction(ISD::UREM, MVT::i32, Legal);
-
+#endif
+    
     // MAXIS32r6 replaces conditional moves with an equivalent that removes the
     // need for three GPR read ports.
     setOperationAction(ISD::SETCC, MVT::i32, Legal);
@@ -272,13 +276,15 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
 
     // MAXIS32r6 replaces the accumulator-based division/remainder with separate
     // three register division and remainder instructions.
+    /*
     setOperationAction(ISD::SDIVREM, MVT::i64, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i64, Expand);
     setOperationAction(ISD::SDIV, MVT::i64, Legal);
     setOperationAction(ISD::UDIV, MVT::i64, Legal);
     setOperationAction(ISD::SREM, MVT::i64, Legal);
     setOperationAction(ISD::UREM, MVT::i64, Legal);
-
+    */
+    
     // MAXIS64r6 replaces conditional moves with an equivalent that removes the
     // need for three GPR read ports.
     setOperationAction(ISD::SETCC, MVT::i64, Legal);
@@ -444,9 +450,11 @@ SDValue MaxisSETargetLowering::LowerOperation(SDValue Op,
   case ISD::MULHS:     return lowerMulDiv(Op, MaxisISD::Mult, false, true, DAG);
   case ISD::MULHU:     return lowerMulDiv(Op, MaxisISD::Multu, false, true, DAG);
   case ISD::MUL:       return lowerMulDiv(Op, MaxisISD::Mult, true, false, DAG);
+    /*
   case ISD::SDIVREM:   return lowerMulDiv(Op, MaxisISD::DivRem, true, true, DAG);
   case ISD::UDIVREM:   return lowerMulDiv(Op, MaxisISD::DivRemU, true, true,
                                           DAG);
+    */
   case ISD::INTRINSIC_WO_CHAIN: return lowerINTRINSIC_WO_CHAIN(Op, DAG);
   case ISD::INTRINSIC_W_CHAIN:  return lowerINTRINSIC_W_CHAIN(Op, DAG);
   case ISD::INTRINSIC_VOID:     return lowerINTRINSIC_VOID(Op, DAG);

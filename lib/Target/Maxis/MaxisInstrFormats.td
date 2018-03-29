@@ -808,7 +808,7 @@ class MADDS_FM<bits<3> funct, bits<3> fmt> : StdArch {
 
   bits<32> Inst;
 
-  let Inst{31-26} = 0x13;
+  let Inst{31-26} = 0x14;
   let Inst{25-21} = fr;
   let Inst{20-16} = ft;
   let Inst{15-11} = fs;
@@ -824,7 +824,7 @@ class LWXC1_FM<bits<6> funct> : StdArch {
 
   bits<32> Inst;
 
-  let Inst{31-26} = 0x13;
+  let Inst{31-26} = 0x14;
   let Inst{25-21} = base;
   let Inst{20-16} = index;
   let Inst{15-11} = 0;
@@ -839,7 +839,7 @@ class SWXC1_FM<bits<6> funct> : StdArch {
 
   bits<32> Inst;
 
-  let Inst{31-26} = 0x13;
+  let Inst{31-26} = 0x14;
   let Inst{25-21} = base;
   let Inst{20-16} = index;
   let Inst{15-11} = fs;

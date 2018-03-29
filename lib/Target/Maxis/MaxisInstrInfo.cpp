@@ -386,7 +386,7 @@ unsigned MaxisInstrInfo::getEquivalentCompactForm(
       return Maxis::BLEZC64;
     // For MAXISR6, the instruction 'jic' can be used for these cases. Some
     // tools will accept 'jrc reg' as an alias for 'jic 0, $reg'.
-    case Maxis::JR:
+      //    case Maxis::JR:
     case Maxis::PseudoReturn:
     case Maxis::PseudoIndirectBranch:
     case Maxis::TAILCALLREG:

@@ -1104,11 +1104,12 @@ class UncondBranchMMPseudo<string opstr> :
 def B_MM_Pseudo : UncondBranchMMPseudo<"b">, ISA_MICROMAXIS;
 
 let Predicates = [InMicroMaxis] in {
+/*
   def SDIV_MM_Pseudo : MultDivPseudo<SDIV_MM, ACC64, GPR32Opnd, MaxisDivRem,
                                      II_DIV, 0, 1, 1>, ISA_MAXIS1_NOT_32R6_64R6;
   def UDIV_MM_Pseudo : MultDivPseudo<UDIV_MM, ACC64, GPR32Opnd, MaxisDivRemU,
                                      II_DIVU, 0, 1, 1>, ISA_MAXIS1_NOT_32R6_64R6;
-
+*/
   def : MaxisInstAlias<"wait", (WAIT_MM 0x0), 1>;
   def : MaxisInstAlias<"nop", (SLLI_MM ZERO, ZERO, 0), 1>;
   def : MaxisInstAlias<"nop", (MOVE16_MM ZERO, ZERO), 1>;

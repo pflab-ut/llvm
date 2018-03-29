@@ -1904,15 +1904,18 @@ bool MaxisFastISel::selectDivRem(const Instruction *I, unsigned ISDOpcode) {
     break;
   }
 
-  unsigned Src0Reg = getRegForValue(I->getOperand(0));
-  unsigned Src1Reg = getRegForValue(I->getOperand(1));
+  //  unsigned Src0Reg = getRegForValue(I->getOperand(0));
+  //  unsigned Src1Reg = getRegForValue(I->getOperand(1));
+  unsigned Src0Reg = getRegForValue(I->getOperand(1));
+  unsigned Src1Reg = getRegForValue(I->getOperand(2));
   if (!Src0Reg || !Src1Reg)
     return false;
 
   emitInst(DivOpc).addReg(Src0Reg).addReg(Src1Reg);
   emitInst(Maxis::TEQ).addReg(Src1Reg).addReg(Maxis::ZERO).addImm(7);
 
-  unsigned ResultReg = createResultReg(&Maxis::GPR32RegClass);
+  //  unsigned ResultReg = createResultReg(&Maxis::GPR32RegClass);
+  unsigned ResultReg = getRegForValue(I->getOperand(0));
   if (!ResultReg)
     return false;
 

@@ -1962,8 +1962,8 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
   switch (Inst.getOpcode()) {
   default:
     break;
-  case Maxis::SDivIMacro:
-  case Maxis::UDivIMacro:
+    //  case Maxis::SDivIMacro:
+    //  case Maxis::UDivIMacro:
   case Maxis::DSDivIMacro:
   case Maxis::DUDivIMacro:
     if (Inst.getOperand(2).getImm() == 0) {
@@ -1980,12 +1980,14 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
   case Maxis::DUDIV:
   case Maxis::UDIV_MM:
   case Maxis::SDIV_MM:
-    FirstOp = 0;
-    SecondOp = 1;
+    //    FirstOp = 0;
+    //    SecondOp = 1;
+    FirstOp = 1;
+    SecondOp = 2;
     LLVM_FALLTHROUGH;
-  case Maxis::SDivMacro:
+    //  case Maxis::SDivMacro:
   case Maxis::DSDivMacro:
-  case Maxis::UDivMacro:
+    //  case Maxis::UDivMacro:
   case Maxis::DUDivMacro:
   case Maxis::DIV:
   case Maxis::DIVU:
@@ -2394,18 +2396,22 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   case Maxis::BGEULImmMacro:
   case Maxis::BGTULImmMacro:
     return expandCondBranches(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    /*
   case Maxis::SDivMacro:
   case Maxis::SDivIMacro:
     return expandDiv(Inst, IDLoc, Out, STI, false, true) ? MER_Fail
                                                          : MER_Success;
+    */
   case Maxis::DSDivMacro:
   case Maxis::DSDivIMacro:
     return expandDiv(Inst, IDLoc, Out, STI, true, true) ? MER_Fail
                                                         : MER_Success;
+    /*
   case Maxis::UDivMacro:
   case Maxis::UDivIMacro:
     return expandDiv(Inst, IDLoc, Out, STI, false, false) ? MER_Fail
                                                           : MER_Success;
+    */
   case Maxis::DUDivMacro:
   case Maxis::DUDivIMacro:
     return expandDiv(Inst, IDLoc, Out, STI, true, false) ? MER_Fail

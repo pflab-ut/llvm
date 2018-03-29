@@ -1882,6 +1882,8 @@ def ADDi  : MMRel, ArithLogicI<"addi", simm16_relaxed, GPR32Opnd, II_ADDI>, ADDI
             ISA_MAXIS1_NOT_32R6_64R6;
 def MULi  : MMRel, ArithLogicI<"muli", simm16_relaxed, GPR32Opnd, II_MULI>, ADDI_FM<0x12>,
             ISA_MAXIS1_NOT_32R6_64R6;
+def DIVi  : MMRel, ArithLogicI<"divi", simm16_relaxed, GPR32Opnd, II_DIVI>, ADDI_FM<0x13>,
+            ISA_MAXIS1_NOT_32R6_64R6;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SEQi  : MMRel, SetCC_I<"seqi", seteq, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x18>;
@@ -1904,6 +1906,11 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 let Defs = [HI0, LO0] in
 def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
             ADD_FM<0x4, 0x10>, ISA_MAXIS32_NOT_32R6_64R6;
+def SDIV   : MMRel, ArithLogicR<"div", GPR32Opnd, 1, II_DIV, sdiv>,
+             ADD_FM<0x2, 0x0>, ISA_MAXIS32_NOT_32R6_64R6;
+
+def UDIV   : MMRel, ArithLogicR<"divu", GPR32Opnd, 1, II_DIVU, udiv>,
+             ADD_FM<0x2, 0x4>, ISA_MAXIS32_NOT_32R6_64R6;
 def REM   : MMRel, ArithLogicR<"rem", GPR32Opnd, 1, II_REM, srem>,
             ADD_FM<0x2, 0x2>, ISA_MAXIS32_NOT_32R6_64R6;
 def REMu  : MMRel, ArithLogicR<"remu", GPR32Opnd, 1, II_REM, urem>,
@@ -2192,12 +2199,14 @@ def MULT  : MMRel, Mult<"mult", II_MULT, GPR32Opnd, [HI0, LO0]>,
             MULT_FM<0, 0x18>, ISA_MAXIS1_NOT_32R6_64R6;
 def MULTu : MMRel, Mult<"multu", II_MULTU, GPR32Opnd, [HI0, LO0]>,
             MULT_FM<0, 0x19>, ISA_MAXIS1_NOT_32R6_64R6;
+/*
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def SDIV  : MMRel, Div<"div", II_DIV, GPR32Opnd, [HI0, LO0]>,
               MULT_FM<0, 0x1a>, ISA_MAXIS1_NOT_32R6_64R6;
   def UDIV  : MMRel, Div<"divu", II_DIVU, GPR32Opnd, [HI0, LO0]>,
               MULT_FM<0, 0x1b>, ISA_MAXIS1_NOT_32R6_64R6;
 }
+*/
 def MTHI : MMRel, MoveToLOHI<"mthi", GPR32Opnd, [HI0]>, MTLO_FM<0x11>,
            ISA_MAXIS1_NOT_32R6_64R6;
 def MTLO : MMRel, MoveToLOHI<"mtlo", GPR32Opnd, [LO0]>, MTLO_FM<0x13>,
@@ -2266,10 +2275,12 @@ def PseudoMSUBU : MAddSubPseudo<MSUBU, MaxisMSubu, II_MSUBU>,
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
+/*
   def PseudoSDIV : MultDivPseudo<SDIV, ACC64, GPR32Opnd, MaxisDivRem, II_DIV,
                                  0, 1, 1>, ISA_MAXIS1_NOT_32R6_64R6;
   def PseudoUDIV : MultDivPseudo<UDIV, ACC64, GPR32Opnd, MaxisDivRemU, II_DIVU,
                                  0, 1, 1>, ISA_MAXIS1_NOT_32R6_64R6;
+*/
   def RDHWR : MMRel, ReadHardware<GPR32Opnd, HWRegsOpnd>, RDHWR_FM;
   // TODO: Add '0 < pos+size <= 32' constraint check to ext instruction
   def EXT : MMRel, StdMMR6Rel, ExtBase<"ext", GPR32Opnd, uimm5, uimm5_plus1,
@@ -2745,6 +2756,7 @@ def BGTULImmMacro : CondBranchImmPseudo<"bgtul">, ISA_MAXIS2_NOT_32R6_64R6;
 // Once the tablegen-erated errors are made better, this needs to be fixed and
 // predicates needs to be restored.
 
+/*
 def SDivMacro : MaxisAsmPseudoInst<(outs GPR32NonZeroOpnd:$rd),
                                   (ins GPR32Opnd:$rs, GPR32Opnd:$rt),
                                   "div\t$rd, $rs, $rt">,
@@ -2785,6 +2797,7 @@ def : MaxisInstAlias<"divu $rt, $rs", (UDivMacro GPR32NonZeroOpnd:$rt,
 def : MaxisInstAlias<"divu $rd, $imm", (UDivIMacro GPR32Opnd:$rd, GPR32Opnd:$rd,
                                                   simm32:$imm), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
+*/
 
 def Ulh : MaxisAsmPseudoInst<(outs GPR32Opnd:$rt), (ins mem:$addr),
                             "ulh\t$rt, $addr">; //, ISA_MAXIS1_NOT_32R6_64R6;

@@ -393,6 +393,7 @@ MaxisTargetLowering::MaxisTargetLowering(const MaxisTargetMachine &TM,
   if (Subtarget.isGP64bit())
     setOperationAction(ISD::EH_DWARF_CFA,       MVT::i64,   Custom);
 
+  /*
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
   setOperationAction(ISD::UDIV, MVT::i32, Expand);
@@ -401,7 +402,8 @@ MaxisTargetLowering::MaxisTargetLowering(const MaxisTargetMachine &TM,
   setOperationAction(ISD::SREM, MVT::i64, Expand);
   setOperationAction(ISD::UDIV, MVT::i64, Expand);
   setOperationAction(ISD::UREM, MVT::i64, Expand);
-
+  */
+  
   if (!(Subtarget.hasDSP() && Subtarget.hasMaxis32r2())) {
     setOperationAction(ISD::ADDC, MVT::i32, Expand);
     setOperationAction(ISD::ADDE, MVT::i32, Expand);
@@ -512,8 +514,10 @@ MaxisTargetLowering::MaxisTargetLowering(const MaxisTargetMachine &TM,
 
   setOperationAction(ISD::TRAP, MVT::Other, Legal);
 
+  /*
   setTargetDAGCombine(ISD::SDIVREM);
   setTargetDAGCombine(ISD::UDIVREM);
+  */
   setTargetDAGCombine(ISD::SELECT);
   setTargetDAGCombine(ISD::AND);
   setTargetDAGCombine(ISD::OR);
@@ -1371,16 +1375,16 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
     return emitAtomicCmpSwap(MI, BB, 4);
   case Maxis::ATOMIC_CMP_SWAP_I64:
     return emitAtomicCmpSwap(MI, BB, 8);
-  case Maxis::PseudoSDIV:
-  case Maxis::PseudoUDIV:
+    //  case Maxis::PseudoSDIV:
+    //  case Maxis::PseudoUDIV:
   case Maxis::DIV:
   case Maxis::DIVU:
   case Maxis::MOD:
   case Maxis::MODU:
     return insertDivByZeroTrap(MI, *BB, *Subtarget.getInstrInfo(), false,
                                false);
-  case Maxis::SDIV_MM_Pseudo:
-  case Maxis::UDIV_MM_Pseudo:
+    //  case Maxis::SDIV_MM_Pseudo:
+    //  case Maxis::UDIV_MM_Pseudo:
   case Maxis::SDIV_MM:
   case Maxis::UDIV_MM:
   case Maxis::DIV_MMR6:
@@ -1388,8 +1392,8 @@ MaxisTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   case Maxis::MOD_MMR6:
   case Maxis::MODU_MMR6:
     return insertDivByZeroTrap(MI, *BB, *Subtarget.getInstrInfo(), false, true);
-  case Maxis::PseudoDSDIV:
-  case Maxis::PseudoDUDIV:
+    //  case Maxis::PseudoDSDIV:
+    //  case Maxis::PseudoDUDIV:
   case Maxis::DDIV:
   case Maxis::DDIVU:
   case Maxis::DMOD:
