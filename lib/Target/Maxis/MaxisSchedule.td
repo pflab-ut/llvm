@@ -344,6 +344,7 @@ def II_TRUNC            : InstrItinClass;
 def II_WSBH             : InstrItinClass;
 def II_XOR              : InstrItinClass;
 def II_XORI             : InstrItinClass;
+def II_CATI             : InstrItinClass;
 def II_XNOR             : InstrItinClass;
 def II_NAND             : InstrItinClass;
 def II_CACHE            : InstrItinClass;
@@ -424,6 +425,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_FORK            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_INS             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_LUI             , [InstrStage<1,  [ALU]>]>,
+  InstrItinData<II_CATI            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_MOVE            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_MOVF            , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_MOVN            , [InstrStage<1,  [ALU]>]>,

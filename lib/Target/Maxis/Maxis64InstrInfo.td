@@ -115,23 +115,23 @@ def LUi64   : LoadUpper<"lui", GPR64Opnd, uimm16_64_relaxed>, LUI_FM;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  def DADD   : ArithLogicR<"dadd", GPR64Opnd, 1, II_DADD>, ADD_FM<0, 0x1f>,
+  def DADD   : ArithLogicR<"dadd", GPR64Opnd, 1, II_DADD>, ADD_FM<0, 0x1e>,
                ISA_MAXIS3;
   def DADDu  : ArithLogicR<"daddu", GPR64Opnd, 1, II_DADDU, add>,
-               ADD_FM<0, 0x1f>, ISA_MAXIS3;
+               ADD_FM<0, 0x1e>, ISA_MAXIS3;
   def DSUBu  : ArithLogicR<"dsubu", GPR64Opnd, 0, II_DSUBU, sub>,
-               ADD_FM<0, 0x1f>, ISA_MAXIS3;
-  def DSUB   : ArithLogicR<"dsub", GPR64Opnd, 0, II_DSUB>, ADD_FM<0, 0x1f>,
+               ADD_FM<0, 0x1e>, ISA_MAXIS3;
+  def DSUB   : ArithLogicR<"dsub", GPR64Opnd, 0, II_DSUB>, ADD_FM<0, 0x1e>,
                ISA_MAXIS3;
 }
 
 let isCodeGenOnly = 1 in {
-def SLT64  : SetCC_R<"slt", setlt, GPR64Opnd>, ADD_FM<0, 0x1f>;
-def SLTu64 : SetCC_R<"sltu", setult, GPR64Opnd>, ADD_FM<0, 0x1f>;
-def AND64  : ArithLogicR<"and", GPR64Opnd, 1, II_AND, and>, ADD_FM<0, 0x1f>;
-def OR64   : ArithLogicR<"or", GPR64Opnd, 1, II_OR, or>, ADD_FM<0, 0x1f>;
-def XOR64  : ArithLogicR<"xor", GPR64Opnd, 1, II_XOR, xor>, ADD_FM<0, 0x1f>;
-def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x1f>;
+def SLT64  : SetCC_R<"slt", setlt, GPR64Opnd>, ADD_FM<0, 0x1e>;
+def SLTu64 : SetCC_R<"sltu", setult, GPR64Opnd>, ADD_FM<0, 0x1e>;
+def AND64  : ArithLogicR<"and", GPR64Opnd, 1, II_AND, and>, ADD_FM<0, 0x1e>;
+def OR64   : ArithLogicR<"or", GPR64Opnd, 1, II_OR, or>, ADD_FM<0, 0x1e>;
+def XOR64  : ArithLogicR<"xor", GPR64Opnd, 1, II_XOR, xor>, ADD_FM<0, 0x1e>;
+def NOR64  : LogicNOR<"nor", GPR64Opnd>, ADD_FM<0, 0x1e>;
 }
 
 /// Shift Instructions
@@ -156,7 +156,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def DSRLi32 : shift_rotate_imm<"dsrli32", uimm5, GPR64Opnd, II_DSRLI32>,
                SHTI_FM<0x1e, 0>, ISA_MAXIS3;
   def DSRAi32 : shift_rotate_imm<"dsrai32", uimm5, GPR64Opnd, II_DSRAI32>,
-               SHTI_FM<0x1f, 0>, ISA_MAXIS3;
+               SHTI_FM<0x1e, 0>, ISA_MAXIS3;
 
 // Rotate Instructions
   def DROTR  : shift_rotate_imm<"drotr", uimm6, GPR64Opnd, II_DROTR, rotr,
@@ -258,7 +258,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def DSDIV : Div<"ddiv", II_DDIV, GPR64Opnd, [HI0_64, LO0_64]>,
               MULT_FM<0, 0x1e>, ISA_MAXIS3_NOT_32R6_64R6;
   def DUDIV : Div<"ddivu", II_DDIVU, GPR64Opnd, [HI0_64, LO0_64]>,
-              MULT_FM<0, 0x1f>, ISA_MAXIS3_NOT_32R6_64R6;
+              MULT_FM<0, 0x1e>, ISA_MAXIS3_NOT_32R6_64R6;
 }
 def PseudoDSDIV : MultDivPseudo<DSDIV, ACC128, GPR64Opnd, MaxisDivRem,
                                 II_DDIV, 0, 1, 1>, ISA_MAXIS3_NOT_32R6_64R6;
@@ -425,7 +425,7 @@ class MFC2OP<string asmstr, RegisterOperand RO, InstrItinClass itin> :
 
 // Unsigned Byte Add
 def BADDu  : ArithLogicR<"baddu", GPR64Opnd, 1, II_BADDU>,
-             ADD_FM<0x1c, 0x1f>, ASE_CNMAXIS {
+             ADD_FM<0x1c, 0x1e>, ASE_CNMAXIS {
   let Pattern = [(set GPR64Opnd:$rd,
                       (and (add GPR64Opnd:$rs, GPR64Opnd:$rt), 255))];
 }
@@ -444,7 +444,7 @@ def BBIT132: CBranchBitNum<"bbit132", brtarget, setne, GPR64Opnd, uimm5_64,
 
 // Multiply Doubleword to GPR
 def DMUL  : ArithLogicR<"dmul", GPR64Opnd, 1, II_DMUL, mul>,
-            ADD_FM<0x1c, 0x1f>, ASE_CNMAXIS {
+            ADD_FM<0x1c, 0x1e>, ASE_CNMAXIS {
   let Defs = [HI0, LO0, P0, P1, P2];
 }
 

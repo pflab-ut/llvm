@@ -360,8 +360,9 @@ namespace ISD {
     /// integers.
     SMIN, SMAX, UMIN, UMAX,
 
-    /// Bitwise operators - logical and, logical, logical xor, logical xnor, or logical nand.
-    AND, OR, XOR, XNOR, NAND,
+    /// Bitwise operators - logical and, logical, logical xor, logical xnor,
+    /// logical nand, or concatinate immediate.
+    AND, OR, XOR, XNOR, NAND, CATI,
 
     /// ABS - Determine the unsigned absolute value of a signed integer value of
     /// the same bitwidth.

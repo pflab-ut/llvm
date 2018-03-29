@@ -41,7 +41,7 @@ class Field6<bits<6> val> {
   bits<6> V = val;
 }
 
-def SPECIAL3_OPCODE : Field6<0b011111>;
+def SPECIAL3_OPCODE : Field6<0b111111>;
 def REGIMM_OPCODE : Field6<0b000001>;
 
 class DSPInst<string opstr = "">

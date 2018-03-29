@@ -370,6 +370,8 @@ def xnor       : SDNode<"ISD::XNOR"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def nand       : SDNode<"ISD::NAND"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
+def cati       : SDNode<"ISD::CATI"      , SDTIntBinOp,
+                        [SDNPCommutative, SDNPAssociative]>;
 def addc       : SDNode<"ISD::ADDC"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPOutGlue]>;
 def adde       : SDNode<"ISD::ADDE"      , SDTIntBinOp,
