@@ -2084,34 +2084,28 @@ def BLT     : MMRel, CBranch<"blt", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xa>;
 def BLTU    : MMRel, CBranch<"bltu", brtarget, setlt, GPR32Opnd>, BEQ_FM<0xe>;
 def BGE     : MMRel, CBranch<"bge", brtarget, setge, GPR32Opnd>, BEQ_FM<0xd>;
 def BGEU    : MMRel, CBranch<"bgeu", brtarget, setge, GPR32Opnd>, BEQ_FM<0xf>;
+/*
 def BEQL    : MMRel, CBranchLikely<"beql", brtarget, GPR32Opnd>,
               BEQ_FM<20>, ISA_MAXIS2_NOT_32R6_64R6;
 def BNEL    : MMRel, CBranchLikely<"bnel", brtarget, GPR32Opnd>,
               BEQ_FM<21>, ISA_MAXIS2_NOT_32R6_64R6;
-/*
 def BGEZ    : MMRel, CBranchZero<"bgez", brtarget, setge, GPR32Opnd>,
               BGEZ_FM<1, 1>;
-*/
 def BGEZL   : MMRel, CBranchZeroLikely<"bgezl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 3>, ISA_MAXIS2_NOT_32R6_64R6;
-/*
 def BGTZ    : MMRel, CBranchZero<"bgtz", brtarget, setgt, GPR32Opnd>,
               BGEZ_FM<7, 0>;
-*/
 def BGTZL   : MMRel, CBranchZeroLikely<"bgtzl", brtarget, GPR32Opnd>,
               BGEZ_FM<23, 0>, ISA_MAXIS2_NOT_32R6_64R6;
-/*
 def BLEZ    : MMRel, CBranchZero<"blez", brtarget, setle, GPR32Opnd>,
               BGEZ_FM<6, 0>;
-*/
 def BLEZL   : MMRel, CBranchZeroLikely<"blezl", brtarget, GPR32Opnd>,
               BGEZ_FM<22, 0>, ISA_MAXIS2_NOT_32R6_64R6;
-/*
 def BLTZ    : MMRel, CBranchZero<"bltz", brtarget, setlt, GPR32Opnd>,
               BGEZ_FM<1, 0>;
-*/
 def BLTZL   : MMRel, CBranchZeroLikely<"bltzl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 2>, ISA_MAXIS2_NOT_32R6_64R6;
+*/
 
 def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<3>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
@@ -2571,12 +2565,16 @@ def : MaxisInstAlias<"b $offset", (BEQ ZERO, ZERO, brtarget:$offset), 0>;
 }
 def : MaxisInstAlias<"bnez $rs,$offset",
                     (BNE GPR32Opnd:$rs, ZERO, brtarget:$offset), 0>;
+/*
 def : MaxisInstAlias<"bnezl $rs,$offset",
                     (BNEL GPR32Opnd:$rs, ZERO, brtarget:$offset), 0>;
+*/
 def : MaxisInstAlias<"beqz $rs,$offset",
                     (BEQ GPR32Opnd:$rs, ZERO, brtarget:$offset), 0>;
+/*
 def : MaxisInstAlias<"beqzl $rs,$offset",
                     (BEQL GPR32Opnd:$rs, ZERO, brtarget:$offset), 0>;
+*/
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"syscall", (SYSCALL 0), 1>;
 }
@@ -2730,8 +2728,8 @@ class CondBranchImmPseudo<string instr_asm> :
   MaxisAsmPseudoInst<(outs), (ins GPR32Opnd:$rs, imm64:$imm, brtarget:$offset),
                     !strconcat(instr_asm, "\t$rs, $imm, $offset")>;
 
-def BEQLImmMacro : CondBranchImmPseudo<"beql">, ISA_MAXIS2_NOT_32R6_64R6;
-def BNELImmMacro : CondBranchImmPseudo<"bnel">, ISA_MAXIS2_NOT_32R6_64R6;
+//def BEQLImmMacro : CondBranchImmPseudo<"beql">, ISA_MAXIS2_NOT_32R6_64R6;
+//def BNELImmMacro : CondBranchImmPseudo<"bnel">, ISA_MAXIS2_NOT_32R6_64R6;
 
 def BLTImmMacro  : CondBranchImmPseudo<"blt">;
 def BLEImmMacro  : CondBranchImmPseudo<"ble">;
