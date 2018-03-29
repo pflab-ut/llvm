@@ -2097,8 +2097,6 @@ def BLTZ    : MMRel, CBranchZero<"bltz", brtarget, setlt, GPR32Opnd>,
               BGEZ_FM<1, 0>;
 def BLTZL   : MMRel, CBranchZeroLikely<"bltzl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 2>, ISA_MAXIS2_NOT_32R6_64R6;
-def B       : UncondBranch<BEQ, brtarget>,
-              AdditionalRequires<[NotInMicroMaxis]>;
 
 def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<3>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
@@ -2469,6 +2467,8 @@ def : MaxisInstAlias<"move $dst, $src",
   let AdditionalPredicates = [NotInMicroMaxis];
 }
 def : MaxisInstAlias<"bal $offset", (BGEZAL ZERO, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"b $offset", (BEQ ZERO, ZERO, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
 
 def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;

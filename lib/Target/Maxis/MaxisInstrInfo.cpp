@@ -316,8 +316,10 @@ unsigned MaxisInstrInfo::getEquivalentCompactForm(
 
   if (Subtarget.hasMaxis32r6() || canUseShortMicroMaxisCTI) {
     switch (Opcode) {
+      /*
     case Maxis::B:
       return Maxis::BC;
+      */
     case Maxis::BAL:
       return Maxis::BALC;
     case Maxis::BEQ:

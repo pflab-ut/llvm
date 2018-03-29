@@ -26,7 +26,7 @@
 using namespace llvm;
 
 MaxisSEInstrInfo::MaxisSEInstrInfo(const MaxisSubtarget &STI)
-    : MaxisInstrInfo(STI, STI.isPositionIndependent() ? Maxis::B : Maxis::J),
+    : MaxisInstrInfo(STI, STI.isPositionIndependent() ? Maxis::BEQ : Maxis::J),
       RI() {}
 
 const MaxisRegisterInfo &MaxisSEInstrInfo::getRegisterInfo() const {
@@ -542,7 +542,7 @@ unsigned MaxisSEInstrInfo::getAnalyzableBrOpc(unsigned Opc) const {
           Opc == Maxis::BLTZ   || Opc == Maxis::BLEZ   || Opc == Maxis::BEQ64  ||
           Opc == Maxis::BNE64  || Opc == Maxis::BGTZ64 || Opc == Maxis::BGEZ64 ||
           Opc == Maxis::BLTZ64 || Opc == Maxis::BLEZ64 || Opc == Maxis::BC1T   ||
-          Opc == Maxis::BC1F   || Opc == Maxis::B      || Opc == Maxis::J      ||
+          Opc == Maxis::BC1F   || /* Opc == Maxis::B      || */ Opc == Maxis::J      ||
           Opc == Maxis::B_MM   || Opc == Maxis::BEQZC_MM ||
           Opc == Maxis::BNEZC_MM || Opc == Maxis::BEQC || Opc == Maxis::BNEC   ||
           Opc == Maxis::BLTC   || Opc == Maxis::BGEC   || Opc == Maxis::BLTUC  ||

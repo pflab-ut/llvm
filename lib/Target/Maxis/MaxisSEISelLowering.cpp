@@ -2997,7 +2997,7 @@ MaxisSETargetLowering::emitBPOSGE32(MachineInstr &MI,
   unsigned VR2 = RegInfo.createVirtualRegister(RC);
   BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDi), VR2)
     .addReg(Maxis::ZERO).addImm(0);
-  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::B)).addMBB(Sink);
+  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::BEQ)).addMBB(Sink);
 
   // Fill $TBB.
   unsigned VR1 = RegInfo.createVirtualRegister(RC);
@@ -3066,7 +3066,7 @@ MachineBasicBlock *MaxisSETargetLowering::emitMSACBranchPseudo(
   unsigned RD1 = RegInfo.createVirtualRegister(RC);
   BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::ADDi), RD1)
     .addReg(Maxis::ZERO).addImm(0);
-  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::B)).addMBB(Sink);
+  BuildMI(*FBB, FBB->end(), DL, TII->get(Maxis::BEQ)).addMBB(Sink);
 
   // Fill $TBB.
   unsigned RD2 = RegInfo.createVirtualRegister(RC);
