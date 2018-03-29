@@ -1897,9 +1897,9 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 let AdditionalPredicates = [NotInMicroMaxis] in {
   /// Arithmetic Instructions (3-Operand, R-Type)
   def ADDu  : MMRel, StdMMR6Rel, ArithLogicR<"addu", GPR32Opnd, 1, II_ADDU, add>,
-              ADD_FM<0, 0x1e>;
+              ADD_FM<0, 0x1d>;
   def SUBu  : MMRel, StdMMR6Rel, ArithLogicR<"subu", GPR32Opnd, 0, II_SUBU, sub>,
-              ADD_FM<0, 0x1e>;
+              ADD_FM<0, 0x1d>;
 }
 let Defs = [HI0, LO0] in
 def MUL   : MMRel, ArithLogicR<"mul", GPR32Opnd, 1, II_MUL, mul>,
