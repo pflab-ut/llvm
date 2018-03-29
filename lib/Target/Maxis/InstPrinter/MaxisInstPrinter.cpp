@@ -264,9 +264,11 @@ bool MaxisInstPrinter::printAlias(const MCInst &MI, raw_ostream &OS) {
   case Maxis::NOR64:
     // nor $r0, $r1, $zero => not $r0, $r1
     return isReg<Maxis::ZERO_64>(MI, 2) && printAlias("not", MI, 0, 1, OS);
+    /*
   case Maxis::OR:
     // or $r0, $r1, $zero => move $r0, $r1
     return isReg<Maxis::ZERO>(MI, 2) && printAlias("move", MI, 0, 1, OS);
+    */
   default: return false;
   }
 }

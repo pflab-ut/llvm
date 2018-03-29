@@ -2465,15 +2465,17 @@ multiclass OneOrTwoOperandMacroImmediateAlias<string Memnomic,
 }
 
 def : MaxisInstAlias<"move $dst, $src",
-                    (OR GPR32Opnd:$dst, GPR32Opnd:$src, ZERO), 1>,
+                    (OR GPR32Opnd:$dst, GPR32Opnd:$src, ZERO), 0>,
       GPR_32 {
   let AdditionalPredicates = [NotInMicroMaxis];
 }
+/*
 def : MaxisInstAlias<"move $dst, $src",
                     (ADDu GPR32Opnd:$dst, GPR32Opnd:$src, ZERO), 1>,
       GPR_32 {
   let AdditionalPredicates = [NotInMicroMaxis];
 }
+*/
 def : MaxisInstAlias<"bal $offset", (BGEZAL ZERO, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
 def : MaxisInstAlias<"b $offset", (BEQ ZERO, ZERO, brtarget:$offset), 0>,
