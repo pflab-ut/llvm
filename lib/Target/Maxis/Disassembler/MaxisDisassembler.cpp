@@ -990,7 +990,8 @@ static DecodeStatus DecodeBgtzGroupBranch(MCInst &MI, InsnType insn,
   bool HasRt = false;
 
   if (Rt == 0) {
-    MI.setOpcode(Maxis::BGTZ);
+    //    MI.setOpcode(Maxis::BGTZ);
+    MI.setOpcode(Maxis::BLT);
     HasRs = true;
   } else if (Rs == 0) {
     MI.setOpcode(Maxis::BGTZALC);

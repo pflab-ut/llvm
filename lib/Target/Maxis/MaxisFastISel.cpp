@@ -956,7 +956,8 @@ bool MaxisFastISel::selectBranch(const Instruction *I) {
     unsigned CondReg = createResultReg(&Maxis::GPR32RegClass);
     if (!emitCmp(CondReg, CI))
       return false;
-    BuildMI(*BrBB, FuncInfo.InsertPt, DbgLoc, TII.get(Maxis::BGTZ))
+    //    BuildMI(*BrBB, FuncInfo.InsertPt, DbgLoc, TII.get(Maxis::BGTZ))
+    BuildMI(*BrBB, FuncInfo.InsertPt, DbgLoc, TII.get(Maxis::BLT))
         .addReg(CondReg)
         .addMBB(TBB);
     finishCondBranch(BI->getParent(), TBB, FBB);

@@ -1814,9 +1814,9 @@ bool MaxisAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
         return Error(IDLoc, "branch to misaligned address");
       break;
     case Maxis::BGEZ:
-    case Maxis::BGTZ:
+      //    case Maxis::BGTZ:
     case Maxis::BLEZ:
-    case Maxis::BLTZ:
+      //    case Maxis::BLTZ:
     case Maxis::BGEZAL:
     case Maxis::BLTZAL:
     case Maxis::BC1F:
@@ -2362,7 +2362,7 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     //  case Maxis::BLT:
   case Maxis::BLE:
     //  case Maxis::BGE:
-  case Maxis::BGT:
+    //  case Maxis::BGT:
     //  case Maxis::BLTU:
   case Maxis::BLEU:
     //  case Maxis::BGEU:
@@ -2677,7 +2677,7 @@ bool MaxisAsmParser::loadImmediate(int64_t ImmValue, unsigned DstReg,
       // Traditional behaviour seems to special case this particular value. It's
       // not clear why other masks are handled differently.
       if (ImmValue == 0xffffffff) {
-        TOut.emitRRI(Maxis::CATi, TmpReg, ZeroReg, 0xffff, IDLoc, STI);
+        TOut.emitRRI(Maxis::CATi, TmpReg, ZeroReg, ~0x0, IDLoc, STI);
         TOut.emitRRI(Maxis::DSRLi32, TmpReg, TmpReg, 0, IDLoc, STI);
         if (UseSrcReg)
           TOut.emitRRR(AdduOp, DstReg, TmpReg, SrcReg, IDLoc, STI);
@@ -3682,9 +3682,11 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     case Maxis::BGEImmMacro:
       PseudoOpcode = Maxis::BGE;
       break;
+      /*
     case Maxis::BGTImmMacro:
       PseudoOpcode = Maxis::BGT;
       break;
+      */
     case Maxis::BLTUImmMacro:
       PseudoOpcode = Maxis::BLTU;
       break;
@@ -3737,8 +3739,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ReverseOrderSLT = false;
     IsUnsigned = ((PseudoOpcode == Maxis::BLTU) || (PseudoOpcode == Maxis::BLTUL));
     IsLikely = ((PseudoOpcode == Maxis::BLTL) || (PseudoOpcode == Maxis::BLTUL));
-    ZeroSrcOpcode = Maxis::BGTZ;
-    ZeroTrgOpcode = Maxis::BLTZ;
+    //    ZeroSrcOpcode = Maxis::BGTZ;
+    ZeroSrcOpcode = Maxis::BLT;
+    //    ZeroTrgOpcode = Maxis::BLTZ;
+    ZeroTrgOpcode = Maxis::BLT;
     break;
   case Maxis::BLE:
   case Maxis::BLEU:
@@ -3762,7 +3766,7 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ZeroSrcOpcode = Maxis::BLEZ;
     ZeroTrgOpcode = Maxis::BGEZ;
     break;
-  case Maxis::BGT:
+    //  case Maxis::BGT:
   case Maxis::BGTU:
   case Maxis::BGTL:
   case Maxis::BGTUL:
@@ -3770,8 +3774,10 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
     ReverseOrderSLT = true;
     IsUnsigned = ((PseudoOpcode == Maxis::BGTU) || (PseudoOpcode == Maxis::BGTUL));
     IsLikely = ((PseudoOpcode == Maxis::BGTL) || (PseudoOpcode == Maxis::BGTUL));
-    ZeroSrcOpcode = Maxis::BLTZ;
-    ZeroTrgOpcode = Maxis::BGTZ;
+    //    ZeroSrcOpcode = Maxis::BLTZ;
+    ZeroSrcOpcode = Maxis::BLT;
+    //    ZeroTrgOpcode = Maxis::BGTZ;
+    ZeroTrgOpcode = Maxis::BLT;
     break;
   default:
     llvm_unreachable("unknown opcode for branch pseudo-instruction");
@@ -3804,11 +3810,13 @@ bool MaxisAsmParser::expandCondBranches(MCInst &Inst, SMLoc IDLoc,
       return false;
     }
     */
+    /*
     if (PseudoOpcode == Maxis::BGT) {
       TOut.emitRX(Maxis::BGTZ, Maxis::ZERO, MCOperand::createExpr(OffsetExpr),
                   IDLoc, STI);
       return false;
     }
+    */
     if (PseudoOpcode == Maxis::BGTU) {
       TOut.emitRRX(Maxis::BNE, Maxis::ZERO, Maxis::ZERO,
                    MCOperand::createExpr(OffsetExpr), IDLoc, STI);

@@ -2085,16 +2085,20 @@ def BGEZ    : MMRel, CBranchZero<"bgez", brtarget, setge, GPR32Opnd>,
               BGEZ_FM<1, 1>;
 def BGEZL   : MMRel, CBranchZeroLikely<"bgezl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 3>, ISA_MAXIS2_NOT_32R6_64R6;
+/*
 def BGTZ    : MMRel, CBranchZero<"bgtz", brtarget, setgt, GPR32Opnd>,
               BGEZ_FM<7, 0>;
+*/
 def BGTZL   : MMRel, CBranchZeroLikely<"bgtzl", brtarget, GPR32Opnd>,
               BGEZ_FM<23, 0>, ISA_MAXIS2_NOT_32R6_64R6;
 def BLEZ    : MMRel, CBranchZero<"blez", brtarget, setle, GPR32Opnd>,
               BGEZ_FM<6, 0>;
 def BLEZL   : MMRel, CBranchZeroLikely<"blezl", brtarget, GPR32Opnd>,
               BGEZ_FM<22, 0>, ISA_MAXIS2_NOT_32R6_64R6;
+/*
 def BLTZ    : MMRel, CBranchZero<"bltz", brtarget, setlt, GPR32Opnd>,
               BGEZ_FM<1, 0>;
+*/
 def BLTZL   : MMRel, CBranchZeroLikely<"bltzl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 2>, ISA_MAXIS2_NOT_32R6_64R6;
 
@@ -2470,6 +2474,13 @@ def : MaxisInstAlias<"bal $offset", (BGEZAL ZERO, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
 def : MaxisInstAlias<"b $offset", (BEQ ZERO, ZERO, brtarget:$offset), 0>,
       ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"bltz $rs, $offset", (BLT GPR32Opnd:$rs, ZERO, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"bgt $rs, $rt, $offset", (BLT GPR32Opnd:$rt,
+                    GPR32Opnd:$rs, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
+def : MaxisInstAlias<"bgtz $rt, $offset", (BLT ZERO, GPR32Opnd:$rt, brtarget:$offset), 0>,
+      ISA_MAXIS1_NOT_32R6_64R6;
 
 def : MaxisInstAlias<"j $rs", (JR GPR32Opnd:$rs), 0>;
 let Predicates = [NotInMicroMaxis] in {
@@ -2666,7 +2677,7 @@ class CondBranchPseudo<string instr_asm> :
 //def BLT : CondBranchPseudo<"blt">;
 def BLE : CondBranchPseudo<"ble">;
 //def BGE : CondBranchPseudo<"bge">;
-def BGT : CondBranchPseudo<"bgt">;
+//def BGT : CondBranchPseudo<"bgt">;
 //def BLTU : CondBranchPseudo<"bltu">;
 def BLEU : CondBranchPseudo<"bleu">;
 //def BGEU : CondBranchPseudo<"bgeu">;

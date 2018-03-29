@@ -421,12 +421,12 @@ unsigned MaxisSEInstrInfo::getOppositeBranchOpc(unsigned Opc) const {
   case Maxis::BEQ_MM: return Maxis::BNE_MM;
   case Maxis::BNE:    return Maxis::BEQ;
   case Maxis::BNE_MM: return Maxis::BEQ_MM;
-  case Maxis::BGTZ:   return Maxis::BLEZ;
-  case Maxis::BGEZ:   return Maxis::BLTZ;
-  case Maxis::BLTZ:   return Maxis::BGEZ;
+    //  case Maxis::BGTZ:   return Maxis::BLEZ;
+    //  case Maxis::BGEZ:   return Maxis::BLTZ;
+    //  case Maxis::BLTZ:   return Maxis::BGEZ;
   case Maxis::BLT:    return Maxis::BGE;
   case Maxis::BGE:    return Maxis::BLT;
-  case Maxis::BLEZ:   return Maxis::BGTZ;
+    //  case Maxis::BLEZ:   return Maxis::BGTZ;
   case Maxis::BEQ64:  return Maxis::BNE64;
   case Maxis::BNE64:  return Maxis::BEQ64;
   case Maxis::BGTZ64: return Maxis::BLEZ64;
@@ -537,9 +537,9 @@ unsigned MaxisSEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
 unsigned MaxisSEInstrInfo::getAnalyzableBrOpc(unsigned Opc) const {
   return (Opc == Maxis::BEQ    || Opc == Maxis::BEQ_MM || Opc == Maxis::BNE    ||
-          Opc == Maxis::BNE_MM || Opc == Maxis::BGTZ   || Opc == Maxis::BGEZ   ||
+          Opc == Maxis::BNE_MM || /* Opc == Maxis::BGTZ   || */ Opc == Maxis::BGEZ   ||
           Opc == Maxis::BLT    || Opc == Maxis::BGE  ||
-          Opc == Maxis::BLTZ   || Opc == Maxis::BLEZ   || Opc == Maxis::BEQ64  ||
+          /* Opc == Maxis::BLTZ   || */ Opc == Maxis::BLEZ   || Opc == Maxis::BEQ64  ||
           Opc == Maxis::BNE64  || Opc == Maxis::BGTZ64 || Opc == Maxis::BGEZ64 ||
           Opc == Maxis::BLTZ64 || Opc == Maxis::BLEZ64 || Opc == Maxis::BC1T   ||
           Opc == Maxis::BC1F   || /* Opc == Maxis::B      || */ Opc == Maxis::J      ||

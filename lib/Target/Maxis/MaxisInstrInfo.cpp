@@ -346,8 +346,10 @@ unsigned MaxisInstrInfo::getEquivalentCompactForm(
       return Maxis::BGEUC;
     case Maxis::BGEZ:
       return Maxis::BGEZC;
+      /*
     case Maxis::BGTZ:
       return Maxis::BGTZC;
+      */
     case Maxis::BLEZ:
       return Maxis::BLEZC;
     case Maxis::BLT:
@@ -358,8 +360,10 @@ unsigned MaxisInstrInfo::getEquivalentCompactForm(
       if (I->getOperand(0).getReg() == I->getOperand(1).getReg())
         return 0;
       return Maxis::BLTUC;
+      /*
     case Maxis::BLTZ:
       return Maxis::BLTZC;
+      */
     case Maxis::BEQ64:
       if (I->getOperand(0).getReg() == I->getOperand(1).getReg())
         return 0;
