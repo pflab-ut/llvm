@@ -209,25 +209,15 @@ class BranchBase<bits<6> op, dag outs, dag ins, string asmstr,
 // Format J instruction class in Maxis : <|opcode|address|>
 //===----------------------------------------------------------------------===//
 
-class FJAL<bits<6> op> : StdArch
-{
-  bits<21> target;
-  bits<32> Inst;
 
-  let Inst{31-26} = op;
-  let Inst{25-21} = target{20-16};
-  let Inst{20-16} = 0x1f;
-  let Inst{15-0}  = target{15-0};
-}
-
-class FJ<bits<6> op> : StdArch
+class FJ<bits<6> op, bits<5> funct> : StdArch
 {
   bits<21> target;
     bits<32> Inst;
 
   let Inst{31-26} = op;
   let Inst{25-21} = target{20-16};
-  let Inst{20-16} = 0x0;
+  let Inst{20-16} = funct;
   let Inst{15-0}  = target{15-0};
 }
 

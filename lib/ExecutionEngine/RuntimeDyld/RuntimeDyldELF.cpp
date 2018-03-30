@@ -1287,8 +1287,9 @@ RuntimeDyldELF::processRelocationRef(
       // Extract the addend from the instruction.
       // We shift up by two since the Value will be down shifted again
       // when applying the relocation.
-      uint32_t Addend = (Opcode & 0x03ffffff) << 2;
-
+      //      uint32_t Addend = (Opcode & 0x03ffffff) << 2;
+      uint32_t Addend = (((Opcode & 0x3e00000) >> 5) | (Opcode & 0xffff)) << 2;
+      
       Value.Addend += Addend;
 
       //  Look up for existing stub.
