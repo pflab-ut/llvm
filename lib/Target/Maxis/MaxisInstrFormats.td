@@ -791,15 +791,14 @@ class MFC1_FM<bits<5> funct> : StdArch {
 }
 
 class LW_FM<bits<6> op> : StdArch {
-  bits<5> rc;
-  bits<5> rx;
-  bits<16> addr;
+  bits<5> rt;
+  bits<21> addr;
 
   bits<32> Inst;
 
   let Inst{31-26} = op;
-  let Inst{25-21} = rx;
-  let Inst{20-16} = rc;
+  let Inst{25-21} = addr{20-16};
+  let Inst{20-16} = rt;
   let Inst{15-0}  = addr{15-0};
 }
 
