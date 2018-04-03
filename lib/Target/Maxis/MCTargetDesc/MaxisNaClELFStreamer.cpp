@@ -156,12 +156,12 @@ public:
     // Sandbox loads, stores and SP changes.
     unsigned AddrIdx;
     bool IsStore;
-    bool IsMemAccess = isBasePlusOffsetMemoryAccess(Inst.getOpcode(), &AddrIdx,
+    bool IsMemAccess = isMaxisBasePlusOffsetMemoryAccess(Inst.getOpcode(), &AddrIdx,
                                                     &IsStore);
     bool IsSPFirstOperand = isStackPointerFirstOperand(Inst);
     if (IsMemAccess || IsSPFirstOperand) {
       bool MaskBefore = (IsMemAccess
-                         && baseRegNeedsLoadStoreMask(Inst.getOperand(AddrIdx)
+                         && baseMaxisRegNeedsLoadStoreMask(Inst.getOperand(AddrIdx)
                                                           .getReg()));
       bool MaskAfter = IsSPFirstOperand && !IsStore;
       if (MaskBefore || MaskAfter) {
@@ -207,7 +207,7 @@ public:
 
 namespace llvm {
 
-bool isBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
+bool isMaxisBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
                                   bool *IsStore) {
   if (IsStore)
     *IsStore = false;
@@ -254,7 +254,7 @@ bool isBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
   }
 }
 
-bool baseRegNeedsLoadStoreMask(unsigned Reg) {
+bool baseMaxisRegNeedsLoadStoreMask(unsigned Reg) {
   // The contents of SP and thread pointer register do not require masking.
   return Reg != Maxis::SP && Reg != Maxis::T8;
 }

@@ -702,8 +702,8 @@ bool Filler::searchRange(MachineBasicBlock &MBB, IterTy Begin, IterTy End,
       // branches are not checked because non-NaCl targets never put them in
       // delay slots.
       unsigned AddrIdx;
-      if ((isBasePlusOffsetMemoryAccess(CurrI->getOpcode(), &AddrIdx) &&
-           baseRegNeedsLoadStoreMask(CurrI->getOperand(AddrIdx).getReg())) ||
+      if ((isMaxisBasePlusOffsetMemoryAccess(CurrI->getOpcode(), &AddrIdx) &&
+           baseMaxisRegNeedsLoadStoreMask(CurrI->getOperand(AddrIdx).getReg())) ||
           CurrI->modifiesRegister(Maxis::SP, STI.getRegisterInfo()))
         continue;
     }

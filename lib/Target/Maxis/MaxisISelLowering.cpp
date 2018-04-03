@@ -83,11 +83,11 @@ using namespace llvm;
 STATISTIC(NumTailCalls, "Number of tail calls");
 
 static cl::opt<bool>
-LargeGOT("mxgot", cl::Hidden,
+LargeGOT("maxis-mxgot", cl::Hidden,
          cl::desc("MAXIS: Enable GOT larger than 64k."), cl::init(false));
 
 static cl::opt<bool>
-NoZeroDivCheck("mno-check-zero-division", cl::Hidden,
+NoZeroDivCheck("maxis-mno-check-zero-division", cl::Hidden,
                cl::desc("MAXIS: Don't trap on integer division by zero."),
                cl::init(false));
 

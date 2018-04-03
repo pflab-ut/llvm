@@ -56,7 +56,7 @@ static cl::opt<bool>
 UseMaxisTailCalls("maxis-tail-calls", cl::Hidden,
                     cl::desc("MAXIS: permit tail calls."), cl::init(false));
 
-static cl::opt<bool> NoDPLoadStore("mno-ldc1-sdc1", cl::init(false),
+static cl::opt<bool> NoDPLoadStore("maxis-mno-ldc1-sdc1", cl::init(false),
                                    cl::desc("Expand double precision loads and "
                                             "stores to their single precision "
                                             "counterparts"));

@@ -17,9 +17,9 @@ namespace llvm {
 // Log2 of the NaCl MAXIS sandbox's instruction bundle size.
 static const unsigned MAXIS_NACL_BUNDLE_ALIGN = 4u;
 
-bool isBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
+bool isMaxisBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
                                   bool *IsStore = nullptr);
-bool baseRegNeedsLoadStoreMask(unsigned Reg);
+bool baseMaxisRegNeedsLoadStoreMask(unsigned Reg);
 
 // This function creates an MCELFStreamer for Maxis NaCl.
 MCELFStreamer *createMaxisNaClELFStreamer(MCContext &Context,

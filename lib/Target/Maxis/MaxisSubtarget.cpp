@@ -54,7 +54,7 @@ static cl::opt<bool>
                           cl::init(true));
 
 static cl::opt<bool>
-    GPOpt("mgpopt", cl::Hidden,
+    GPOpt("maxis-mgpopt", cl::Hidden,
           cl::desc("Enable gp-relative addressing of maxis small data items"));
 
 void MaxisSubtarget::anchor() {}

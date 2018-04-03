@@ -26,18 +26,18 @@ SSThreshold("maxis-ssection-threshold", cl::Hidden,
             cl::init(8));
 
 static cl::opt<bool>
-LocalSData("mlocal-sdata", cl::Hidden,
+LocalSData("maxis-mlocal-sdata", cl::Hidden,
            cl::desc("MAXIS: Use gp_rel for object-local data."),
            cl::init(true));
 
 static cl::opt<bool>
-ExternSData("mextern-sdata", cl::Hidden,
+ExternSData("maxis-mextern-sdata", cl::Hidden,
             cl::desc("MAXIS: Use gp_rel for data that is not defined by the "
                      "current object."),
             cl::init(true));
 
 static cl::opt<bool>
-EmbeddedData("membedded-data", cl::Hidden,
+EmbeddedData("maxis-membedded-data", cl::Hidden,
              cl::desc("MAXIS: Try to allocate variables in the following"
                       " sections if possible: .rodata, .sdata, .data ."),
              cl::init(false));
