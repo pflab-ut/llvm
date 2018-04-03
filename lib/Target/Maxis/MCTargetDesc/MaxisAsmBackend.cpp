@@ -73,7 +73,8 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case Maxis::fixup_Maxis_PC16:
     // The displacement is then divided by 4 to give us an 18 bit
     // address range. Forcing a signed division because Value can be negative.
-    Value = (int64_t)Value / 4;
+    //    Value = (int64_t)Value / 4;
+    Value = (int64_t) (Value + 4) / 4;
     // We now check if Value can be encoded as a 16-bit signed immediate.
     if (!isInt<16>(Value)) {
       Ctx.reportError(Fixup.getLoc(), "out of range PC16 fixup");
