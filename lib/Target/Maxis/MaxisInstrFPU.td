@@ -540,7 +540,7 @@ let DecoderNamespace = "MaxisFP64", AdditionalPredicates = [NotInMicroMaxis] in 
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def LDC1 : MMRel, StdMMR6Rel, LW_FT<"ldc1", AFGR64Opnd, mem_simm16, II_LDC1,
-                                      load>, LW_FM<0x35>, ISA_MAXIS2, FGR_32 {
+                                      load>, LW_FM<0x3d>, ISA_MAXIS2, FGR_32 {
     let BaseOpcode = "LDC132";
   }
   def SDC1 : MMRel, SW_FT<"sdc1", AFGR64Opnd, mem_simm16, II_SDC1, store>,

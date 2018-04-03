@@ -175,11 +175,17 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
     }
   }
 
+  /*
   setOperationAction(ISD::SMUL_LOHI,          MVT::i32, Custom);
   setOperationAction(ISD::UMUL_LOHI,          MVT::i32, Custom);
   setOperationAction(ISD::MULHS,              MVT::i32, Custom);
-  setOperationAction(ISD::MULHU,              MVT::i32, Custom);
-
+  setOperationAction(ISD::MULHU,              MVT::i32, Custom); 
+  */
+  setOperationAction(ISD::SMUL_LOHI,          MVT::i32, LibCall);
+  setOperationAction(ISD::UMUL_LOHI,          MVT::i32, LibCall);
+  setOperationAction(ISD::MULHS,              MVT::i32, LibCall);
+  setOperationAction(ISD::MULHU,              MVT::i32, LibCall); 
+  
   if (Subtarget.hasCnMaxis())
     setOperationAction(ISD::MUL,              MVT::i64, Legal);
   else if (Subtarget.isGP64bit())
@@ -205,7 +211,7 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
   setOperationAction(ISD::LOAD,               MVT::i32, Custom);
   setOperationAction(ISD::STORE,              MVT::i32, Custom);
 
-  setTargetDAGCombine(ISD::MUL);
+  //  setTargetDAGCombine(ISD::MUL);
 
   setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::Other, Custom);
   setOperationAction(ISD::INTRINSIC_W_CHAIN, MVT::Other, Custom);
@@ -219,6 +225,7 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
   if (Subtarget.hasMaxis32r6()) {
     // MAXIS32r6 replaces the accumulator-based multiplies with a three register
     // instruction
+    /*
     setOperationAction(ISD::SMUL_LOHI, MVT::i32, Expand);
     setOperationAction(ISD::UMUL_LOHI, MVT::i32, Expand);
     setOperationAction(ISD::MUL, MVT::i32, Legal);
@@ -229,6 +236,7 @@ MaxisSETargetLowering::MaxisSETargetLowering(const MaxisTargetMachine &TM,
     // three register division and remainder instructions.
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+    */
 #if 0
     setOperationAction(ISD::SDIV, MVT::i32, Legal);
     setOperationAction(ISD::UDIV, MVT::i32, Legal);
