@@ -213,7 +213,7 @@ class BranchBase<bits<6> op, dag outs, dag ins, string asmstr,
 class FJ<bits<6> op, bits<5> funct> : StdArch
 {
   bits<21> target;
-    bits<32> Inst;
+  bits<32> Inst;
 
   let Inst{31-26} = op;
   let Inst{25-21} = target{20-16};

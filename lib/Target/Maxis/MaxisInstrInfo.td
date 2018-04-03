@@ -2079,7 +2079,7 @@ def SC : SCBase<"sc", GPR32Opnd>, LW_FM<0x28>, PTR_32, ISA_MAXIS2_NOT_32R6_64R6;
 }
 
 /// Jump and Branch Instructions
-def J       : MMRel, JumpFJ<jmptarget, "j", br, bb, "j">, FJ<0x2, 0x0>,
+def J       : MMRel, JumpFJ<jmptarget, "j", br, bb, "j">, FJ<0x4, 0x0>,
               AdditionalRequires<[RelocNotPIC, NotInMicroMaxis]>, IsBranch;
 //def JR      : MMRel, IndirectBranch<"jr", GPR32Opnd>, MTLO_FM<8>, ISA_MAXIS1_NOT_32R6_64R6; 
 def BEQ     : MMRel, CBranch<"beq", brtarget, seteq, GPR32Opnd>, BEQ_FM<0x8>;
@@ -2111,7 +2111,7 @@ def BLTZL   : MMRel, CBranchZeroLikely<"bltzl", brtarget, GPR32Opnd>,
               BGEZ_FM<1, 2>, ISA_MAXIS2_NOT_32R6_64R6;
 */
 
-def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<0x3, 0x1f>;
+def JAL  : MMRel, JumpLink<"jal", calltarget>, FJ<0x4, 0x1f>;
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def JALR : JumpLinkReg<"jalr", GPR32Opnd>, JALR_FM;
   def JALRPseudo : JumpLinkRegPseudo<GPR32Opnd, JALR, RA>;
