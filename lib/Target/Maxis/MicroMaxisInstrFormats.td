@@ -229,6 +229,7 @@ class ADDIR1SP_FM_MM16 {
   let Inst{0}     = 1;
 }
 
+/*
 class BRKSDBBP16_FM_MM<bits<6> op> {
   bits<4> code_;
   bits<16> Inst;
@@ -237,6 +238,7 @@ class BRKSDBBP16_FM_MM<bits<6> op> {
   let Inst{9-4}   = op;
   let Inst{3-0}   = code_;
 }
+*/
 
 class BEQNEZ_FM_MM16<bits<6> op> {
   bits<3> rs;

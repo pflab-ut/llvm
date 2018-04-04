@@ -117,7 +117,7 @@ def OPCODE6_DCLO     : OPCODE6<0b010011>;
 def OPCODE6_DCLZ     : OPCODE6<0b010010>;
 def OPCODE6_LSA      : OPCODE6<0b000101>;
 def OPCODE6_DLSA     : OPCODE6<0b010101>;
-def OPCODE6_SDBBP    : OPCODE6<0b001110>;
+//def OPCODE6_SDBBP    : OPCODE6<0b001110>;
 
 class FIELD_FMT<bits<5> Val> {
   bits<5> Value = Val;
@@ -365,6 +365,7 @@ class SPECIAL_3R_FM<bits<5> mulop, bits<6> funct> : MaxisR6Inst {
   let Inst{5-0}   = funct;
 }
 
+/*
 class SPECIAL_SDBBP_FM : MaxisR6Inst {
   bits<20> code_;
 
@@ -374,6 +375,7 @@ class SPECIAL_SDBBP_FM : MaxisR6Inst {
   let Inst{25-6}  = code_;
   let Inst{5-0}   = OPCODE6_SDBBP.Value;
 }
+*/
 
 // This class is ambiguous with other branches:
 //   BEQC/BNEC require that rs < rt && rs != 0

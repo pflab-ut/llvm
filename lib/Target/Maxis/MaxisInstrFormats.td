@@ -944,6 +944,7 @@ class BARRIER_FM<bits<5> op> : StdArch {
   let Inst{5-0} = 0;   // SLLi
 }
 
+/*
 class SDBBP_FM : StdArch {
   bits<20> code_;
 
@@ -953,6 +954,7 @@ class SDBBP_FM : StdArch {
   let Inst{25-6} = code_;
   let Inst{5-0} = 0b111111;   // SDBBP
 }
+*/
 
 class JR_HB_FM<bits<6> op> : StdArch{
   bits<5> rs;

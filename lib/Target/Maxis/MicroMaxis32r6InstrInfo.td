@@ -167,7 +167,7 @@ class WAIT_MMR6_ENC : WAIT_FM_MM, MMR6Arch<"wait">;
 class SYNC_MMR6_ENC : POOL32A_SYNC_FM_MMR6;
 class SYNCI_MMR6_ENC : POOL32I_SYNCI_FM_MMR6, MMR6Arch<"synci">;
 class RDPGPR_MMR6_ENC : POOL32A_RDPGPR_FM_MMR6<0b1110000101>;
-class SDBBP_MMR6_ENC : SDBBP_FM_MM, MMR6Arch<"sdbbp">;
+//class SDBBP_MMR6_ENC : SDBBP_FM_MM, MMR6Arch<"sdbbp">;
 class XOR_MMR6_ENC : ARITH_FM_MMR6<"xor", 0x310>;
 class XORI_MMR6_ENC : ADDI_FM_MMR6<"xori", 0x1c>;
 class ABS_S_MMR6_ENC : POOL32F_ABS_FM_MMR6<"abs.s", 0, 0b0001101>;
@@ -230,7 +230,7 @@ class BREAK16_MMR6_ENC : POOL16C_BREAKPOINT_FM_MMR6<0b011011>;
 class LI16_MMR6_ENC : LI_FM_MM16;
 class MOVE16_MMR6_ENC : MOVE_FM_MM16<0b000011>;
 class MOVEP_MMR6_ENC  : POOL16C_MOVEP16_FM_MMR6;
-class SDBBP16_MMR6_ENC : POOL16C_BREAKPOINT_FM_MMR6<0b111011>;
+//class SDBBP16_MMR6_ENC : POOL16C_BREAKPOINT_FM_MMR6<0b111011>;
 class SUBU16_MMR6_ENC : POOL16A_SUBU16_FM_MMR6;
 class XOR16_MMR6_ENC : POOL16C_OR16_XOR16_FM_MMR6<0b1000>;
 class TLBINV_MMR6_ENC : POOL32A_TLBINV_FM_MMR6<"tlbinv", 0x10d>;
@@ -1203,15 +1203,19 @@ class SLLI16_MMR6_DESC : ShiftIMM16<"slli16", uimm3_shift, GPRMM16Opnd, II_SLLI>
       MMR6Arch<"slli16">;
 class SRLI16_MMR6_DESC : ShiftIMM16<"srli16", uimm3_shift, GPRMM16Opnd, II_SRLI>,
       MMR6Arch<"srli16">;
+/*
 class BREAK16_MMR6_DESC : BrkSdbbp16MM<"break16", II_BREAK>, MMR6Arch<"break16">,
       MicroMaxisR6Inst16;
+*/
 class LI16_MMR6_DESC : LoadImmMM16<"li16", li16_imm, GPRMM16Opnd>,
       MMR6Arch<"li16">, MicroMaxisR6Inst16, IsAsCheapAsAMove;
 class MOVE16_MMR6_DESC : MoveMM16<"move16", GPR32Opnd>, MMR6Arch<"move16">,
       MicroMaxisR6Inst16;
 class MOVEP_MMR6_DESC : MovePMM16<"movep", GPRMM16OpndMoveP>, MMR6Arch<"movep">;
+/*
 class SDBBP16_MMR6_DESC : BrkSdbbp16MM<"sdbbp16", II_SDBBP>, MMR6Arch<"sdbbp16">,
       MicroMaxisR6Inst16;
+*/
 class SUBU16_MMR6_DESC : ArithRMM16<"subu16", GPRMM16Opnd, 0, II_SUBU, sub>,
       MMR6Arch<"subu16">, MicroMaxisR6Inst16 {
   int AddedComplexity = 1;
@@ -1263,6 +1267,7 @@ class RDPGPR_MMR6_DESC : MMR6Arch<"rdpgpr">, MaxisR6Inst {
   InstrItinClass Itinerary = II_RDPGPR;
 }
 
+/*
 class SDBBP_MMR6_DESC : MaxisR6Inst {
   dag OutOperandList = (outs);
   dag InOperandList = (ins uimm20:$code_);
@@ -1270,6 +1275,7 @@ class SDBBP_MMR6_DESC : MaxisR6Inst {
   list<dag> Pattern = [];
   InstrItinClass Itinerary = II_SDBBP;
 }
+*/
 
 class LWM16_MMR6_DESC
     : MicroMaxisInst16<(outs reglist16:$rt), (ins mem_mm_4sp:$addr),
@@ -1550,7 +1556,7 @@ def SYNC_MMR6 : StdMMR6Rel, SYNC_MMR6_DESC, SYNC_MMR6_ENC, ISA_MICROMAXIS32R6;
 def SYNCI_MMR6 : StdMMR6Rel, SYNCI_MMR6_DESC, SYNCI_MMR6_ENC, ISA_MICROMAXIS32R6;
 def RDPGPR_MMR6 : R6MMR6Rel, RDPGPR_MMR6_DESC, RDPGPR_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
-def SDBBP_MMR6 : R6MMR6Rel, SDBBP_MMR6_DESC, SDBBP_MMR6_ENC, ISA_MICROMAXIS32R6;
+//def SDBBP_MMR6 : R6MMR6Rel, SDBBP_MMR6_DESC, SDBBP_MMR6_ENC, ISA_MICROMAXIS32R6;
 def XOR_MMR6 : StdMMR6Rel, XOR_MMR6_DESC, XOR_MMR6_ENC, ISA_MICROMAXIS32R6;
 def XORI_MMR6 : StdMMR6Rel, XORI_MMR6_DESC, XORI_MMR6_ENC, ISA_MICROMAXIS32R6;
 let DecoderMethod = "DecodeMemMMImm16" in {
@@ -1681,16 +1687,20 @@ def SLLI16_MMR6 : StdMMR6Rel, SLLI16_MMR6_DESC, SLLI16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def SRLI16_MMR6 : StdMMR6Rel, SRLI16_MMR6_DESC, SRLI16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
+/*
 def BREAK16_MMR6 : StdMMR6Rel, BREAK16_MMR6_DESC, BREAK16_MMR6_ENC,
                    ISA_MICROMAXIS32R6;
+*/
 def LI16_MMR6 : StdMMR6Rel, LI16_MMR6_DESC, LI16_MMR6_ENC,
                 ISA_MICROMAXIS32R6;
 def MOVE16_MMR6 : StdMMR6Rel, MOVE16_MMR6_DESC, MOVE16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def MOVEP_MMR6  : StdMMR6Rel, MOVEP_MMR6_DESC, MOVEP_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
+/*                  
 def SDBBP16_MMR6 : StdMMR6Rel, SDBBP16_MMR6_DESC, SDBBP16_MMR6_ENC,
                    ISA_MICROMAXIS32R6;
+*/
 def SUBU16_MMR6 : StdMMR6Rel, SUBU16_MMR6_DESC, SUBU16_MMR6_ENC,
                   ISA_MICROMAXIS32R6;
 def XOR16_MMR6 : StdMMR6Rel, XOR16_MMR6_DESC, XOR16_MMR6_ENC,
@@ -1792,7 +1802,7 @@ def B_MMR6_Pseudo : MaxisAsmPseudoInst<(outs), (ins brtarget_mm:$offset),
   string DecoderNamespace = "MicroMaxisR6";
 }
 def : MaxisInstAlias<"sync", (SYNC_MMR6 0), 1>, ISA_MICROMAXIS32R6;
-def : MaxisInstAlias<"sdbbp", (SDBBP_MMR6 0), 1>, ISA_MICROMAXIS32R6;
+//def : MaxisInstAlias<"sdbbp", (SDBBP_MMR6 0), 1>, ISA_MICROMAXIS32R6;
 def : MaxisInstAlias<"rdhwr $rt, $rs",
                     (RDHWR_MMR6 GPR32Opnd:$rt, HWRegsOpnd:$rs, 0), 1>,
                     ISA_MICROMAXIS32R6;

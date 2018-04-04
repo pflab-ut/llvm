@@ -2052,9 +2052,11 @@ def BREAK : MMRel, StdMMR6Rel, BRK_FT<"break">, BRK_FM<0xd>;
 def SYSCALL : MMRel, SYS_FT<"syscall", uimm20, II_SYSCALL>, SYS_FM<0xc>;
 }
 def TRAP : TrapBase<BREAK>;
+/*
 let AdditionalPredicates = [NotInMicroMaxis] in {
 def SDBBP : MMRel, SYS_FT<"sdbbp", uimm20, II_SDBBP>, SDBBP_FM, ISA_MAXIS32_NOT_32R6_64R6;
 }
+*/
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
   def ERET : MMRel, ER_FT<"eret", II_ERET>, ER_FM<0x18, 0x0>, INSN_MAXIS3_32;
@@ -2662,7 +2664,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def : MaxisInstAlias<"seb $rd", (SEB GPR32Opnd:$rd, GPR32Opnd:$rd), 0>,
                      ISA_MAXIS32R2;
 }
-def : MaxisInstAlias<"sdbbp", (SDBBP 0)>, ISA_MAXIS32_NOT_32R6_64R6;
+//def : MaxisInstAlias<"sdbbp", (SDBBP 0)>, ISA_MAXIS32_NOT_32R6_64R6;
 /*
 def : MaxisInstAlias<"sync",
                     (SYNC 0), 1>, ISA_MAXIS2;

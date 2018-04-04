@@ -139,7 +139,7 @@ def II_ERET             : InstrItinClass;
 def II_DERET            : InstrItinClass;
 def II_ERETNC           : InstrItinClass;
 //def II_EHB              : InstrItinClass;
-def II_SDBBP            : InstrItinClass;
+//def II_SDBBP            : InstrItinClass;
 def II_NOP              : InstrItinClass;
 //def II_SSNOP            : InstrItinClass;
 def II_WI               : InstrItinClass;
@@ -531,7 +531,7 @@ def MaxisGenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   InstrItinData<II_DERET           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_ERETNC          , [InstrStage<1,  [ALU]>]>,
 //  InstrItinData<II_EHB             , [InstrStage<1,  [ALU]>]>,
-  InstrItinData<II_SDBBP           , [InstrStage<1,  [ALU]>]>,
+//  InstrItinData<II_SDBBP           , [InstrStage<1,  [ALU]>]>,
 //  InstrItinData<II_SSNOP           , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_NOP             , [InstrStage<1,  [ALU]>]>,
   InstrItinData<II_WI              , [InstrStage<1,  [ALU]>]>,

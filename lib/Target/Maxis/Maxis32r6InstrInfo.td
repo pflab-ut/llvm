@@ -188,7 +188,7 @@ class SC_R6_ENC : SPECIAL3_LL_SC_FM<OPCODE6_SC>;
 class CLO_R6_ENC : SPECIAL_2R_FM<OPCODE6_CLO>;
 class CLZ_R6_ENC : SPECIAL_2R_FM<OPCODE6_CLZ>;
 
-class SDBBP_R6_ENC : SPECIAL_SDBBP_FM;
+//class SDBBP_R6_ENC : SPECIAL_SDBBP_FM;
 
 //===----------------------------------------------------------------------===//
 //
@@ -795,6 +795,7 @@ class CLZ_R6_DESC_BASE<string instr_asm, RegisterOperand GPROpnd,
 class CLO_R6_DESC : CLO_R6_DESC_BASE<"clo", GPR32Opnd, II_CLO>;
 class CLZ_R6_DESC : CLZ_R6_DESC_BASE<"clz", GPR32Opnd, II_CLZ>;
 
+/*
 class SDBBP_R6_DESC {
   dag OutOperandList = (outs);
   dag InOperandList = (ins uimm20:$code_);
@@ -803,6 +804,7 @@ class SDBBP_R6_DESC {
   bit isCTI = 1;
   InstrItinClass Itinerary = II_SDBBP;
 }
+*/
 
 //===----------------------------------------------------------------------===//
 //
@@ -906,7 +908,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def RINT_D : RINT_D_ENC, RINT_D_DESC, ISA_MAXIS32R6, HARDFLOAT;
   def RINT_S : RINT_S_ENC, RINT_S_DESC, ISA_MAXIS32R6, HARDFLOAT;
   def SC_R6 : SC_R6_ENC, SC_R6_DESC, PTR_32, ISA_MAXIS32R6;
-  def SDBBP_R6 : SDBBP_R6_ENC, SDBBP_R6_DESC, ISA_MAXIS32R6;
+//  def SDBBP_R6 : SDBBP_R6_ENC, SDBBP_R6_DESC, ISA_MAXIS32R6;
   def SELEQZ : R6MMR6Rel, SELEQZ_ENC, SELEQZ_DESC, ISA_MAXIS32R6, GPR_32;
   def SELNEZ : R6MMR6Rel, SELNEZ_ENC, SELNEZ_DESC, ISA_MAXIS32R6, GPR_32;
   def SELEQZ_D : R6MMR6Rel, SELEQZ_D_ENC, SELEQZ_D_DESC, ISA_MAXIS32R6,
@@ -933,7 +935,7 @@ def : MaxisInstAlias<"dvp", (DVP ZERO), 0>, ISA_MAXIS32R6;
 def : MaxisInstAlias<"evp", (EVP ZERO), 0>, ISA_MAXIS32R6;
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
-def : MaxisInstAlias<"sdbbp", (SDBBP_R6 0)>, ISA_MAXIS32R6;
+//def : MaxisInstAlias<"sdbbp", (SDBBP_R6 0)>, ISA_MAXIS32R6;
 def : MaxisInstAlias<"jr $rs", (JALR ZERO, GPR32Opnd:$rs), 1>, ISA_MAXIS32R6, GPR_32;
 }
 

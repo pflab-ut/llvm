@@ -468,10 +468,12 @@ class JumpRegCMM16<string opstr, RegisterOperand RO> :
 }
 
 // Break16 and Sdbbp16
+/*
 class BrkSdbbp16MM<string opstr, InstrItinClass Itin> :
   MicroMaxisInst16<(outs), (ins uimm4:$code_),
                   !strconcat(opstr, "\t$code_"),
                   [], Itin, FrmOther>;
+*/
 
 class CBranchZeroMM<string opstr, DAGOperand opnd, RegisterOperand RO> :
   MicroMaxisInst16<(outs), (ins RO:$rs, opnd:$offset),
@@ -648,10 +650,12 @@ def BEQZ16_MM : CBranchZeroMM<"beqz16", brtarget7_mm, GPRMM16Opnd>,
 def BNEZ16_MM : CBranchZeroMM<"bnez16", brtarget7_mm, GPRMM16Opnd>,
                 BEQNEZ_FM_MM16<0x2b>;
 def B16_MM : UncondBranchMM16<"b16">, B16_FM;
+/*
 def BREAK16_MM : BrkSdbbp16MM<"break16", II_BREAK>, BRKSDBBP16_FM_MM<0x28>,
     ISA_MICROMAXIS_NOT_32R6;
 def SDBBP16_MM : BrkSdbbp16MM<"sdbbp16", II_SDBBP>, BRKSDBBP16_FM_MM<0x2C>,
     ISA_MICROMAXIS_NOT_32R6;
+*/
 
 let DecoderNamespace = "MicroMaxis" in {
   /// Load and Store Instructions - multiple
@@ -998,7 +1002,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
   def TLBWI_MM : MMRel, TLB<"tlbwi", II_TLBWI>, COP0_TLB_FM_MM<0x8d>;
   def TLBWR_MM : MMRel, TLB<"tlbwr", II_TLBWR>, COP0_TLB_FM_MM<0xcd>;
 
-  def SDBBP_MM : MMRel, SYS_FT<"sdbbp", uimm10, II_SDBBP>, SDBBP_FM_MM;
+//  def SDBBP_MM : MMRel, SYS_FT<"sdbbp", uimm10, II_SDBBP>, SDBBP_FM_MM;
 
   def PREFX_MM : PrefetchIndexed<"prefx">, POOL32F_PREFX_FM_MM<0x15, 0x1A0>;
 }
