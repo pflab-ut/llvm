@@ -1895,8 +1895,10 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
               SLTI_FM<0x1a>;
   def SGEi  : MMRel, SetCC_I<"sgei", setge, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x1b>;
+/*              
   def SLTiu : MMRel, SetCC_I<"sltiu", setlt, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0xb>;
+*/              
 }
 let AdditionalPredicates = [NotInMicroMaxis] in {
   /// Arithmetic Instructions (3-Operand, R-Type)
@@ -2568,7 +2570,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"slt", SLTi>, GPR_32;
 
-  defm : OneOrTwoOperandMacroImmediateAlias<"sltu", SLTiu>, GPR_32;
+//  defm : OneOrTwoOperandMacroImmediateAlias<"sltu", SLTiu>, GPR_32;
 }
 /*
 def : MaxisInstAlias<"mfc0 $rt, $rd", (MFC0 GPR32Opnd:$rt, COP0Opnd:$rd, 0), 0>;
@@ -2980,7 +2982,7 @@ def : MaxisPat<(store (i32 0), addr:$dst), (SW ZERO, addr:$dst)>;
 // brcond patterns
 multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BEQOp1,
                       Instruction BNEOp, Instruction SLTOp, Instruction SLTuOp,
-                      Instruction SLTiOp, Instruction SLTiuOp,
+                      Instruction SLTiOp, /* Instruction SLTiuOp, */
                       Register ZEROReg> {
 def : MaxisPat<(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
               (BNEOp RC:$lhs, ZEROReg, bb:$dst)>;
@@ -2993,13 +2995,16 @@ def : MaxisPat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
               (BEQOp1 (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
 def : MaxisPat<(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
               (BEQOp1 (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
+/*
 def : MaxisPat<(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
               (BEQOp1 (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
+*/
 def : MaxisPat<(brcond (i32 (setgt RC:$lhs, immSExt16Plus1:$rhs)), bb:$dst),
               (BEQOp1 (SLTiOp RC:$lhs, (Plus1 imm:$rhs)), ZERO, bb:$dst)>;
+/*
 def : MaxisPat<(brcond (i32 (setugt RC:$lhs, immSExt16Plus1:$rhs)), bb:$dst),
               (BEQOp1 (SLTiuOp RC:$lhs, (Plus1 imm:$rhs)), ZERO, bb:$dst)>;
-
+*/
 def : MaxisPat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
               (BEQOp1 (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
 def : MaxisPat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
@@ -3009,7 +3014,8 @@ def : MaxisPat<(brcond RC:$cond, bb:$dst),
               (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
 }
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  defm : BrcondPats<GPR32, BEQ, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
+  defm : BrcondPats<GPR32, BEQ, BEQ, BNE, SLT, SLTu, SLTi,
+       /* SLTiu, */ ZERO>;
 }
 /*
 def : MaxisPat<(brcond (i32 (setlt i32:$lhs, 1)), bb:$dst),
@@ -3019,14 +3025,19 @@ def : MaxisPat<(brcond (i32 (setgt i32:$lhs, -1)), bb:$dst),
 */
 
 // setcc patterns
-multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
+multiclass SeteqPats<RegisterClass RC, /* Instruction SLTiuOp, */
+           Instruction XOROp,
                      Instruction SLTuOp, Register ZEROReg> {
+/*
   def : MaxisPat<(seteq RC:$lhs, 0),
                 (SLTiuOp RC:$lhs, 1)>;
+*/
   def : MaxisPat<(setne RC:$lhs, 0),
                 (SLTuOp ZEROReg, RC:$lhs)>;
+/*
   def : MaxisPat<(seteq RC:$lhs, RC:$rhs),
                 (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
+*/
   def : MaxisPat<(setne RC:$lhs, RC:$rhs),
                 (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
 }
@@ -3055,19 +3066,21 @@ multiclass SetgePats<RegisterClass RC, Instruction XORiOp, Instruction SLTOp,
 }
 
 multiclass SetgeImmPats<RegisterClass RC, Instruction XORiOp,
-                        Instruction SLTiOp, Instruction SLTiuOp> {
+                        Instruction SLTiOp /*, Instruction SLTiuOp*/> {
   def : MaxisPat<(setge RC:$lhs, immSExt16:$rhs),
                 (XORiOp (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
+/*
   def : MaxisPat<(setuge RC:$lhs, immSExt16:$rhs),
                 (XORiOp (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
+*/
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  defm : SeteqPats<GPR32, SLTiu, XOR, SLTu, ZERO>;
+  defm : SeteqPats<GPR32, /* SLTiu, */ XOR, SLTu, ZERO>;
   defm : SetlePats<GPR32, XORi, SLT, SLTu>;
   defm : SetgtPats<GPR32, SLT, SLTu>;
   defm : SetgePats<GPR32, XORi, SLT, SLTu>;
-  defm : SetgeImmPats<GPR32, XORi, SLTi, SLTiu>;
+  defm : SetgeImmPats<GPR32, XORi, SLTi /*, SLTiu*/>;
 }
 
 // bswap pattern

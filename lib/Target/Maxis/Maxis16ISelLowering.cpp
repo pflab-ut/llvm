@@ -178,14 +178,18 @@ Maxis16TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
     return emitSeliT16(Maxis::Bteqz16, Maxis::CmpiRxImmX16, MI, BB);
   case Maxis::SelTBteqZSlti:
     return emitSeliT16(Maxis::Bteqz16, Maxis::SltiRxImmX16, MI, BB);
+    /*
   case Maxis::SelTBteqZSltiu:
     return emitSeliT16(Maxis::Bteqz16, Maxis::SltiuRxImmX16, MI, BB);
+    */
   case Maxis::SelTBtneZCmpi:
     return emitSeliT16(Maxis::Btnez16, Maxis::CmpiRxImmX16, MI, BB);
   case Maxis::SelTBtneZSlti:
     return emitSeliT16(Maxis::Btnez16, Maxis::SltiRxImmX16, MI, BB);
+    /*
   case Maxis::SelTBtneZSltiu:
     return emitSeliT16(Maxis::Btnez16, Maxis::SltiuRxImmX16, MI, BB);
+    */
   case Maxis::SelTBteqZCmp:
     return emitSelT16(Maxis::Bteqz16, Maxis::CmpRxRy16, MI, BB);
   case Maxis::SelTBteqZSlt:
@@ -218,24 +222,30 @@ Maxis16TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
     Maxis::Bteqz16, Maxis::CmpiRxImm16, Maxis::CmpiRxImmX16, false, MI, BB);
   case Maxis::BteqzT8SltiX16: return emitFEXT_T8I8I16_ins(
     Maxis::Bteqz16, Maxis::SltiRxImm16, Maxis::SltiRxImmX16, true, MI, BB);
+    /*
   case Maxis::BteqzT8SltiuX16: return emitFEXT_T8I8I16_ins(
     Maxis::Bteqz16, Maxis::SltiuRxImm16, Maxis::SltiuRxImmX16, false, MI, BB);
+    */
   case Maxis::BtnezT8CmpiX16: return emitFEXT_T8I8I16_ins(
     Maxis::Btnez16, Maxis::CmpiRxImm16, Maxis::CmpiRxImmX16, false, MI, BB);
   case Maxis::BtnezT8SltiX16: return emitFEXT_T8I8I16_ins(
     Maxis::Btnez16, Maxis::SltiRxImm16, Maxis::SltiRxImmX16, true, MI, BB);
+    /*
   case Maxis::BtnezT8SltiuX16: return emitFEXT_T8I8I16_ins(
     Maxis::Btnez16, Maxis::SltiuRxImm16, Maxis::SltiuRxImmX16, false, MI, BB);
     break;
+    */
   case Maxis::SltCCRxRy16:
     return emitFEXT_CCRX16_ins(Maxis::SltRxRy16, MI, BB);
     break;
   case Maxis::SltiCCRxImmX16:
     return emitFEXT_CCRXI16_ins
       (Maxis::SltiRxImm16, Maxis::SltiRxImmX16, MI, BB);
+    /*
   case Maxis::SltiuCCRxImmX16:
     return emitFEXT_CCRXI16_ins
       (Maxis::SltiuRxImm16, Maxis::SltiuRxImmX16, MI, BB);
+    */
   case Maxis::SltuCCRxRy16:
     return emitFEXT_CCRX16_ins
       (Maxis::SltuRxRy16, MI, BB);

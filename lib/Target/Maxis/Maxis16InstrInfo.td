@@ -659,8 +659,10 @@ def BteqzT8SltuX16: FEXT_T8I816_ins<"bteqz", "sltu">, cbranch16;
 
 def BteqzT8SltiX16: FEXT_T8I8I16_ins<"bteqz", "slti">, cbranch16;
 
+/*
 def BteqzT8SltiuX16: FEXT_T8I8I16_ins<"bteqz", "sltiu">,
   cbranch16;
+*/
 
 //
 // Format: BTNEZ offset MAXIS16e
@@ -686,8 +688,10 @@ def BtnezT8SltuX16: FEXT_T8I816_ins<"btnez", "sltu">, cbranch16;
 
 def BtnezT8SltiX16: FEXT_T8I8I16_ins<"btnez", "slti">, cbranch16;
 
+/*
 def BtnezT8SltiuX16: FEXT_T8I8I16_ins<"btnez", "sltiu">,
   cbranch16;
+*/
 
 //
 // Format: CMP rx, ry MAXIS16e
@@ -1078,7 +1082,7 @@ def SelTBteqZSltu: SelT<"bteqz", "sltu">;
 //          If b==0 then do nothing.
 //          if b!=0 then rd = rs
 //
-def SelTBteqZSltiu: SeliT<"bteqz", "sltiu">;
+//def SelTBteqZSltiu: SeliT<"bteqz", "sltiu">;
 
 //
 // Format: SelBnez rd, rs, rt
@@ -1133,7 +1137,7 @@ def SelTBtneZSltu: SelT<"btnez", "sltu">;
 //          If b!=0 then do nothing.
 //          if b==0 then rd = rs
 //
-def SelTBtneZSltiu: SeliT<"btnez", "sltiu">;
+//def SelTBtneZSltiu: SeliT<"btnez", "sltiu">;
 //
 //
 // Format: SH ry, offset(rx) MAXIS16e
@@ -1183,25 +1187,28 @@ def SltiCCRxImmX16: FEXT_CCRXI16_ins<"slti">;
 // To record the result of a less-than comparison with a constant.
 //
 //
+/*
 def SltiuRxImm16: FRI16R_ins<0b01011, "sltiu", IIM16Alu> {
   let Defs = [T8];
 }
-
+*/
 //
 // Format: SLTI rx, immediate MAXIS16e
 // Purpose: Set on Less Than Immediate Unsigned (Extended)
 // To record the result of a less-than comparison with a constant.
 //
 //
+/*
 def SltiuRxImmX16: FEXT_RI16R_ins<0b01011, "sltiu", IIM16Alu> {
   let Defs = [T8];
 }
+*/
 //
 // Format: SLTIU rx, immediate MAXIS16e
 // Purpose: Set on Less Than Immediate Unsigned (Extended)
 // To record the result of a less-than comparison with a constant.
 //
-def SltiuCCRxImmX16: FEXT_CCRXI16_ins<"sltiu">;
+//def SltiuCCRxImmX16: FEXT_CCRXI16_ins<"sltiu">;
 
 //
 // Format: SLT rx, ry MAXIS16e
@@ -1746,6 +1753,7 @@ def : Maxis16Pat<(select (i32 (setne CPU16Regs:$a, immZExt16:$k)),
 //
 // seteq
 //
+/*
 def : Maxis16Pat
   <(seteq CPU16Regs:$lhs,CPU16Regs:$rhs),
    (SltiuCCRxImmX16 (XorRxRxRy16 CPU16Regs:$lhs, CPU16Regs:$rhs), 1)>;
@@ -1753,7 +1761,7 @@ def : Maxis16Pat
 def : Maxis16Pat
   <(seteq CPU16Regs:$lhs, 0),
    (SltiuCCRxImmX16 CPU16Regs:$lhs, 1)>;
-
+*/
 
 //
 // setge
@@ -1850,7 +1858,7 @@ def: Maxis16Pat
 //
 def: SetCC_R16<setult, SltuCCRxRy16>;
 
-def: SetCC_I16<setult, immSExt16, SltiuCCRxImmX16>;
+//def: SetCC_I16<setult, immSExt16, SltiuCCRxImmX16>;
 
 def: Maxis16Pat<(add CPU16Regs:$hi, (MaxisLo tglobaladdr:$lo)),
                (AddiRxRxImmX16 CPU16Regs:$hi, tglobaladdr:$lo)>;

@@ -691,8 +691,10 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                  ADDI_FM_MM<0x4>;
   def SLTi_MM  : MMRel, SetCC_I<"slti", setlt, simm16, immSExt16, GPR32Opnd>,
                  SLTI_FM_MM<0x24>;
+/*
   def SLTiu_MM : MMRel, SetCC_I<"sltiu", setult, simm16, immSExt16, GPR32Opnd>,
                  SLTI_FM_MM<0x2c>;
+*/
   def ANDi_MM  : MMRel, ArithLogicI<"andi", uimm16, GPR32Opnd, II_ANDI>,
                  ADDI_FM_MM<0x34>;
   def ORi_MM   : MMRel, ArithLogicI<"ori", uimm16, GPR32Opnd, II_ORI, immZExt16,
@@ -1093,13 +1095,13 @@ def : MaxisPat<(i32 (extloadi16 addr:$src)),
               (LHu_MM addr:$src)>;
 
 defm : BrcondPats<GPR32, BEQ_MM, BEQ_MM, BNE_MM, SLT_MM, SLTu_MM, SLTi_MM,
-                  SLTiu_MM, ZERO>;
+                  /*SLTiu_MM,*/ ZERO>;
 
-defm : SeteqPats<GPR32, SLTiu_MM, XOR_MM, SLTu_MM, ZERO>;
+defm : SeteqPats<GPR32, /*SLTiu_MM,*/ XOR_MM, SLTu_MM, ZERO>;
 defm : SetlePats<GPR32, XORi_MM, SLT_MM, SLTu_MM>;
 defm : SetgtPats<GPR32, SLT_MM, SLTu_MM>;
 defm : SetgePats<GPR32, XORi_MM, SLT_MM, SLTu_MM>;
-defm : SetgeImmPats<GPR32, XORi_MM, SLTi_MM, SLTiu_MM>;
+defm : SetgeImmPats<GPR32, XORi_MM, SLTi_MM/*, SLTiu_MM*/>;
 
 //===----------------------------------------------------------------------===//
 // MicroMaxis instruction aliases
@@ -1181,7 +1183,7 @@ let Predicates = [InMicroMaxis] in {
 
   defm : OneOrTwoOperandMacroImmediateAlias<"slt", SLTi_MM>;
 
-  defm : OneOrTwoOperandMacroImmediateAlias<"sltu", SLTiu_MM>;
+//  defm : OneOrTwoOperandMacroImmediateAlias<"sltu", SLTiu_MM>;
 
   def : MaxisInstAlias<"not $rt, $rs",
                       (NOR_MM GPR32Opnd:$rt, GPR32Opnd:$rs, ZERO), 0>;

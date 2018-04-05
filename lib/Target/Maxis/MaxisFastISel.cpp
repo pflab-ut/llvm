@@ -649,7 +649,7 @@ bool MaxisFastISel::emitCmp(unsigned ResultReg, const CmpInst *CI) {
   case CmpInst::ICMP_EQ: {
     unsigned TempReg = createResultReg(&Maxis::GPR32RegClass);
     emitInst(Maxis::XOR, TempReg).addReg(LeftReg).addReg(RightReg);
-    emitInst(Maxis::SLTiu, ResultReg).addReg(TempReg).addImm(1);
+    //    emitInst(Maxis::SLTiu, ResultReg).addReg(TempReg).addImm(1);
     break;
   }
   case CmpInst::ICMP_NE: {

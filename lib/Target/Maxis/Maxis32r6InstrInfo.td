@@ -988,7 +988,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
 // i32 selects
 multiclass SelectInt_Pats<ValueType RC, Instruction OROp, Instruction XORiOp,
-                          Instruction SLTiOp, Instruction SLTiuOp,
+                          Instruction SLTiOp, /* Instruction SLTiuOp,*/
                           Instruction SELEQZOp, Instruction SELNEZOp,
                           SDPatternOperator imm_type, ValueType Opg> {
 // reg, immz
@@ -1009,10 +1009,11 @@ def : MaxisPat<(select (Opg (setne RC:$cond, imm_type:$imm)), RC:$t, RC:$f),
 def : MaxisPat<(select (Opg (setgt RC:$cond, immSExt16Plus1:$imm)), RC:$t, RC:$f),
               (OROp (SELEQZOp RC:$t, (SLTiOp RC:$cond, (Plus1 imm:$imm))),
                     (SELNEZOp RC:$f, (SLTiOp RC:$cond, (Plus1 imm:$imm))))>;
+/*
 def : MaxisPat<(select (Opg (setugt RC:$cond, immSExt16Plus1:$imm)), RC:$t, RC:$f),
               (OROp (SELEQZOp RC:$t, (SLTiuOp RC:$cond, (Plus1 imm:$imm))),
                     (SELNEZOp RC:$f, (SLTiuOp RC:$cond, (Plus1 imm:$imm))))>;
-
+*/
 def : MaxisPat<(select (Opg (seteq RC:$cond, immz)), RC:$t, immz),
               (SELEQZOp RC:$t, RC:$cond)>;
 def : MaxisPat<(select (Opg (setne RC:$cond, immz)), RC:$t, immz),
@@ -1024,7 +1025,7 @@ def : MaxisPat<(select (Opg (setne RC:$cond, immz)), immz, RC:$f),
 }
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
-defm : SelectInt_Pats<i32, OR, XORi, SLTi, SLTiu, SELEQZ, SELNEZ,
+defm : SelectInt_Pats<i32, OR, XORi, SLTi, /*SLTiu,*/ SELEQZ, SELNEZ,
                       immZExt16, i32>, ISA_MAXIS32R6;
 
 def : MaxisPat<(select i32:$cond, i32:$t, i32:$f),

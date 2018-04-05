@@ -2464,15 +2464,17 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
       return MER_NotAMacro;
     }
     return expandAliasImmediate(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    /*
   case Maxis::SLTUImm64:
     if (isInt<16>(Inst.getOperand(2).getImm())) {
       Inst.setOpcode(Maxis::SLTiu64);
       return MER_NotAMacro;
     }
     return expandAliasImmediate(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    */
   case Maxis::ADDi:   case Maxis::ADDi_MM:
   case Maxis::SLTi:   case Maxis::SLTi_MM:
-  case Maxis::SLTiu:  case Maxis::SLTiu_MM:
+    //  case Maxis::SLTiu:  case Maxis::SLTiu_MM:
     if ((Inst.getNumOperands() == 3) && Inst.getOperand(0).isReg() &&
         Inst.getOperand(1).isReg() && Inst.getOperand(2).isImm()) {
       int64_t ImmValue = Inst.getOperand(2).getImm();
@@ -4357,9 +4359,11 @@ bool MaxisAsmParser::expandAliasImmediate(MCInst &Inst, SMLoc IDLoc,
     case Maxis::SLTi:
       FinalOpcode = Maxis::SLT;
       break;
+      /*
     case Maxis::SLTiu:
       FinalOpcode = Maxis::SLTu;
       break;
+      */
     case Maxis::XORi:
       FinalOpcode = Maxis::XOR;
       break;
@@ -4375,9 +4379,11 @@ bool MaxisAsmParser::expandAliasImmediate(MCInst &Inst, SMLoc IDLoc,
     case Maxis::SLTi_MM:
       FinalOpcode = Maxis::SLT_MM;
       break;
+      /*
     case Maxis::SLTiu_MM:
       FinalOpcode = Maxis::SLTu_MM;
       break;
+      */
     case Maxis::XORi_MM:
       FinalOpcode = Maxis::XOR_MM;
       break;
@@ -4880,8 +4886,10 @@ bool MaxisAsmParser::expandSeq(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     TOut.emitRRR(Maxis::XOR, Inst.getOperand(0).getReg(),
                  Inst.getOperand(1).getReg(), Inst.getOperand(2).getReg(),
                  IDLoc, STI);
+    /*
     TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(),
                  Inst.getOperand(0).getReg(), 1, IDLoc, STI);
+    */
     return false;
   }
 
@@ -4891,7 +4899,7 @@ bool MaxisAsmParser::expandSeq(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   } else {
     Reg = Inst.getOperand(1).getReg();
   }
-  TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(), Reg, 1, IDLoc, STI);
+  //  TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(), Reg, 1, IDLoc, STI);
   return false;
 }
 
@@ -4905,8 +4913,10 @@ bool MaxisAsmParser::expandSeqI(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
   unsigned Reg = Inst.getOperand(1).getReg();
 
   if (Imm == 0) {
+    /*
     TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(),
                  Inst.getOperand(1).getReg(), 1, IDLoc, STI);
+    */
     return false;
   } else {
 
@@ -4935,15 +4945,19 @@ bool MaxisAsmParser::expandSeqI(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
     TOut.emitRRR(Maxis::XOR, Inst.getOperand(0).getReg(),
                  Inst.getOperand(1).getReg(), ATReg, IDLoc, STI);
+    /*
     TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(),
                  Inst.getOperand(0).getReg(), 1, IDLoc, STI);
+    */
     return false;
   }
 
   TOut.emitRRI(Opc, Inst.getOperand(0).getReg(), Inst.getOperand(1).getReg(),
                Imm, IDLoc, STI);
+  /*
   TOut.emitRRI(Maxis::SLTiu, Inst.getOperand(0).getReg(),
                Inst.getOperand(0).getReg(), 1, IDLoc, STI);
+  */
   return false;
 }
 

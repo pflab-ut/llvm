@@ -1875,7 +1875,7 @@ def : MaxisPat<(select i32:$cond, immz, i32:$f),
               (SELEQZ_MMR6 i32:$f, i32:$cond)>,
               ISA_MICROMAXIS32R6;
 
-defm : SelectInt_Pats<i32, OR_MM, XORI_MMR6, SLTi_MM, SLTiu_MM, SELEQZ_MMR6,
+defm : SelectInt_Pats<i32, OR_MM, XORI_MMR6, SLTi_MM, /*SLTiu_MM,*/ SELEQZ_MMR6,
                       SELNEZ_MMR6, immZExt16, i32>, ISA_MICROMAXIS32R6;
 
 defm S_MMR6 : Cmp_Pats<f32, NOR_MMR6, ZERO>, ISA_MICROMAXIS32R6;

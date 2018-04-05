@@ -55,16 +55,18 @@ class CMov_F_F_FT<string opstr, RegisterOperand RC, InstrItinClass Itin,
 // select patterns
 multiclass MovzPats0<RegisterClass CRC, RegisterClass DRC,
                      Instruction MOVZInst, Instruction SLTOp,
-                     Instruction SLTuOp, Instruction SLTiOp,
-                     Instruction SLTiuOp> {
+                     Instruction SLTuOp, Instruction SLTiOp/*,
+                     Instruction SLTiuOp*/> {
   def : MaxisPat<(select (i32 (setge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTOp CRC:$lhs, CRC:$rhs), DRC:$F)>;
   def : MaxisPat<(select (i32 (setuge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTuOp CRC:$lhs, CRC:$rhs), DRC:$F)>;
   def : MaxisPat<(select (i32 (setge CRC:$lhs, immSExt16:$rhs)), DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTiOp CRC:$lhs, immSExt16:$rhs), DRC:$F)>;
+/*
   def : MaxisPat<(select (i32 (setuge CRC:$lh, immSExt16:$rh)), DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTiuOp CRC:$lh, immSExt16:$rh), DRC:$F)>;
+*/
   def : MaxisPat<(select (i32 (setle CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTOp CRC:$rhs, CRC:$lhs), DRC:$F)>;
   def : MaxisPat<(select (i32 (setule CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
@@ -72,10 +74,12 @@ multiclass MovzPats0<RegisterClass CRC, RegisterClass DRC,
   def : MaxisPat<(select (i32 (setgt CRC:$lhs, immSExt16Plus1:$rhs)),
                         DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTiOp CRC:$lhs, (Plus1 imm:$rhs)), DRC:$F)>;
+/*
   def : MaxisPat<(select (i32 (setugt CRC:$lhs, immSExt16Plus1:$rhs)),
                         DRC:$T, DRC:$F),
                 (MOVZInst DRC:$T, (SLTiuOp CRC:$lhs, (Plus1 imm:$rhs)),
                           DRC:$F)>;
+*/
 }
 
 multiclass MovzPats1<RegisterClass CRC, RegisterClass DRC,
@@ -196,16 +200,16 @@ let DecoderNamespace = "MaxisFP64" in {
 }
 
 // Instantiation of conditional move patterns.
-defm : MovzPats0<GPR32, GPR32, MOVZ_I_I, SLT, SLTu, SLTi, SLTiu>,
+defm : MovzPats0<GPR32, GPR32, MOVZ_I_I, SLT, SLTu, SLTi/*, SLTiu*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6;
 defm : MovzPats1<GPR32, GPR32, MOVZ_I_I, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
 defm : MovzPats2<GPR32, GPR32, MOVZ_I_I, XORi>, INSN_MAXIS4_32_NOT_32R6_64R6;
 
-defm : MovzPats0<GPR32, GPR64, MOVZ_I_I64, SLT, SLTu, SLTi, SLTiu>,
+defm : MovzPats0<GPR32, GPR64, MOVZ_I_I64, SLT, SLTu, SLTi/*, SLTiu*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
-defm : MovzPats0<GPR64, GPR32, MOVZ_I_I, SLT64, SLTu64, SLTi64, SLTiu64>,
+defm : MovzPats0<GPR64, GPR32, MOVZ_I_I, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
-defm : MovzPats0<GPR64, GPR64, MOVZ_I_I64, SLT64, SLTu64, SLTi64, SLTiu64>,
+defm : MovzPats0<GPR64, GPR64, MOVZ_I_I64, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
 defm : MovzPats1<GPR32, GPR64, MOVZ_I_I64, XOR>,
        INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
@@ -229,28 +233,28 @@ defm : MovnPats<GPR64, GPR32, MOVN_I64_I, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
 defm : MovnPats<GPR64, GPR64, MOVN_I64_I64, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
        GPR_64;
 
-defm : MovzPats0<GPR32, FGR32, MOVZ_I_S, SLT, SLTu, SLTi, SLTiu>,
+defm : MovzPats0<GPR32, FGR32, MOVZ_I_S, SLT, SLTu, SLTi/*, SLTiu*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6;
 defm : MovzPats1<GPR32, FGR32, MOVZ_I_S, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
 defm : MovnPats<GPR32, FGR32, MOVN_I_S, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
 
-defm : MovzPats0<GPR64, FGR32, MOVZ_I_S, SLT64, SLTu64, SLTi64, SLTiu64>,
+defm : MovzPats0<GPR64, FGR32, MOVZ_I_S, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
 defm : MovzPats1<GPR64, FGR32, MOVZ_I64_S, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
        GPR_64;
 defm : MovnPats<GPR64, FGR32, MOVN_I64_S, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
        GPR_64;
 
-defm : MovzPats0<GPR32, AFGR64, MOVZ_I_D32, SLT, SLTu, SLTi, SLTiu>,
+defm : MovzPats0<GPR32, AFGR64, MOVZ_I_D32, SLT, SLTu, SLTi/*, SLTiu*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
 defm : MovzPats1<GPR32, AFGR64, MOVZ_I_D32, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
        FGR_32;
 defm : MovnPats<GPR32, AFGR64, MOVN_I_D32, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
        FGR_32;
 
-defm : MovzPats0<GPR32, FGR64, MOVZ_I_D64, SLT, SLTu, SLTi, SLTiu>,
+defm : MovzPats0<GPR32, FGR64, MOVZ_I_D64, SLT, SLTu, SLTi/*, SLTiu*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
-defm : MovzPats0<GPR64, FGR64, MOVZ_I_D64, SLT64, SLTu64, SLTi64, SLTiu64>,
+defm : MovzPats0<GPR64, FGR64, MOVZ_I_D64, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
        INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
 defm : MovzPats1<GPR32, FGR64, MOVZ_I_D64, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
        FGR_64;

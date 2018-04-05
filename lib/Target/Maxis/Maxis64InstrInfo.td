@@ -102,8 +102,10 @@ def DADDi   : ArithLogicI<"daddi", simm16_64, GPR64Opnd, II_DADDI>,
 let isCodeGenOnly = 1 in {
 def SLTi64  : SetCC_I<"slti", setlt, simm16_64, immSExt16, GPR64Opnd>,
               SLTI_FM<0xa>;
+/*              
 def SLTiu64 : SetCC_I<"sltiu", setult, simm16_64, immSExt16, GPR64Opnd>,
               SLTI_FM<0xb>;
+*/
 def ANDi64 : ArithLogicI<"andi", uimm16_64, GPR64Opnd, II_AND, immZExt16, and>,
              ADDI_FM<0xc>;
 def ORi64   : ArithLogicI<"ori", uimm16_64, GPR64Opnd, II_OR, immZExt16, or>,
@@ -641,7 +643,7 @@ def : WrapperPat<tjumptable, DADDi, GPR64>;
 def : WrapperPat<tglobaltlsaddr, DADDi, GPR64>;
 
 
-defm : BrcondPats<GPR64, BEQ64, BEQ, BNE64, SLT64, SLTu64, SLTi64, SLTiu64,
+defm : BrcondPats<GPR64, BEQ64, BEQ, BNE64, SLT64, SLTu64, SLTi64, /*SLTiu64,*/
                   ZERO_64>;
 def : MaxisPat<(brcond (i32 (setlt i64:$lhs, 1)), bb:$dst),
               (BLEZ64 i64:$lhs, bb:$dst)>;
@@ -650,11 +652,11 @@ def : MaxisPat<(brcond (i32 (setgt i64:$lhs, -1)), bb:$dst),
 
 // setcc patterns
 let AdditionalPredicates = [NotInMicroMaxis] in {
-  defm : SeteqPats<GPR64, SLTiu64, XOR64, SLTu64, ZERO_64>;
+  defm : SeteqPats<GPR64, /*SLTiu64,*/ XOR64, SLTu64, ZERO_64>;
   defm : SetlePats<GPR64, XORi, SLT64, SLTu64>;
   defm : SetgtPats<GPR64, SLT64, SLTu64>;
   defm : SetgePats<GPR64, XORi, SLT64, SLTu64>;
-  defm : SetgeImmPats<GPR64, XORi, SLTi64, SLTiu64>;
+  defm : SetgeImmPats<GPR64, XORi, SLTi64/*, SLTiu64*/>;
 }
 // truncate
 def : MaxisPat<(trunc (assertsext GPR64:$src)),

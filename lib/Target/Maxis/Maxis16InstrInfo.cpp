@@ -162,12 +162,12 @@ unsigned Maxis16InstrInfo::getOppositeBranchOpc(unsigned Opc) const {
   case Maxis::BtnezX16: return Maxis::BteqzX16;
   case Maxis::BtnezT8CmpiX16: return Maxis::BteqzT8CmpiX16;
   case Maxis::BtnezT8SltuX16: return Maxis::BteqzT8SltuX16;
-  case Maxis::BtnezT8SltiuX16: return Maxis::BteqzT8SltiuX16;
+    //  case Maxis::BtnezT8SltiuX16: return Maxis::BteqzT8SltiuX16;
   case Maxis::Bteqz16: return Maxis::Btnez16;
   case Maxis::BteqzX16: return Maxis::BtnezX16;
   case Maxis::BteqzT8CmpiX16: return Maxis::BtnezT8CmpiX16;
   case Maxis::BteqzT8SltuX16: return Maxis::BtnezT8SltuX16;
-  case Maxis::BteqzT8SltiuX16: return Maxis::BtnezT8SltiuX16;
+    //  case Maxis::BteqzT8SltiuX16: return Maxis::BtnezT8SltiuX16;
   case Maxis::BtnezT8CmpX16: return Maxis::BteqzT8CmpX16;
   case Maxis::BtnezT8SltX16: return Maxis::BteqzT8SltX16;
   case Maxis::BtnezT8SltiX16: return Maxis::BteqzT8SltiX16;
@@ -432,11 +432,12 @@ unsigned Maxis16InstrInfo::getAnalyzableBrOpc(unsigned Opc) const {
           Opc == Maxis::BnezRxImmX16   || Opc == Maxis::BteqzX16 ||
           Opc == Maxis::BteqzT8CmpX16  || Opc == Maxis::BteqzT8CmpiX16 ||
           Opc == Maxis::BteqzT8SltX16  || Opc == Maxis::BteqzT8SltuX16  ||
-          Opc == Maxis::BteqzT8SltiX16 || Opc == Maxis::BteqzT8SltiuX16 ||
+          Opc == Maxis::BteqzT8SltiX16 || /* Opc == Maxis::BteqzT8SltiuX16 || */
           Opc == Maxis::BtnezX16       || Opc == Maxis::BtnezT8CmpX16 ||
           Opc == Maxis::BtnezT8CmpiX16 || Opc == Maxis::BtnezT8SltX16 ||
-          Opc == Maxis::BtnezT8SltuX16 || Opc == Maxis::BtnezT8SltiX16 ||
-          Opc == Maxis::BtnezT8SltiuX16 ) ? Opc : 0;
+          Opc == Maxis::BtnezT8SltuX16 || Opc == Maxis::BtnezT8SltiX16
+          /* || Opc == Maxis::BtnezT8SltiuX16 */
+          ) ? Opc : 0;
 }
 
 void Maxis16InstrInfo::ExpandRetRA16(MachineBasicBlock &MBB,

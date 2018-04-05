@@ -211,6 +211,7 @@ def : MaxisPat<
                   (SUBREG_TO_REG (i64 0), (SLTi64 i64:$cond, (Plus1 imm:$imm)),
                                  sub_32)))>,
   ISA_MAXIS64R6;
+/*  
 def : MaxisPat<
   (select (i32 (setugt i64:$cond, immSExt16Plus1:$imm)), i64:$t, i64:$f),
   (OR64 (SELEQZ64 i64:$t,
@@ -220,7 +221,7 @@ def : MaxisPat<
                   (SUBREG_TO_REG (i64 0), (SLTiu64 i64:$cond, (Plus1 imm:$imm)),
                                  sub_32)))>,
   ISA_MAXIS64R6;
-
+*/
 def : MaxisPat<(select (i32 (setne i64:$cond, immz)), i64:$t, immz),
               (SELNEZ64 i64:$t, i64:$cond)>, ISA_MAXIS64R6;
 def : MaxisPat<(select (i32 (seteq i64:$cond, immz)), i64:$t, immz),
