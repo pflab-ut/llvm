@@ -1893,9 +1893,9 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
               SLTI_FM<0x19>;
   def SLTi  : MMRel, SetCC_I<"slti", setlt, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x1a>;
-  def SGEi  : MMRel, SetCC_I<"sgei", setlt, simm16, immSExt16, GPR32Opnd>,
+  def SGEi  : MMRel, SetCC_I<"sgei", setge, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x1b>;
-  def SLTiu : MMRel, SetCC_I<"sltiu", setult, simm16, immSExt16, GPR32Opnd>,
+  def SLTiu : MMRel, SetCC_I<"sltiu", setlt, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0xb>;
 }
 let AdditionalPredicates = [NotInMicroMaxis] in {
