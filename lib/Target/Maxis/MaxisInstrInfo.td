@@ -1896,7 +1896,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def SGEi  : MMRel, SetCC_I<"sgei", setge, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0x1b>;
 /*              
-  def SLTiu : MMRel, SetCC_I<"sltiu", setlt, simm16, immSExt16, GPR32Opnd>,
+  def SLTiu : MMRel, SetCC_I<"sltiu", setult, simm16, immSExt16, GPR32Opnd>,
               SLTI_FM<0xb>;
 */              
 }
