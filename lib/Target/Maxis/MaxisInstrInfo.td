@@ -2246,7 +2246,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 // instructions. The same not happens for stack address copies, so an
 // add op with mem ComplexPattern is used and the stack address copy
 // can be matched. It's similar to Sparc LEA_ADDRi
-def LEA_ADDi : MMRel, EffectiveAddress<"addi", GPR32Opnd>, LW_FM<9>;
+def LEA_ADDi : MMRel, EffectiveAddress<"addi", GPR32Opnd>, LW_FM<0x11>;
 
 // MADD*/MSUB*
 /*
