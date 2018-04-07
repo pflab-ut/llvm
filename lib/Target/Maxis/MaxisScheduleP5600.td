@@ -36,9 +36,9 @@ def P5600IssueALU : ProcResource<1> { let Super = P5600ALQ; }
 
 def P5600WriteALU : SchedWriteRes<[P5600IssueALU]>;
 
-// and, lui, nor, or, slti, sltiu, sub, subu, xor
+// and, lui, cati, nor, or, slti, sltiu, sub, subu, xor
 def : ItinRW<[P5600WriteALU],
-             [II_AND, II_LUI, II_NOR, II_OR, II_SLTI_SLTIU, II_SUB, II_SUBU,
+             [II_AND, II_LUI, II_CATI, II_NOR, II_OR, II_SLTI_SLTIU, II_SUB, II_SUBU,
               II_XOR]>;
 
 // AGQ Pipelines
