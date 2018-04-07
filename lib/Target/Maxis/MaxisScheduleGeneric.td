@@ -39,12 +39,12 @@ def GenericIssueALU : ProcResource<1> { let Super = GenericALU; }
 
 def GenericWriteALU : SchedWriteRes<[GenericIssueALU]>;
 
-// and, lui, nor, or, slti, sltiu, sub, subu, xor
+// and, lui, cati, nor, or, slti, sltiu, sub, subu, xor
 // add, addi, andi, ori, rotr, se[bh], sll?, sr[al]v?, slt, sltu,
 // xori
 def : ItinRW<[GenericWriteALU], [II_ADD, /* II_ADDU, */ II_ADDI, II_ANDI,
                                  II_AND, II_ANDI, II_CLO, II_CLZ, II_EXT,
-                                 II_INS, II_LUI, II_MULT, II_MULTU, II_NOR,
+                                 II_INS, II_LUI, II_CATI, II_MULT, II_MULTU, II_NOR,
                                  II_ORI, II_OR, II_ROTR, II_ROTRV, II_SEB,
                                  II_SEH, II_SLTI_SLTIU, II_SLT_SLTU, II_SLLI,
                                  II_SRAI, II_SRLI, II_SLL, II_SRA, II_SRL,
@@ -56,6 +56,7 @@ def : InstRW<[GenericWriteALU], (instrs COPY)>;
 def GenericMDU : ProcResource<1> { let BufferSize = 1; }
 def GenericIssueMDU : ProcResource<1> { let Super = GenericALU; }
 def GenericIssueDIV : ProcResource<1> { let Super = GenericMDU; }
+def GenericIssueREM : ProcResource<1> { let Super = GenericMDU; }
 def GenericWriteHILO : SchedWriteRes<[GenericIssueMDU]>;
 def GenericWriteALULong : SchedWriteRes<[GenericIssueALU]> { let Latency = 5; }
 def GenericWriteMove : SchedWriteRes<[GenericIssueALU]> { let Latency = 2; }
@@ -82,6 +83,21 @@ def GenericWriteDIVU : SchedWriteRes<[GenericIssueDIV]> {
 def : ItinRW<[GenericWriteDIV], [II_DIV]>;
 
 def : ItinRW<[GenericWriteDIVU], [II_DIVU]>;
+
+def GenericWriteREM : SchedWriteRes<[GenericIssueREM]> {
+  // Estimated worst case
+  let Latency = 33;
+  let ResourceCycles = [1, 33];
+}
+def GenericWriteREMU : SchedWriteRes<[GenericIssueREM]> {
+  // Estimated worst case
+  let Latency = 31;
+  let ResourceCycles = [1, 31];
+}
+
+def : ItinRW<[GenericWriteREM], [II_REM]>;
+
+def : ItinRW<[GenericWriteREMU], [II_REMU]>;
 
 // MAXIS64
 // ======
