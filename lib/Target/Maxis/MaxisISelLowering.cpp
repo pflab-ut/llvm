@@ -4289,10 +4289,11 @@ MachineBasicBlock *MaxisTargetLowering::emitPseudoSELECT(MachineInstr &MI,
                                                         MachineBasicBlock *BB,
                                                         bool isFPCmp,
                                                         unsigned Opc) const {
+  /*
   assert(!(Subtarget.hasMaxis4() || Subtarget.hasMaxis32()) &&
          "Subtarget already supports SELECT nodes with the use of"
          "conditional-move instructions.");
-
+  */
   const TargetInstrInfo *TII =
       Subtarget.getInstrInfo();
   DebugLoc DL = MI.getDebugLoc();

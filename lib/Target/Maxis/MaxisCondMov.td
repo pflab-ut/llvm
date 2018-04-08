@@ -109,160 +109,160 @@ multiclass MovnPats<RegisterClass CRC, RegisterClass DRC, Instruction MOVNInst,
 
 // Instantiation of instructions.
 def MOVZ_I_I : MMRel, CMov_I_I_FT<"movz", GPR32Opnd, GPR32Opnd, II_MOVZ>,
-               ADD_FM<0, 0xa>, INSN_MAXIS4_32_NOT_32R6_64R6;
+               ADD_FM<0, 0xa>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in {
   def MOVZ_I_I64   : CMov_I_I_FT<"movz", GPR32Opnd, GPR64Opnd, II_MOVZ>,
-                     ADD_FM<0, 0xa>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xa>, ISA_MAXIS1_NOT_4_32;
   def MOVZ_I64_I   : CMov_I_I_FT<"movz", GPR64Opnd, GPR32Opnd, II_MOVZ>,
-                     ADD_FM<0, 0xa>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xa>, ISA_MAXIS1_NOT_4_32;
   def MOVZ_I64_I64 : CMov_I_I_FT<"movz", GPR64Opnd, GPR64Opnd, II_MOVZ>,
-                     ADD_FM<0, 0xa>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xa>, ISA_MAXIS1_NOT_4_32;
 }
 
 def MOVN_I_I       : MMRel, CMov_I_I_FT<"movn", GPR32Opnd, GPR32Opnd, II_MOVN>,
-                     ADD_FM<0, 0xb>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xb>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in {
   def MOVN_I_I64   : CMov_I_I_FT<"movn", GPR32Opnd, GPR64Opnd, II_MOVN>,
-                     ADD_FM<0, 0xb>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xb>, ISA_MAXIS1_NOT_4_32;
   def MOVN_I64_I   : CMov_I_I_FT<"movn", GPR64Opnd, GPR32Opnd, II_MOVN>,
-                     ADD_FM<0, 0xb>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xb>, ISA_MAXIS1_NOT_4_32;
   def MOVN_I64_I64 : CMov_I_I_FT<"movn", GPR64Opnd, GPR64Opnd, II_MOVN>,
-                     ADD_FM<0, 0xb>, INSN_MAXIS4_32_NOT_32R6_64R6;
+                     ADD_FM<0, 0xb>, ISA_MAXIS1_NOT_4_32;
 }
 
 def MOVZ_I_S : MMRel, CMov_I_F_FT<"movz.s", GPR32Opnd, FGR32Opnd, II_MOVZ_S>,
-               CMov_I_F_FM<18, 16>, INSN_MAXIS4_32_NOT_32R6_64R6;
+               CMov_I_F_FM<18, 16>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in
 def MOVZ_I64_S : CMov_I_F_FT<"movz.s", GPR64Opnd, FGR32Opnd, II_MOVZ_S>,
-                 CMov_I_F_FM<18, 16>, INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+                 CMov_I_F_FM<18, 16>, ISA_MAXIS1_NOT_4_32, GPR_64;
 
 def MOVN_I_S : MMRel, CMov_I_F_FT<"movn.s", GPR32Opnd, FGR32Opnd, II_MOVN_S>,
-               CMov_I_F_FM<19, 16>, INSN_MAXIS4_32_NOT_32R6_64R6;
+               CMov_I_F_FM<19, 16>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in
 def MOVN_I64_S : CMov_I_F_FT<"movn.s", GPR64Opnd, FGR32Opnd, II_MOVN_S>,
-                 CMov_I_F_FM<19, 16>, INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+                 CMov_I_F_FM<19, 16>, ISA_MAXIS1_NOT_4_32, GPR_64;
 
 def MOVZ_I_D32 : MMRel, CMov_I_F_FT<"movz.d", GPR32Opnd, AFGR64Opnd,
                                     II_MOVZ_D>, CMov_I_F_FM<18, 17>,
-                 INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
+                 ISA_MAXIS1_NOT_4_32, FGR_32;
 def MOVN_I_D32 : MMRel, CMov_I_F_FT<"movn.d", GPR32Opnd, AFGR64Opnd,
                                     II_MOVN_D>, CMov_I_F_FM<19, 17>,
-                 INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
+                 ISA_MAXIS1_NOT_4_32, FGR_32;
 
 let DecoderNamespace = "MaxisFP64" in {
   def MOVZ_I_D64 : CMov_I_F_FT<"movz.d", GPR32Opnd, FGR64Opnd, II_MOVZ_D>,
-                   CMov_I_F_FM<18, 17>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                   CMov_I_F_FM<18, 17>, ISA_MAXIS1_NOT_4_32, FGR_64;
   def MOVN_I_D64 : CMov_I_F_FT<"movn.d", GPR32Opnd, FGR64Opnd, II_MOVN_D>,
-                   CMov_I_F_FM<19, 17>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                   CMov_I_F_FM<19, 17>, ISA_MAXIS1_NOT_4_32, FGR_64;
   let isCodeGenOnly = 1 in {
     def MOVZ_I64_D64 : CMov_I_F_FT<"movz.d", GPR64Opnd, FGR64Opnd, II_MOVZ_D>,
-                       CMov_I_F_FM<18, 17>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                       CMov_I_F_FM<18, 17>, ISA_MAXIS1_NOT_4_32, FGR_64;
     def MOVN_I64_D64 : CMov_I_F_FT<"movn.d", GPR64Opnd, FGR64Opnd, II_MOVN_D>,
-                       CMov_I_F_FM<19, 17>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                       CMov_I_F_FM<19, 17>, ISA_MAXIS1_NOT_4_32, FGR_64;
   }
 }
 
 def MOVT_I : MMRel, CMov_F_I_FT<"movt", GPR32Opnd, II_MOVT, MaxisCMovFP_T>,
-             CMov_F_I_FM<1>, INSN_MAXIS4_32_NOT_32R6_64R6;
+             CMov_F_I_FM<1>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in
 def MOVT_I64 : CMov_F_I_FT<"movt", GPR64Opnd, II_MOVT, MaxisCMovFP_T>,
-               CMov_F_I_FM<1>, INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+               CMov_F_I_FM<1>, ISA_MAXIS1_NOT_4_32, GPR_64;
 
 def MOVF_I : MMRel, CMov_F_I_FT<"movf", GPR32Opnd, II_MOVF, MaxisCMovFP_F>,
-             CMov_F_I_FM<0>, INSN_MAXIS4_32_NOT_32R6_64R6;
+             CMov_F_I_FM<0>, ISA_MAXIS1_NOT_4_32;
 
 let isCodeGenOnly = 1 in
 def MOVF_I64 : CMov_F_I_FT<"movf", GPR64Opnd, II_MOVF, MaxisCMovFP_F>,
-               CMov_F_I_FM<0>, INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+               CMov_F_I_FM<0>, ISA_MAXIS1_NOT_4_32, GPR_64;
 
 def MOVT_S : MMRel, CMov_F_F_FT<"movt.s", FGR32Opnd, II_MOVT_S, MaxisCMovFP_T>,
-             CMov_F_F_FM<16, 1>, INSN_MAXIS4_32_NOT_32R6_64R6;
+             CMov_F_F_FM<16, 1>, ISA_MAXIS1_NOT_4_32;
 def MOVF_S : MMRel, CMov_F_F_FT<"movf.s", FGR32Opnd, II_MOVF_S, MaxisCMovFP_F>,
-             CMov_F_F_FM<16, 0>, INSN_MAXIS4_32_NOT_32R6_64R6;
+             CMov_F_F_FM<16, 0>, ISA_MAXIS1_NOT_4_32;
 
 def MOVT_D32 : MMRel, CMov_F_F_FT<"movt.d", AFGR64Opnd, II_MOVT_D,
                                   MaxisCMovFP_T>, CMov_F_F_FM<17, 1>,
-               INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
+               ISA_MAXIS1_NOT_4_32, FGR_32;
 def MOVF_D32 : MMRel, CMov_F_F_FT<"movf.d", AFGR64Opnd, II_MOVF_D,
                                   MaxisCMovFP_F>, CMov_F_F_FM<17, 0>,
-               INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
+               ISA_MAXIS1_NOT_4_32, FGR_32;
 
 let DecoderNamespace = "MaxisFP64" in {
   def MOVT_D64 : CMov_F_F_FT<"movt.d", FGR64Opnd, II_MOVT_D, MaxisCMovFP_T>,
-                 CMov_F_F_FM<17, 1>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                 CMov_F_F_FM<17, 1>, ISA_MAXIS1_NOT_4_32, FGR_64;
   def MOVF_D64 : CMov_F_F_FT<"movf.d", FGR64Opnd, II_MOVF_D, MaxisCMovFP_F>,
-                 CMov_F_F_FM<17, 0>, INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+                 CMov_F_F_FM<17, 0>, ISA_MAXIS1_NOT_4_32, FGR_64;
 }
 
 // Instantiation of conditional move patterns.
 defm : MovzPats0<GPR32, GPR32, MOVZ_I_I, SLT, SLTu, SLTi/*, SLTiu*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6;
-defm : MovzPats1<GPR32, GPR32, MOVZ_I_I, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
-defm : MovzPats2<GPR32, GPR32, MOVZ_I_I, XORi>, INSN_MAXIS4_32_NOT_32R6_64R6;
+       ISA_MAXIS1_NOT_4_32;
+defm : MovzPats1<GPR32, GPR32, MOVZ_I_I, XOR>, ISA_MAXIS1_NOT_4_32;
+defm : MovzPats2<GPR32, GPR32, MOVZ_I_I, XORi>, ISA_MAXIS1_NOT_4_32;
 
 defm : MovzPats0<GPR32, GPR64, MOVZ_I_I64, SLT, SLTu, SLTi/*, SLTiu*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats0<GPR64, GPR32, MOVZ_I_I, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats0<GPR64, GPR64, MOVZ_I_I64, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats1<GPR32, GPR64, MOVZ_I_I64, XOR>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats1<GPR64, GPR32, MOVZ_I64_I, XOR64>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats1<GPR64, GPR64, MOVZ_I64_I64, XOR64>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats2<GPR32, GPR64, MOVZ_I_I64, XORi>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats2<GPR64, GPR32, MOVZ_I64_I, XORi64>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 defm : MovzPats2<GPR64, GPR64, MOVZ_I64_I64, XORi64>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
+       ISA_MAXIS1_NOT_4_32, GPR_64;
 
-defm : MovnPats<GPR32, GPR32, MOVN_I_I, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
+defm : MovnPats<GPR32, GPR32, MOVN_I_I, XOR>, ISA_MAXIS1_NOT_4_32;
 
-defm : MovnPats<GPR32, GPR64, MOVN_I_I64, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR32, GPR64, MOVN_I_I64, XOR>, ISA_MAXIS1_NOT_4_32,
        GPR_64;
-defm : MovnPats<GPR64, GPR32, MOVN_I64_I, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR64, GPR32, MOVN_I64_I, XOR64>, ISA_MAXIS1_NOT_4_32,
        GPR_64;
-defm : MovnPats<GPR64, GPR64, MOVN_I64_I64, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR64, GPR64, MOVN_I64_I64, XOR64>, ISA_MAXIS1_NOT_4_32,
        GPR_64;
 
 defm : MovzPats0<GPR32, FGR32, MOVZ_I_S, SLT, SLTu, SLTi/*, SLTiu*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6;
-defm : MovzPats1<GPR32, FGR32, MOVZ_I_S, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
-defm : MovnPats<GPR32, FGR32, MOVN_I_S, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6;
+       ISA_MAXIS1_NOT_4_32;
+defm : MovzPats1<GPR32, FGR32, MOVZ_I_S, XOR>, ISA_MAXIS1_NOT_4_32;
+defm : MovnPats<GPR32, FGR32, MOVN_I_S, XOR>, ISA_MAXIS1_NOT_4_32;
 
 defm : MovzPats0<GPR64, FGR32, MOVZ_I_S, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, GPR_64;
-defm : MovzPats1<GPR64, FGR32, MOVZ_I64_S, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
+       ISA_MAXIS1_NOT_4_32, GPR_64;
+defm : MovzPats1<GPR64, FGR32, MOVZ_I64_S, XOR64>, ISA_MAXIS1_NOT_4_32,
        GPR_64;
-defm : MovnPats<GPR64, FGR32, MOVN_I64_S, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR64, FGR32, MOVN_I64_S, XOR64>, ISA_MAXIS1_NOT_4_32,
        GPR_64;
 
 defm : MovzPats0<GPR32, AFGR64, MOVZ_I_D32, SLT, SLTu, SLTi/*, SLTiu*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, FGR_32;
-defm : MovzPats1<GPR32, AFGR64, MOVZ_I_D32, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
+       ISA_MAXIS1_NOT_4_32, FGR_32;
+defm : MovzPats1<GPR32, AFGR64, MOVZ_I_D32, XOR>, ISA_MAXIS1_NOT_4_32,
        FGR_32;
-defm : MovnPats<GPR32, AFGR64, MOVN_I_D32, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR32, AFGR64, MOVN_I_D32, XOR>, ISA_MAXIS1_NOT_4_32,
        FGR_32;
 
 defm : MovzPats0<GPR32, FGR64, MOVZ_I_D64, SLT, SLTu, SLTi/*, SLTiu*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
+       ISA_MAXIS1_NOT_4_32, FGR_64;
 defm : MovzPats0<GPR64, FGR64, MOVZ_I_D64, SLT64, SLTu64, SLTi64/*, SLTiu64*/>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
-defm : MovzPats1<GPR32, FGR64, MOVZ_I_D64, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
+       ISA_MAXIS1_NOT_4_32, FGR_64;
+defm : MovzPats1<GPR32, FGR64, MOVZ_I_D64, XOR>, ISA_MAXIS1_NOT_4_32,
        FGR_64;
 defm : MovzPats1<GPR64, FGR64, MOVZ_I64_D64, XOR64>,
-       INSN_MAXIS4_32_NOT_32R6_64R6, FGR_64;
-defm : MovnPats<GPR32, FGR64, MOVN_I_D64, XOR>, INSN_MAXIS4_32_NOT_32R6_64R6,
+       ISA_MAXIS1_NOT_4_32, FGR_64;
+defm : MovnPats<GPR32, FGR64, MOVN_I_D64, XOR>, ISA_MAXIS1_NOT_4_32,
        FGR_64;
-defm : MovnPats<GPR64, FGR64, MOVN_I64_D64, XOR64>, INSN_MAXIS4_32_NOT_32R6_64R6,
+defm : MovnPats<GPR64, FGR64, MOVN_I64_D64, XOR64>, ISA_MAXIS1_NOT_4_32,
        FGR_64;
 
 // For targets that don't have conditional-move instructions
@@ -271,17 +271,17 @@ let usesCustomInserter = 1 in {
   class Select_Pseudo<RegisterOperand RC> :
     PseudoSE<(outs RC:$dst), (ins GPR32Opnd:$cond, RC:$T, RC:$F),
             [(set RC:$dst, (select GPR32Opnd:$cond, RC:$T, RC:$F))]>,
-    ISA_MAXIS1_NOT_4_32;
+    INSN_MAXIS4_32_NOT_32R6_64R6;
 
   class SelectFP_Pseudo_T<RegisterOperand RC> :
     PseudoSE<(outs RC:$dst), (ins FCCRegsOpnd:$cond, RC:$T, RC:$F),
              [(set RC:$dst, (MaxisCMovFP_T RC:$T, FCCRegsOpnd:$cond, RC:$F))]>,
-    ISA_MAXIS1_NOT_4_32;
+    INSN_MAXIS4_32_NOT_32R6_64R6;
 
   class SelectFP_Pseudo_F<RegisterOperand RC> :
     PseudoSE<(outs RC:$dst), (ins FCCRegsOpnd:$cond, RC:$T, RC:$F),
              [(set RC:$dst, (MaxisCMovFP_F RC:$T, FCCRegsOpnd:$cond, RC:$F))]>,
-    ISA_MAXIS1_NOT_4_32;
+    INSN_MAXIS4_32_NOT_32R6_64R6;
 }
 
 def PseudoSELECT_I : Select_Pseudo<GPR32Opnd>;
