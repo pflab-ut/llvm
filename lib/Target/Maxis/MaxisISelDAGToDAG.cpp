@@ -236,7 +236,7 @@ void MaxisDAGToDAGISel::Select(SDNode *Node) {
   case ISD::GLOBAL_OFFSET_TABLE:
     ReplaceNode(Node, getGlobalBaseReg());
     return;
-
+    /*
 #ifndef NDEBUG
   case ISD::LOAD:
   case ISD::STORE:
@@ -246,6 +246,7 @@ void MaxisDAGToDAGISel::Select(SDNode *Node) {
            "Unexpected unaligned loads/stores.");
     break;
 #endif
+    */
   }
 
   // Select the default instruction

@@ -226,8 +226,10 @@ bool isMaxisBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
   case Maxis::LDC1:
   case Maxis::LL:
   case Maxis::LL_R6:
+    /*
   case Maxis::LWL:
   case Maxis::LWR:
+    */
     *AddrIdx = 1;
     return true;
 
@@ -237,8 +239,10 @@ bool isMaxisBasePlusOffsetMemoryAccess(unsigned Opcode, unsigned *AddrIdx,
   case Maxis::SW:
   case Maxis::SWC1:
   case Maxis::SDC1:
+    /*
   case Maxis::SWL:
   case Maxis::SWR:
+    */
     *AddrIdx = 1;
     if (IsStore)
       *IsStore = true;

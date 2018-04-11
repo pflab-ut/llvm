@@ -806,6 +806,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
   def LWXS_MM : LoadWordIndexedScaledMM<"lwxs", GPR32Opnd>, LWXS_FM_MM<0x118>;
 
   /// Load and Store Instructions - unaligned
+  /*
   def LWL_MM : LoadLeftRightMM<"lwl", MaxisLWL, GPR32Opnd, mem_mm_12, II_LWL>,
                LWL_FM_MM<0x0>;
   def LWR_MM : LoadLeftRightMM<"lwr", MaxisLWR, GPR32Opnd, mem_mm_12, II_LWR>,
@@ -826,6 +827,7 @@ let DecoderNamespace = "MicroMaxis", Predicates = [InMicroMaxis] in {
                                    II_SWRE>,
                   POOL32C_STEVA_LDEVA_FM_MM<0xa, 0x1>, ISA_MAXIS1_NOT_32R6_64R6;
   }
+  */               
 
   /// Load and Store Instructions - multiple
   def SWM32_MM  : StoreMultMM<"swm32", II_SWM>, LWM_FM_MM<0xd>;

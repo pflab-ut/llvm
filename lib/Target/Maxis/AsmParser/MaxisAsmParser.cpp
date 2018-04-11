@@ -2452,9 +2452,11 @@ MaxisAsmParser::tryExpandInstruction(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
     return expandUlh(Inst, false, IDLoc, Out, STI) ? MER_Fail : MER_Success;
   case Maxis::Ush:
     return expandUsh(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    /*
   case Maxis::Ulw:
   case Maxis::Usw:
     return expandUxw(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
+    */
   case Maxis::NORImm:
   case Maxis::NORImm64:
     return expandAliasImmediate(Inst, IDLoc, Out, STI) ? MER_Fail : MER_Success;
@@ -4259,10 +4261,10 @@ bool MaxisAsmParser::expandUsh(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
 bool MaxisAsmParser::expandUxw(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
                               const MCSubtargetInfo *STI) {
+  /*
   if (hasMaxis32r6() || hasMaxis64r6()) {
     return Error(IDLoc, "instruction not supported on maxis32r6 or maxis64r6");
   }
-
   const MCOperand &DstRegOp = Inst.getOperand(0);
   assert(DstRegOp.isReg() && "expected register operand kind");
   const MCOperand &SrcRegOp = Inst.getOperand(1);
@@ -4308,7 +4310,7 @@ bool MaxisAsmParser::expandUxw(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 
   if (DoMove)
     TOut.emitRRR(Maxis::OR, TmpReg, DstReg, Maxis::ZERO, IDLoc, STI);
-
+  */
   return false;
 }
 

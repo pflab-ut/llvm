@@ -26,7 +26,7 @@
 using namespace llvm;
 
 MaxisSEInstrInfo::MaxisSEInstrInfo(const MaxisSubtarget &STI)
-    : MaxisInstrInfo(STI, STI.isPositionIndependent() ? Maxis::BEQ : Maxis::J),
+  : MaxisInstrInfo(STI, STI.isPositionIndependent() ? Maxis::BEQ : Maxis::J),
       RI() {}
 
 const MaxisRegisterInfo &MaxisSEInstrInfo::getRegisterInfo() const {

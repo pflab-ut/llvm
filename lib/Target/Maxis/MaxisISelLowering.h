@@ -244,11 +244,13 @@ class TargetRegisterClass;
       VEXTRACT_ZEXT_ELT,
 
       // Load/Store Left/Right nodes.
+        /*
       LWL = ISD::FIRST_TARGET_MEMORY_OPCODE,
       LWR,
       SWL,
       SWR,
-      LDL,
+        */
+      LDL = ISD::FIRST_TARGET_MEMORY_OPCODE,
       LDR,
       SDL,
       SDR

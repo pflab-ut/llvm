@@ -228,10 +228,12 @@ const char *MaxisTargetLowering::getTargetNodeName(unsigned Opcode) const {
   case MaxisISD::Ext:               return "MaxisISD::Ext";
   case MaxisISD::Ins:               return "MaxisISD::Ins";
   case MaxisISD::CIns:              return "MaxisISD::CIns";
+    /*
   case MaxisISD::LWL:               return "MaxisISD::LWL";
   case MaxisISD::LWR:               return "MaxisISD::LWR";
   case MaxisISD::SWL:               return "MaxisISD::SWL";
   case MaxisISD::SWR:               return "MaxisISD::SWR";
+    */
   case MaxisISD::LDL:               return "MaxisISD::LDL";
   case MaxisISD::LDR:               return "MaxisISD::LDR";
   case MaxisISD::SDL:               return "MaxisISD::SDL";
@@ -1245,8 +1247,8 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
   case ISD::SHL_PARTS:          return lowerShiftLeftParts(Op, DAG);
   case ISD::SRA_PARTS:          return lowerShiftRightParts(Op, DAG, true);
   case ISD::SRL_PARTS:          return lowerShiftRightParts(Op, DAG, false);
-  case ISD::LOAD:               return lowerLOAD(Op, DAG);
-  case ISD::STORE:              return lowerSTORE(Op, DAG);
+    //  case ISD::LOAD:               return lowerLOAD(Op, DAG);
+    //  case ISD::STORE:              return lowerSTORE(Op, DAG);
   case ISD::EH_DWARF_CFA:       return lowerEH_DWARF_CFA(Op, DAG);
   case ISD::FP_TO_SINT:         return lowerFP_TO_SINT(Op, DAG);
   }
@@ -2531,6 +2533,8 @@ static SDValue createLoadLR(unsigned Opc, SelectionDAG &DAG, LoadSDNode *LD,
 
 // Expand an unaligned 32 or 64-bit integer load node.
 SDValue MaxisTargetLowering::lowerLOAD(SDValue Op, SelectionDAG &DAG) const {
+  return Op;
+  /*
   LoadSDNode *LD = cast<LoadSDNode>(Op);
   EVT MemVT = LD->getMemoryVT();
 
@@ -2592,6 +2596,7 @@ SDValue MaxisTargetLowering::lowerLOAD(SDValue Op, SelectionDAG &DAG) const {
   SDValue SRLi = DAG.getNode(ISD::SRL, DL, MVT::i64, SLLi, Const32);
   SDValue Ops[] = { SRLi, LWR.getValue(1) };
   return DAG.getMergeValues(Ops, DL);
+  */
 }
 
 static SDValue createStoreLR(unsigned Opc, SelectionDAG &DAG, StoreSDNode *SD,
@@ -2613,6 +2618,7 @@ static SDValue createStoreLR(unsigned Opc, SelectionDAG &DAG, StoreSDNode *SD,
 // Expand an unaligned 32 or 64-bit integer store node.
 static SDValue lowerUnalignedIntStore(StoreSDNode *SD, SelectionDAG &DAG,
                                       bool IsLittle) {
+  /*
   SDValue Value = SD->getValue(), Chain = SD->getChain();
   EVT VT = Value.getValueType();
 
@@ -2637,6 +2643,7 @@ static SDValue lowerUnalignedIntStore(StoreSDNode *SD, SelectionDAG &DAG,
   //  (sdr val, baseptr)
   SDValue SDL = createStoreLR(MaxisISD::SDL, DAG, SD, Chain, IsLittle ? 7 : 0);
   return createStoreLR(MaxisISD::SDR, DAG, SD, SDL, IsLittle ? 0 : 7);
+  */
 }
 
 // Lower (store (fp_to_sint $fp) $ptr) to (store (TruncIntFP $fp), $ptr).
@@ -2659,11 +2666,12 @@ SDValue MaxisTargetLowering::lowerSTORE(SDValue Op, SelectionDAG &DAG) const {
   EVT MemVT = SD->getMemoryVT();
 
   // Lower unaligned integer stores.
+  /*
   if (!Subtarget.systemSupportsUnalignedAccess() &&
       (SD->getAlignment() < MemVT.getSizeInBits() / 8) &&
       ((MemVT == MVT::i32) || (MemVT == MVT::i64)))
     return lowerUnalignedIntStore(SD, DAG, Subtarget.isLittle());
-
+  */
   return lowerFP_TO_SINT_STORE(SD, DAG);
 }
 

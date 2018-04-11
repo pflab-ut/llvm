@@ -196,12 +196,14 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
 
 
 /// load/store left/right
+/*
 let isCodeGenOnly = 1 in {
 def LWL64 : LoadLeftRight<"lwl", MaxisLWL, GPR64Opnd, II_LWL>, LW_FM<0x22>;
 def LWR64 : LoadLeftRight<"lwr", MaxisLWR, GPR64Opnd, II_LWR>, LW_FM<0x26>;
 def SWL64 : StoreLeftRight<"swl", MaxisSWL, GPR64Opnd, II_SWL>, LW_FM<0x2a>;
 def SWR64 : StoreLeftRight<"swr", MaxisSWR, GPR64Opnd, II_SWR>, LW_FM<0x2e>;
 }
+*/
 
 def LDL   : LoadLeftRight<"ldl", MaxisLDL, GPR64Opnd, II_LDL>, LW_FM<0x1a>,
             ISA_MAXIS3_NOT_32R6_64R6;

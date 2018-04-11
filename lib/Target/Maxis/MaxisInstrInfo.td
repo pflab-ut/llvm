@@ -142,6 +142,7 @@ def MaxisExt :  SDNode<"MaxisISD::Ext", SDT_Ext>;
 def MaxisIns :  SDNode<"MaxisISD::Ins", SDT_Ins>;
 def MaxisCIns : SDNode<"MaxisISD::CIns", SDT_Ext>;
 
+/*
 def MaxisLWL : SDNode<"MaxisISD::LWL", SDTMaxisLoadLR,
                      [SDNPHasChain, SDNPMayLoad, SDNPMemOperand]>;
 def MaxisLWR : SDNode<"MaxisISD::LWR", SDTMaxisLoadLR,
@@ -150,6 +151,7 @@ def MaxisSWL : SDNode<"MaxisISD::SWL", SDTStore,
                      [SDNPHasChain, SDNPMayStore, SDNPMemOperand]>;
 def MaxisSWR : SDNode<"MaxisISD::SWR", SDTStore,
                      [SDNPHasChain, SDNPMayStore, SDNPMemOperand]>;
+*/                     
 def MaxisLDL : SDNode<"MaxisISD::LDL", SDTMaxisLoadLR,
                      [SDNPHasChain, SDNPMayLoad, SDNPMemOperand]>;
 def MaxisLDR : SDNode<"MaxisISD::LDR", SDTMaxisLoadLR,
@@ -1990,36 +1992,38 @@ def SW  : Store<"sw", GPR32Opnd, store, II_SW>, MMRel, LW_FM<0x3a>;
 }
 
 /// load/store left/right
+/*
 let EncodingPredicates = []<Predicate>, // FIXME: Lack of HasStdEnc is probably a bug
     AdditionalPredicates = [NotInMicroMaxis] in {
-def LWL : LoadLeftRight<"lwl", MaxisLWL, GPR32Opnd, II_LWL>, LW_FM<0x2f>,
+def LWL : LoadLeftRight<"lwl", MaxisLWL, GPR32Opnd, II_LWL>, LW_FM<0b000111>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def LWR : LoadLeftRight<"lwr", MaxisLWR, GPR32Opnd, II_LWR>, LW_FM<0x2f>,
+def LWR : LoadLeftRight<"lwr", MaxisLWR, GPR32Opnd, II_LWR>, LW_FM<0b101001>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def SWL : StoreLeftRight<"swl", MaxisSWL, GPR32Opnd, II_SWL>, LW_FM<0x2f>,
+def SWL : StoreLeftRight<"swl", MaxisSWL, GPR32Opnd, II_SWL>, LW_FM<0b101010>,
           ISA_MAXIS1_NOT_32R6_64R6;
-def SWR : StoreLeftRight<"swr", MaxisSWR, GPR32Opnd, II_SWR>, LW_FM<0x2f>,
+def SWR : StoreLeftRight<"swr", MaxisSWR, GPR32Opnd, II_SWR>, LW_FM<0b101011>,
           ISA_MAXIS1_NOT_32R6_64R6;
 }
+*/
 
 let AdditionalPredicates = [NotInMicroMaxis] in {
 // COP2 Memory Instructions
-def LWC2 : StdMMR6Rel, LW_FT2<"lwc2", COP2Opnd, II_LWC2, load>, LW_FM<0x2f>,
+def LWC2 : StdMMR6Rel, LW_FT2<"lwc2", COP2Opnd, II_LWC2, load>, LW_FM<0b100000>,
            ISA_MAXIS1_NOT_32R6_64R6;
 def SWC2 : StdMMR6Rel, SW_FT2<"swc2", COP2Opnd, II_SWC2, store>,
-           LW_FM<0x2f>, ISA_MAXIS1_NOT_32R6_64R6;
-def LDC2 : StdMMR6Rel, LW_FT2<"ldc2", COP2Opnd, II_LDC2, load>, LW_FM<0x2f>,
+           LW_FM<0b100001>, ISA_MAXIS1_NOT_32R6_64R6;
+def LDC2 : StdMMR6Rel, LW_FT2<"ldc2", COP2Opnd, II_LDC2, load>, LW_FM<0b100010>,
            ISA_MAXIS2_NOT_32R6_64R6;
 def SDC2 : StdMMR6Rel, SW_FT2<"sdc2", COP2Opnd, II_SDC2, store>,
-           LW_FM<0x2f>, ISA_MAXIS2_NOT_32R6_64R6;
+           LW_FM<0b100011>, ISA_MAXIS2_NOT_32R6_64R6;
 
 // COP3 Memory Instructions
 let DecoderNamespace = "COP3_" in {
-  def LWC3 : LW_FT3<"lwc3", COP3Opnd, II_LWC3, load>, LW_FM<0x2f>;
-  def SWC3 : SW_FT3<"swc3", COP3Opnd, II_SWC3, store>, LW_FM<0x2f>;
-  def LDC3 : LW_FT3<"ldc3", COP3Opnd, II_LDC3, load>, LW_FM<0x2f>,
+  def LWC3 : LW_FT3<"lwc3", COP3Opnd, II_LWC3, load>, LW_FM<0b100100>;
+  def SWC3 : SW_FT3<"swc3", COP3Opnd, II_SWC3, store>, LW_FM<0b100101>;
+  def LDC3 : LW_FT3<"ldc3", COP3Opnd, II_LDC3, load>, LW_FM<0b100110>,
              ISA_MAXIS2;
-  def SDC3 : SW_FT3<"sdc3", COP3Opnd, II_SDC3, store>, LW_FM<0x2f>,
+  def SDC3 : SW_FT3<"sdc3", COP3Opnd, II_SDC3, store>, LW_FM<0b100111>,
              ISA_MAXIS2;
 }
 
@@ -2384,7 +2388,7 @@ class CacheOp<string instr_asm, Operand MemOpnd,
   let DecoderMethod = "DecodeCacheOp";
 }
 
-def CACHE : MMRel, CacheOp<"cache", mem, II_CACHE>, CACHEOP_FM<0b101111>,
+def CACHE : MMRel, CacheOp<"cache", mem, II_CACHE>, CACHEOP_FM<0b100111>,
             INSN_MAXIS3_32_NOT_32R6_64R6;
 def PREF :  MMRel, CacheOp<"pref", mem, II_PREF>, CACHEOP_FM<0b110011>,
             INSN_MAXIS3_32_NOT_32R6_64R6;
