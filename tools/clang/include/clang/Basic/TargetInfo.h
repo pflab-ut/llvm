@@ -331,7 +331,7 @@ public:
   unsigned getBoolAlign() const { return BoolAlign; }
 
   unsigned getCharWidth() const { return 8; } // FIXME
-  unsigned getCharAlign() const { return 8; } // FIXME
+  virtual unsigned getCharAlign() const { return 8; } // FIXME
 
   /// \brief Return the size of 'signed short' and 'unsigned short' for this
   /// target, in bits.
@@ -339,7 +339,7 @@ public:
 
   /// \brief Return the alignment of 'signed short' and 'unsigned short' for
   /// this target.
-  unsigned getShortAlign() const { return 16; } // FIXME
+  virtual unsigned getShortAlign() const { return 16; } // FIXME
 
   /// getIntWidth/Align - Return the size of 'signed int' and 'unsigned int' for
   /// this target, in bits.
