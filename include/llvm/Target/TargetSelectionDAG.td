@@ -366,7 +366,7 @@ def or         : SDNode<"ISD::OR"        , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def xor        : SDNode<"ISD::XOR"       , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
-def xnor       : SDNode<"ISD::XNOR"      , SDTIntBinOp,
+def _xnor       : SDNode<"ISD::XNOR"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
 def nand       : SDNode<"ISD::NAND"      , SDTIntBinOp,
                         [SDNPCommutative, SDNPAssociative]>;
