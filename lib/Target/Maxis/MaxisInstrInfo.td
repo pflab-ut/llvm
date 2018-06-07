@@ -1941,7 +1941,7 @@ let AdditionalPredicates = [NotInMicroMaxis] in {
   def NAND  : MMRel, StdMMR6Rel, ArithLogicR<"nand", GPR32Opnd, 1, II_NAND, nand>,
               ADD_FM<0x5, 0x1c>;
   def NOR   : MMRel, StdMMR6Rel, LogicNOR<"nor", GPR32Opnd>, ADD_FM<0x5, 0x1d>;
-  def XNOR  : MMRel, StdMMR6Rel, ArithLogicR<"xnor", GPR32Opnd, 1, II_XNOR, xnor>,
+  def XNOR  : MMRel, StdMMR6Rel, ArithLogicR<"xnor", GPR32Opnd, 1, II_XNOR, _xnor>,
               ADD_FM<0x5, 0x1e>;
 }
 
