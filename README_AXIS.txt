@@ -1,7 +1,8 @@
-AXISバックエンドの実装方法とノウハウについて
+AXISバックエンドの実装方法について
+文責：東京大学 千代 浩之
 
 [はじめに]
-- ベースのLLVMのバージョンは6.0.0
+- 利用したLLVMのバージョンは6.0.0
 - MIPSのバックエンドをベースに実装
 
 
@@ -30,7 +31,7 @@ if (Config->EMachine == EM_MAXIS)という形に書く
 Mips.cpp -> Maxis.cpp
 
 
-[バックエンド]
+[バックエンドの実装方法]
 
 過去のLLVMのコミットログが参考になる．
 https://github.com/pflab-ut/llvm/commits/master
