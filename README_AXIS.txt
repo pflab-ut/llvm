@@ -13,6 +13,12 @@ MIPS依存コードを全て除去すればAXISという名前でも大丈夫かもしれない．
 AXISをMAXISとして説明する．
 
 
+[コンパイル方法]
+```
+./build.sh
+```
+
+
 [バックエンド&フロントエンド共通]
 http://releases.llvm.org/からLLVM/Clang/LLDをダウンロードする．
 ClangとLLDはllvm/tools/以下に配置．

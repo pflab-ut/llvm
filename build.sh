@@ -12,18 +12,18 @@ cmake \
     ..
 
 
-#    -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-#    -DLLVM_OPTIMIZED_TABLEGEN=ON \
-
-#    -DLLVM_TARGETS_TO_BUILD="Maxis" \
-#    -DLLVM_TARGETS_TO_BUILD="Axis" \
-#    -DLLVM_TARGETS_TO_BUILD="Axis;Mips;X86" \
+# build compiler
 #    -DCMAKE_C_COMPILER=/usr/bin/clang \
 #    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
 
-#    -DLLVM_BUILD_TOOLS=OFF \
-#    -DLLVM_APPEND_VC_REV=OFF \
-#    -DLLVM_INCLUDE_TOOLS=OFF \
+# build type
+#    -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
+
+# build target (if all, do not set LLVM_TARGETS_TO_BUILD)
+#    -DLLVM_TARGETS_TO_BUILD="Maxis" \
+#    -DLLVM_TARGETS_TO_BUILD="Axis" \
+#    -DLLVM_TARGETS_TO_BUILD="Axis;Mips;X86" \
+
 
 make -j`grep -c processor /proc/cpuinfo` 
 
