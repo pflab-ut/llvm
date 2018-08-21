@@ -827,7 +827,7 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
     // Pattern match EXT.
     //  $dst = and ((srai or srli) $src , pos), (2**size - 1)
     //  => ext $dst, $src, pos, size
-    
+    /*
     // The second operand of the shift must be an immediate.
     if (!(CN = dyn_cast<ConstantSDNode>(FirstOperand.getOperand(1))))
       return SDValue();
@@ -841,6 +841,7 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
 
     Opc = MaxisISD::Ext;
     NewOperand = FirstOperand.getOperand(0);
+    */
   } else if (FirstOperandOpc == ISD::SHL && Subtarget.hasCnMaxis()) {
     // Pattern match CINS.
     //  $dst = and (shl $src , pos), mask
