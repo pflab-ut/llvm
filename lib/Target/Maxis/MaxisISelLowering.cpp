@@ -821,10 +821,13 @@ static SDValue performANDCombine(SDNode *N, SelectionDAG &DAG,
     return SDValue();
 
   if (FirstOperandOpc == ISD::SRA || FirstOperandOpc == ISD::SRL) {
+    /* do not use the following code to avoid generating uncorrect code .*/
+    return SDValue();
+    
     // Pattern match EXT.
     //  $dst = and ((srai or srli) $src , pos), (2**size - 1)
     //  => ext $dst, $src, pos, size
-
+    
     // The second operand of the shift must be an immediate.
     if (!(CN = dyn_cast<ConstantSDNode>(FirstOperand.getOperand(1))))
       return SDValue();
