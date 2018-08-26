@@ -1188,8 +1188,10 @@ SDValue  MaxisTargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
   case MaxisISD::CMovFP_F:
   case MaxisISD::CMovFP_T:
     return performCMovFPCombine(N, DAG, DCI, Subtarget);
+    /*
   case ISD::AND:
     return performANDCombine(N, DAG, DCI, Subtarget);
+    */
   case ISD::OR:
     return performORCombine(N, DAG, DCI, Subtarget);
   case ISD::ADD:
